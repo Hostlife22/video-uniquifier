@@ -12,22 +12,22 @@
   "implementation_sha256_at_start": "77db749ccb021e22d18a4475a3ed5c2f19fcfe882e899aad57bc7cec567028d5",
   "input": ".perf/fixture_720p.mp4",
   "out": ".perf/out.mp4",
-  "output_size_bytes": 12462711,
+  "output_size_bytes": 12537515,
   "per_phase_sec": {
-    "concat": 0.18,
-    "main_audio": 2.63,
-    "segment": 29.72,
-    "validation": 0.93
+    "concat": 0.16,
+    "main_audio": 2.61,
+    "segment": 24.22,
+    "validation": 0.69
   },
   "platform": "Linux-x86_64",
   "py_version": "3.12.14",
   "rss_method": "psutil_process_tree_sum_100ms",
-  "rss_peak_kb": 437520,
+  "rss_peak_kb": 437768,
   "schema_version": 1,
   "segments_seen": 1,
   "size_bytes": 9455923,
-  "size_ratio": 1.317979,
-  "wall_sec": 36.14,
+  "size_ratio": 1.32589,
+  "wall_sec": 29.99,
   "workers": 2,
   "yt_uniquifier_version": "1.6.0"
 }
