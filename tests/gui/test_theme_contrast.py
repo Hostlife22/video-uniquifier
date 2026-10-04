@@ -1,7 +1,7 @@
 """v0.7.0 R7 — WCAG-AA contrast regression for theme tokens.
 
 E4 (v0.7.0 R1) moved every status-badge / KPI-pill hex into
-``yt_uniquifier.gui.theme.{DARK_TOKENS,LIGHT_TOKENS}`` so theme switches
+``video_uniquifier.gui.theme.{DARK_TOKENS,LIGHT_TOKENS}`` so theme switches
 no longer leak hardcoded colours.  This test guards the *other* half
 of E4: every foreground / background **pair** the GUI actually paints
 must clear WCAG 2.1 AA contrast (≥ 4.5:1 for normal text).
@@ -19,7 +19,7 @@ from __future__ import annotations
 
 import pytest
 
-from yt_uniquifier.gui.theme import DARK_TOKENS, LIGHT_TOKENS
+from video_uniquifier.gui.theme import DARK_TOKENS, LIGHT_TOKENS
 
 # WCAG 2.1 SC 1.4.3 Level AA for normal-size text.  Large text (≥18pt
 # bold or ≥24pt regular) only needs 3.0:1, but we don't render anything
@@ -134,7 +134,7 @@ def test_contrast_ratio_is_symmetric() -> None:
 
 
 def test_hex_parser_rejects_short_form() -> None:
-    """`#fff` is a real CSS shorthand but every yt-uniquifier token is
+    """`#fff` is a real CSS shorthand but every video-uniquifier token is
     long form — a stray `#abc` could quietly resolve to a different
     colour than the author intended, so the parser is strict."""
     with pytest.raises(ValueError, match="expected 7-char"):

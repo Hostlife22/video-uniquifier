@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from yt_uniquifier.core.models import HDRInfo
-from yt_uniquifier.core.transforms.hdr_wrap import (
+from video_uniquifier.core.models import HDRInfo
+from video_uniquifier.core.transforms.hdr_wrap import (
     is_color_transform,
     needs_linear_wrap,
     npl_for,

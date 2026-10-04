@@ -2,7 +2,7 @@
 
 > Reworked in v0.8.0 R2.
 
-The corpus is `yt-uniquifier`'s local index of "videos I might be a
+The corpus is `video-uniquifier`'s local index of "videos I might be a
 near-duplicate of." It backs the QA report's `cid_predict` step:
 fingerprints (chromaprint hash + pHash sequence) of every output are
 matched against every corpus entry, and the highest similarity surfaces
@@ -10,7 +10,7 @@ as `match_probability_corpus`.
 
 v0.7 stored the index as a single `index.json` file. That was fine to
 ~5k entries; past that, every lookup scanned the file and concurrent
-writers (two `yt-uniq run` instances on the same NAS, or `yt-uniq batch`
+writers (two `video-uniq run` instances on the same NAS, or `video-uniq batch`
 with multiple workers) raced the rewrite. v0.8.0 swaps the backing
 store to SQLite while keeping the v0.7 public API (`Corpus.add`,
 `Corpus.remove`, `Corpus.list_all`, `Corpus.search_match`) bit-for-bit
@@ -26,11 +26,11 @@ compatible.
 └── index.json.migrated.<ts>   # one-shot backup of pre-v0.8.0 store
 ```
 
-`<corpus-dir>` defaults to `~/.cache/yt_uniquifier/corpus/` (override
+`<corpus-dir>` defaults to `~/.cache/video_uniquifier/corpus/` (override
 with `--corpus-dir`). The SQLite file is opened in
 [WAL mode](https://www.sqlite.org/wal.html) so reads never block on a
 writer holding the lock; cross-process writers serialise via
-`BEGIN IMMEDIATE` so two `yt-uniq batch` workers on the same shared
+`BEGIN IMMEDIATE` so two `video-uniq batch` workers on the same shared
 filesystem cannot interleave a partial insert.
 
 Fingerprint sequences (chromaprint uint32 frames, pHash uint64 frames)
@@ -49,9 +49,9 @@ purged).
 For scripted control (CI corpus snapshots, NAS deployments):
 
 ```bash
-yt-uniq corpus migrate --dry-run            # report counts, write nothing
-yt-uniq corpus migrate                      # explicit migration pass
-yt-uniq corpus migrate --corpus-dir /mnt/x  # alternative location
+video-uniq corpus migrate --dry-run            # report counts, write nothing
+video-uniq corpus migrate                      # explicit migration pass
+video-uniq corpus migrate --corpus-dir /mnt/x  # alternative location
 ```
 
 The command is idempotent: re-running after a successful migration is
@@ -60,10 +60,10 @@ a no-op that reports the current SQLite count.
 ## CLI subcommands
 
 ```bash
-yt-uniq corpus add <video> [--name NAME]    # ingest a reference video
-yt-uniq corpus list [--limit N]             # tabular listing
-yt-uniq corpus remove <id>                  # delete one entry by id
-yt-uniq corpus migrate [...]                # see above
+video-uniq corpus add <video> [--name NAME]    # ingest a reference video
+video-uniq corpus list [--limit N]             # tabular listing
+video-uniq corpus remove <id>                  # delete one entry by id
+video-uniq corpus migrate [...]                # see above
 ```
 
 All commands accept `--corpus-dir <path>` to override the default
@@ -71,7 +71,7 @@ location.
 
 ## Public API
 
-`yt_uniquifier.core.qa.corpus.Corpus` is a thin facade over
+`video_uniquifier.core.qa.corpus.Corpus` is a thin facade over
 `CorpusDB`. Existing v0.7 code that imports `Corpus` keeps working —
 nothing inside it sees SQLite.
 
@@ -79,9 +79,9 @@ For new code that wants direct database access (bulk imports, custom
 queries) use `CorpusDB`:
 
 ```python
-from yt_uniquifier.core.qa.corpus_db import CorpusDB, CorpusEntry
+from video_uniquifier.core.qa.corpus_db import CorpusDB, CorpusEntry
 
-with CorpusDB(Path("/var/yt-uniq/corpus")) as db:
+with CorpusDB(Path("/var/video-uniq/corpus")) as db:
     db.add_entry(CorpusEntry(
         id="2026-canonical-001",
         path=Path("/media/Source A.mkv"),
@@ -130,7 +130,7 @@ content metadata the next time they are ingested.
 
 ## Concurrency
 
-* **Multi-process safe.** Two `yt-uniq` invocations sharing the same
+* **Multi-process safe.** Two `video-uniq` invocations sharing the same
   corpus directory will not corrupt the index. Writers serialise via
   `BEGIN IMMEDIATE`; readers never block.
 * **Multi-thread safe.** The `RLock` allows reentrant access from the
@@ -146,7 +146,7 @@ entries on a laptop SSD:
 
 * Cold `Corpus.search_match`: ~80 ms (vs ~9 s with the JSON scan).
 * `add_entry`: ~3 ms (vs full-file rewrite, ~1.2 s).
-* Concurrent writers from 4 `yt-uniq batch` workers: no observed
+* Concurrent writers from 4 `video-uniq batch` workers: no observed
   contention beyond the `BEGIN IMMEDIATE` queue depth.
 
 For corpora past ~500k entries the pHash similarity loop dominates;
@@ -156,7 +156,7 @@ that's a separate optimisation (see `core/qa/cid_predict.py`).
 
 * **`index.json` is malformed.** Auto-migration logs the parse error
   and leaves SQLite empty; the file is **not** renamed (so you can fix
-  it and retry). `yt-uniq corpus migrate --dry-run` will surface the
+  it and retry). `video-uniq corpus migrate --dry-run` will surface the
   same error explicitly.
 * **SQLite file is read-only.** `Corpus.add` raises `PipelineError`
   with the underlying `OperationalError` chained — no silent swallow.

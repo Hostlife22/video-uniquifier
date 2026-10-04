@@ -8,7 +8,7 @@ from typing import Any
 import pytest
 from PIL import Image
 
-from yt_uniquifier.core.qa import phash as phash_mod
+from video_uniquifier.core.qa import phash as phash_mod
 
 
 def _solid_image(color: tuple[int, int, int], size: int = 256) -> Image.Image:

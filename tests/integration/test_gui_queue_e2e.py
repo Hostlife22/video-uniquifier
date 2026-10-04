@@ -19,8 +19,8 @@ def app():
 
 def test_queue_screen_buttons_initial_state(app, qtbot) -> None:
     """init/add/start should be disabled until queue root is picked."""
-    from yt_uniquifier.gui.screens.queue import QueueScreen
-    from yt_uniquifier.gui.state import AppState
+    from video_uniquifier.gui.screens.queue import QueueScreen
+    from video_uniquifier.gui.state import AppState
 
     state = AppState()
     screen = QueueScreen(state)
@@ -36,8 +36,8 @@ def test_queue_screen_pick_root_enables_actions(app, qtbot, tmp_path: Path,
     """Picking a root via _pick_root enables init/add buttons."""
     from PyQt6.QtWidgets import QFileDialog
 
-    from yt_uniquifier.gui.screens.queue import QueueScreen
-    from yt_uniquifier.gui.state import AppState
+    from video_uniquifier.gui.screens.queue import QueueScreen
+    from video_uniquifier.gui.state import AppState
 
     queue_root = tmp_path / "queue"
     queue_root.mkdir()

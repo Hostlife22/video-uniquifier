@@ -5,7 +5,7 @@ the explanation of this proposal. The owner authorized expedited implementation;
 this records an explicit owner exception to the normal review window/decision
 procedure, not two invented reviewer approvals. Existing RFC #11/#12 are unchanged.
 Release class: additive MINOR. This does not reopen approved RFC #11/#12.
-Tracking: https://github.com/Hostlife22/yt_uniquifier/issues/21
+Tracking: https://github.com/Hostlife22/video-uniquifier/issues/21
 
 Implementation details: `--loudness` is opt-in (no hidden full-audio scan by
 default); `--min-vmaf`, `--min-ssim`, `--quality-domain raw|registered` set the

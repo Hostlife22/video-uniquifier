@@ -7,8 +7,8 @@ from pathlib import Path
 
 import pytest
 
-from yt_uniquifier.core.qa import quality as quality_mod
-from yt_uniquifier.core.qa.quality import quality_score
+from video_uniquifier.core.qa import quality as quality_mod
+from video_uniquifier.core.qa.quality import quality_score
 
 
 @dataclass

@@ -7,8 +7,8 @@ from pathlib import Path
 import pytest
 from PIL import Image
 
-from yt_uniquifier.core.errors import PipelineError
-from yt_uniquifier.core.qa import cid_predict, phash
+from video_uniquifier.core.errors import PipelineError
+from video_uniquifier.core.qa import cid_predict, phash
 
 
 def test_long_predict_uses_compact_hashes_without_changing_sampling(monkeypatch):

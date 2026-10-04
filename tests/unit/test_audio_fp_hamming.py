@@ -10,7 +10,7 @@ import base64
 from pathlib import Path
 from unittest.mock import patch
 
-from yt_uniquifier.core.qa.audio_fp import (
+from video_uniquifier.core.qa.audio_fp import (
     AudioFPHamming,
     _hamming_per_frame,
     compare_hamming,
@@ -55,7 +55,7 @@ def test_unavailable_when_fpcalc_missing(tmp_path: Path) -> None:
     in_p.touch()
     out_p = tmp_path / "b.wav"
     out_p.touch()
-    with patch("yt_uniquifier.core.qa.audio_fp.fpcalc_available", return_value=False):
+    with patch("video_uniquifier.core.qa.audio_fp.fpcalc_available", return_value=False):
         result = compare_hamming(in_p, out_p)
     assert result.available is False
     assert result.hamming_per_frame is None
@@ -97,8 +97,8 @@ def test_compare_hamming_with_mocked_fpcalc(tmp_path: Path) -> None:
     # Frame 0: 0xFFFFFFFF ^ 0xFFFFFFFF = 0 → 0 bits
     # Frame 1: 0x00000000 ^ 0xFFFFFFFF = 0xFFFFFFFF → 32 bits
     # Mean: (0 + 32) / 2 = 16.0
-    with patch("yt_uniquifier.core.qa.audio_fp.fpcalc_available", return_value=True), patch(
-        "yt_uniquifier.core.qa.audio_fp._run_fpcalc",
+    with patch("video_uniquifier.core.qa.audio_fp.fpcalc_available", return_value=True), patch(
+        "video_uniquifier.core.qa.audio_fp._run_fpcalc",
         side_effect=[{"fingerprint": fp_a}, {"fingerprint": fp_b}],
     ):
         result = compare_hamming(in_p, out_p)

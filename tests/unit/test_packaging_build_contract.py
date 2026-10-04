@@ -9,19 +9,19 @@ ROOT = Path(__file__).parents[2]
 
 def test_desktop_bundle_excludes_opt_in_runtime_stacks() -> None:
     """Installed developer extras must not silently inflate release bundles."""
-    spec = (ROOT / "pyinstaller" / "yt-uniq-gui.spec").read_text(encoding="utf-8")
+    spec = (ROOT / "pyinstaller" / "video-uniq-gui.spec").read_text(encoding="utf-8")
     for package in ("torch", "torchvision", "cv2", "scenedetect", "fastapi"):
         assert f'"{package}"' in spec
 
 
 def test_macos_bundle_uses_package_version_metadata() -> None:
-    spec = (ROOT / "pyinstaller" / "yt-uniq-gui.spec").read_text(encoding="utf-8")
-    assert 'APP_VERSION = version("yt-uniquifier")' in spec
-    assert 'copy_metadata("yt-uniquifier")' in spec
+    spec = (ROOT / "pyinstaller" / "video-uniq-gui.spec").read_text(encoding="utf-8")
+    assert 'APP_VERSION = version("video-uniquifier")' in spec
+    assert 'copy_metadata("video-uniquifier")' in spec
     assert '"CFBundleShortVersionString": APP_VERSION' in spec
     assert '"CFBundleVersion": APP_VERSION' in spec
 
 
 def test_make_build_is_noninteractive_and_repeatable() -> None:
     makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
-    assert "PyInstaller pyinstaller/yt-uniq-gui.spec --clean --noconfirm" in makefile
+    assert "PyInstaller pyinstaller/video-uniq-gui.spec --clean --noconfirm" in makefile

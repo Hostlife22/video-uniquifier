@@ -1,7 +1,7 @@
 """v1.1.0 Task 13: structured logging + Task 14: run_id correlation.
 
 Verifies that:
-  * the configured renderer emits JSON when ``YT_UNIQ_LOG_FORMAT=json``;
+  * the configured renderer emits JSON when ``VIDEO_UNIQ_LOG_FORMAT=json``;
   * each event carries the standard keys (timestamp, level, event,
     logger);
   * bound context (run_id, plan_hash) appears on every event without
@@ -16,7 +16,7 @@ import logging
 
 import pytest
 
-from yt_uniquifier.core import logging_config
+from video_uniquifier.core import logging_config
 
 
 @pytest.fixture(autouse=True)
@@ -114,8 +114,8 @@ def test_run_id_propagates_into_event_payloads(
     without re-deriving it. We mock _run_full_impl to capture the
     emit() wrapper the orchestrator hands down.
     """
-    from yt_uniquifier.core import orchestrator
-    from yt_uniquifier.core.runner import RunEvent
+    from video_uniquifier.core import orchestrator
+    from video_uniquifier.core.runner import RunEvent
 
     captured: list[RunEvent] = []
 
@@ -143,7 +143,7 @@ def test_run_id_propagates_into_event_payloads(
         lambda *a, **kw: None,
     )
 
-    from yt_uniquifier.core.models import (
+    from video_uniquifier.core.models import (
         AudioStream,
         EncoderCandidate,
         HDRInfo,
@@ -152,7 +152,7 @@ def test_run_id_propagates_into_event_payloads(
         SourceMeta,
         VideoStream,
     )
-    from yt_uniquifier.core.pipeline import compute_plan_hash
+    from video_uniquifier.core.pipeline import compute_plan_hash
 
     src_path = tmp_path / "x.mp4"  # type: ignore[attr-defined]
     src_path.touch()
@@ -198,8 +198,8 @@ def test_run_id_caller_supplied_value_is_respected(
     """Web layer passes its own run_id so the HTTP response, the SSE
     stream, and the orchestrator's structured log all share one ID.
     """
-    from yt_uniquifier.core import orchestrator
-    from yt_uniquifier.core.runner import RunEvent
+    from video_uniquifier.core import orchestrator
+    from video_uniquifier.core.runner import RunEvent
 
     captured: list[RunEvent] = []
 
@@ -214,7 +214,7 @@ def test_run_id_caller_supplied_value_is_respected(
     monkeypatch.setattr(orchestrator, "_maybe_dispatch_notification", lambda *a, **kw: None)
     monkeypatch.setattr(orchestrator, "_maybe_record_telemetry", lambda *a, **kw: None)
 
-    from yt_uniquifier.core.models import (
+    from video_uniquifier.core.models import (
         AudioStream,
         EncoderCandidate,
         HDRInfo,
@@ -223,7 +223,7 @@ def test_run_id_caller_supplied_value_is_respected(
         SourceMeta,
         VideoStream,
     )
-    from yt_uniquifier.core.pipeline import compute_plan_hash
+    from video_uniquifier.core.pipeline import compute_plan_hash
 
     src_path = tmp_path / "x.mp4"  # type: ignore[attr-defined]
     src_path.touch()

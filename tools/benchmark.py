@@ -13,7 +13,7 @@ Two output modes:
 Example:
 
     python tools/benchmark.py tests/fixtures/720.mp4 \\
-      --profile src/yt_uniquifier/profiles/cid_aware.yaml \\
+      --profile src/video_uniquifier/profiles/cid_aware.yaml \\
       --out /tmp/bench_out.mp4 \\
       --encoder libx264 --workers 4 \\
       --accept-watermark-risk \\
@@ -37,10 +37,10 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
-from yt_uniquifier import __version__ as yt_uniq_version
-from yt_uniquifier.core.orchestrator import RunOptions, build_plan, run_full
-from yt_uniquifier.core.profile_loader import load_profile
-from yt_uniquifier.core.runner import RunEvent
+from video_uniquifier import __version__ as video_uniq_version
+from video_uniquifier.core.orchestrator import RunOptions, build_plan, run_full
+from video_uniquifier.core.profile_loader import load_profile
+from video_uniquifier.core.runner import RunEvent
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
@@ -323,7 +323,7 @@ def main() -> int:
     if args.json is not None:
         snapshot = {
             "schema_version": 1,
-            "yt_uniquifier_version": yt_uniq_version,
+            "video_uniquifier_version": video_uniq_version,
             "git_sha": _git_sha(),
             "implementation_sha256_at_start": implementation_digest,
             "py_version": platform.python_version(),

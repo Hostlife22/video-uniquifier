@@ -7,13 +7,13 @@ from pathlib import Path
 import pytest
 from PyQt6.QtWidgets import QApplication
 
-from yt_uniquifier.core.preflight import PreflightFinding
-from yt_uniquifier.gui.state import AppState
-from yt_uniquifier.gui.widgets.file_picker import FilePickerRow
-from yt_uniquifier.gui.widgets.kpi_pills import KpiPills, _pill_color_key
-from yt_uniquifier.gui.widgets.log_console import LogConsole
-from yt_uniquifier.gui.widgets.preflight_panel import PreflightPanel
-from yt_uniquifier.gui.widgets.segment_timeline import SegmentTimeline
+from video_uniquifier.core.preflight import PreflightFinding
+from video_uniquifier.gui.state import AppState
+from video_uniquifier.gui.widgets.file_picker import FilePickerRow
+from video_uniquifier.gui.widgets.kpi_pills import KpiPills, _pill_color_key
+from video_uniquifier.gui.widgets.log_console import LogConsole
+from video_uniquifier.gui.widgets.preflight_panel import PreflightPanel
+from video_uniquifier.gui.widgets.segment_timeline import SegmentTimeline
 
 
 @pytest.fixture(scope="module")

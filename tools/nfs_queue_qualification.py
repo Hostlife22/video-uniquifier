@@ -15,16 +15,16 @@ import signal
 import time
 from pathlib import Path
 
-from yt_uniquifier.core.checkpoint import CheckpointStore
-from yt_uniquifier.core.errors import CheckpointError
-from yt_uniquifier.core.models import (
+from video_uniquifier.core.checkpoint import CheckpointStore
+from video_uniquifier.core.errors import CheckpointError
+from video_uniquifier.core.models import (
     EncoderCandidate,
     Plan,
     Profile,
     Segment,
     SourceMeta,
 )
-from yt_uniquifier.core.queue.leasing import FileQueue, QueueError, init_queue
+from video_uniquifier.core.queue.leasing import FileQueue, QueueError, init_queue
 
 
 def _write_json(path: Path, payload: dict[str, object]) -> None:
@@ -135,7 +135,7 @@ def _reap(args: argparse.Namespace) -> int:
 
 
 def _crash_after_fence(args: argparse.Namespace) -> int:
-    from yt_uniquifier.core.queue import leasing as leasing_mod
+    from video_uniquifier.core.queue import leasing as leasing_mod
 
     queue = FileQueue(args.root, host=args.worker)
     leased = queue.lease()
@@ -184,7 +184,7 @@ def _wait_for_sigkill(ready: Path, *, phase: str, worker: str) -> None:
 
 def _crash_commit_phase(args: argparse.Namespace) -> int:
     """Pause at one commit boundary so the Docker harness can SIGKILL us."""
-    from yt_uniquifier.core.queue import leasing as leasing_mod
+    from video_uniquifier.core.queue import leasing as leasing_mod
 
     queue = FileQueue(args.root, host=args.worker)
     leased = queue.lease()

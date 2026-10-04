@@ -2,7 +2,7 @@
 
 The unit suite already covers RunWorker isolated. Here we assert the
 screen ↔ worker wiring and only opt into a real ffmpeg run when the
-caller sets `YTU_RUN_HEAVY_E2E=1` — otherwise the heavy path is skipped
+caller sets `VU_RUN_HEAVY_E2E=1` — otherwise the heavy path is skipped
 because RunWorker performs encoder detection on every candidate which
 can take many minutes on a fresh host.
 """
@@ -37,8 +37,8 @@ def _select_profile(combo, stem: str) -> bool:
 
 def test_run_screen_no_input_no_worker(app, qtbot) -> None:
     """No input/output → _on_run is a no-op, no RunWorker is created."""
-    from yt_uniquifier.gui.screens.run import RunScreen
-    from yt_uniquifier.gui.state import AppState
+    from video_uniquifier.gui.screens.run import RunScreen
+    from video_uniquifier.gui.state import AppState
 
     state = AppState()
     screen = RunScreen(state)
@@ -53,8 +53,8 @@ def test_run_screen_no_input_no_worker(app, qtbot) -> None:
 def test_run_screen_with_input_creates_worker(app, qtbot, tiny_clip: Path,
                                                 tmp_path: Path) -> None:
     """Input + output set → RunScreen builds a Plan + RunWorker on click."""
-    from yt_uniquifier.gui.screens.run import RunScreen
-    from yt_uniquifier.gui.state import AppState
+    from video_uniquifier.gui.screens.run import RunScreen
+    from video_uniquifier.gui.state import AppState
 
     state = AppState()
     screen = RunScreen(state)
@@ -82,18 +82,18 @@ def test_run_screen_with_input_creates_worker(app, qtbot, tiny_clip: Path,
 
 
 @pytest.mark.skipif(
-    os.environ.get("YTU_RUN_HEAVY_E2E") != "1",
-    reason="heavy real-ffmpeg run e2e; set YTU_RUN_HEAVY_E2E=1 to enable",
+    os.environ.get("VU_RUN_HEAVY_E2E") != "1",
+    reason="heavy real-ffmpeg run e2e; set VU_RUN_HEAVY_E2E=1 to enable",
 )
 def test_run_screen_full_real_ffmpeg(app, qtbot, tiny_clip: Path,
                                        tmp_path: Path, monkeypatch) -> None:
     """Optional heavy run: real ffmpeg path through RunScreen on tiny_clip."""
     cache_root = tmp_path / "cache"
     cache_root.mkdir()
-    monkeypatch.setenv("YTU_CACHE_DIR", str(cache_root))
+    monkeypatch.setenv("VU_CACHE_DIR", str(cache_root))
 
-    from yt_uniquifier.gui.screens.run import RunScreen
-    from yt_uniquifier.gui.state import AppState
+    from video_uniquifier.gui.screens.run import RunScreen
+    from video_uniquifier.gui.state import AppState
 
     state = AppState()
     screen = RunScreen(state)

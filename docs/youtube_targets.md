@@ -1,6 +1,6 @@
 # YouTube targets
 
-`yt-uniq preflight` checks a source + profile against YouTube's recommended
+`video-uniq preflight` checks a source + profile against YouTube's recommended
 upload encoding settings before the run, and against HDR sanity.
 
 ## What the matrix checks
@@ -77,11 +77,11 @@ Set in `Profile.target_loudness_lufs`; `audio.loudnorm` honours it.
 
 ## When fail is returned
 
-`yt-uniq run` aborts before any encoding when preflight returns a finding with
+`video-uniq run` aborts before any encoding when preflight returns a finding with
 `severity=fail`. Override with `--no-preflight` (warnings only) if you know
 what you're doing.
 
-`yt-uniq preflight` exits with code 1 on fail (so it's CI-friendly).
+`video-uniq preflight` exits with code 1 on fail (so it's CI-friendly).
 
 ## References
 

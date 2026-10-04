@@ -1,4 +1,4 @@
-# Contributing to yt-uniquifier
+# Contributing to video-uniquifier
 
 Thanks for considering a contribution. This document covers the dev
 loop, the commit + PR conventions, and the RFC process required for
@@ -11,8 +11,8 @@ For project scope, code style, and architectural invariants, read
 ## Quick start
 
 ```bash
-git clone https://github.com/Hostlife22/yt-uniquifier.git
-cd yt-uniquifier
+git clone https://github.com/Hostlife22/video-uniquifier.git
+cd video-uniquifier
 make dev                          # .venv + pip install -e ".[dev,gui]"
 make check                        # ruff + mypy --strict + full pytest
 ```
@@ -102,7 +102,7 @@ Before requesting review:
 
 - [ ] `make check` is green locally (ruff + mypy --strict + full pytest).
 - [ ] If you touched `core/`: coverage on changed files ≥ 85 %
-      (`pytest --cov=src/yt_uniquifier/core --cov-fail-under=80` is the
+      (`pytest --cov=src/video_uniquifier/core --cov-fail-under=80` is the
       CI gate; v1.1 raises it to 85).
 - [ ] If you touched a stable contract: RFC issue linked, snapshot
       goldens regenerated, `CHANGELOG.md` entry added.
@@ -139,7 +139,7 @@ contributors, if necessary) that fail to respect this.
   within 48 h.
 - For real-time chat there is no official channel yet; this may
   change post-v1.0.
-- The mkdocs site at <https://hostlife22.github.io/yt_uniquifier/>
+- The mkdocs site at <https://hostlife22.github.io/video-uniquifier/>
   is the authoritative reference.
 
 Thanks again, and welcome.

@@ -9,10 +9,10 @@ from pathlib import Path
 import pytest
 
 from tests.conftest import needs_ffmpeg
-from yt_uniquifier.core.transforms import get
-from yt_uniquifier.core.transforms.base import LabelAllocator, call_build
-from yt_uniquifier.core.transforms.video_temporal_jitter import TemporalJitterParams
-from yt_uniquifier.core.utils.ffmpeg_paths import ffmpeg_bin, ffprobe_bin
+from video_uniquifier.core.transforms import get
+from video_uniquifier.core.transforms.base import LabelAllocator, call_build
+from video_uniquifier.core.transforms.video_temporal_jitter import TemporalJitterParams
+from video_uniquifier.core.utils.ffmpeg_paths import ffmpeg_bin, ffprobe_bin
 
 
 def _decoded_frames(path: Path) -> int:

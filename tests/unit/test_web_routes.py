@@ -24,7 +24,7 @@ if importlib.util.find_spec("fastapi") is None:  # pragma: no cover
 
 from fastapi.testclient import TestClient  # noqa: E402
 
-from yt_uniquifier.web.app import WebConfig, build_app  # noqa: E402
+from video_uniquifier.web.app import WebConfig, build_app  # noqa: E402
 
 
 @pytest.fixture()
@@ -122,7 +122,7 @@ def test_expired_run_status_is_pruned_on_startup(
 def test_index_renders(client: TestClient) -> None:
     r = client.get("/")
     assert r.status_code == 200
-    assert "yt-uniquifier" in r.text
+    assert "video-uniquifier" in r.text
     assert "/static/app.js" in r.text
 
 
@@ -178,7 +178,7 @@ def test_list_community_uses_bootstrap_when_offline(
     client: TestClient, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     # Simulate a network outage so fetch_catalog falls back to bootstrap.
-    from yt_uniquifier.core import profile_marketplace as pm
+    from video_uniquifier.core import profile_marketplace as pm
 
     def boom(*_a: object, **_kw: object) -> object:
         raise OSError("offline")
@@ -201,13 +201,13 @@ def _stub_run_full_factory(events_to_emit: list[tuple[str, dict]]) -> object:
 
     def fake(plan, options, *, on_event=None, cancel_token=None,
              pause_token=None):
-        from yt_uniquifier.core.runner import RunEvent
+        from video_uniquifier.core.runner import RunEvent
         if on_event:
             for kind, payload in events_to_emit:
                 on_event(RunEvent(kind=kind, payload=payload))
 
         # Build a minimal RunSummary the caller doesn't use here.
-        from yt_uniquifier.core.orchestrator import RunSummary
+        from video_uniquifier.core.orchestrator import RunSummary
         return RunSummary(
             output=options.output,
             plan=plan,
@@ -231,8 +231,8 @@ def test_run_lifecycle_streams_events_and_completes(
 
     # Stub orchestrator + build_plan + load_profile so we don't need
     # a real source / ffmpeg / encoder probe.
-    from yt_uniquifier.web import metrics
-    from yt_uniquifier.web.routes import run as run_routes
+    from video_uniquifier.web import metrics
+    from video_uniquifier.web.routes import run as run_routes
 
     fake_run_full = _stub_run_full_factory([
         ("log", {"phase": "preflight", "message": "ok"}),
@@ -242,7 +242,7 @@ def test_run_lifecycle_streams_events_and_completes(
     monkeypatch.setattr(run_routes, "run_full", fake_run_full)
 
     def fake_build_plan(_in, profile, _enc):
-        from yt_uniquifier.core.models import (
+        from video_uniquifier.core.models import (
             EncoderCandidate,
             HDRInfo,
             Plan,
@@ -324,7 +324,7 @@ def test_two_app_instances_cannot_reserve_the_same_output(
     profile_path = profiles / "shared.yaml"
     profile_path.write_text("name: shared\ntransforms: []\n", encoding="utf-8")
 
-    from yt_uniquifier.core.models import (
+    from video_uniquifier.core.models import (
         EncoderCandidate,
         HDRInfo,
         Plan,
@@ -332,8 +332,8 @@ def test_two_app_instances_cannot_reserve_the_same_output(
         SourceMeta,
         VideoStream,
     )
-    from yt_uniquifier.core.orchestrator import RunSummary
-    from yt_uniquifier.web.routes import run as run_routes
+    from video_uniquifier.core.orchestrator import RunSummary
+    from video_uniquifier.web.routes import run as run_routes
 
     profile = Profile(name="shared", transforms=[])
     source = SourceMeta(
@@ -441,8 +441,8 @@ def test_two_app_instances_share_global_run_admission(
     profile_path = profiles / "shared.yaml"
     profile_path.write_text("name: shared\ntransforms: []\n", encoding="utf-8")
 
-    from yt_uniquifier.core.models import Profile
-    from yt_uniquifier.web.routes import run as run_routes
+    from video_uniquifier.core.models import Profile
+    from video_uniquifier.web.routes import run as run_routes
 
     started = threading.Event()
     release = threading.Event()
@@ -525,8 +525,8 @@ def test_terminal_status_waits_for_shared_lease_release(
     lease_name: str,
 ) -> None:
     """A deliberately blocked lease release must not expose terminal status."""
-    from yt_uniquifier.core.models import Profile
-    from yt_uniquifier.web.routes import run as run_routes
+    from video_uniquifier.core.models import Profile
+    from video_uniquifier.web.routes import run as run_routes
 
     work, output, profiles = web_dirs
     source = tmp_path / "input.mp4"
@@ -594,8 +594,8 @@ def test_run_uses_profile_container_and_rejects_conflicting_suffix(
         encoding="utf-8",
     )
 
-    from yt_uniquifier.core.models import Profile
-    from yt_uniquifier.web.routes import run as run_routes
+    from video_uniquifier.core.models import Profile
+    from video_uniquifier.web.routes import run as run_routes
 
     profile = Profile(name="archive", output_container="mkv", transforms=[])
     monkeypatch.setattr(run_routes, "load_profile", lambda path: profile)
@@ -785,8 +785,8 @@ def test_readyz_returns_200_when_encoders_present(
     return one working candidate so /readyz does not depend on a real
     ffmpeg install in the test runner.
     """
-    from yt_uniquifier.core import encoder
-    from yt_uniquifier.core.models import EncoderCandidate
+    from video_uniquifier.core import encoder
+    from video_uniquifier.core.models import EncoderCandidate
 
     monkeypatch.setattr(
         encoder, "detect_encoders",
@@ -805,7 +805,7 @@ def test_readyz_returns_200_when_encoders_present(
 def test_readyz_returns_503_when_no_working_encoder(
     client: TestClient, monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    from yt_uniquifier.core import encoder
+    from video_uniquifier.core import encoder
 
     monkeypatch.setattr(encoder, "detect_encoders", lambda *a, **kw: [])
     r = client.get("/readyz")
@@ -818,7 +818,7 @@ def test_readyz_returns_503_when_no_working_encoder(
 def test_readyz_does_not_expose_work_dir_error(
     web_dirs: tuple[Path, Path, Path], monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    from yt_uniquifier.core import encoder
+    from video_uniquifier.core import encoder
 
     work, output, profiles = web_dirs
     blocked_work_path = work / "not-a-directory"
@@ -846,9 +846,9 @@ def test_metrics_endpoint_serves_prometheus_text(
     assert r.headers["content-type"].startswith("text/plain")
     body = r.text
     # The custom counter families must be present in the registry.
-    assert "yt_uniq_segments_total" in body
-    assert "yt_uniq_runs_total" in body
-    assert "yt_uniq_active_runs" in body
+    assert "video_uniq_segments_total" in body
+    assert "video_uniq_runs_total" in body
+    assert "video_uniq_active_runs" in body
 
 
 def test_metrics_update_from_event_increments_counters() -> None:
@@ -856,8 +856,8 @@ def test_metrics_update_from_event_increments_counters() -> None:
     appropriate Prometheus family without coupling the orchestrator to
     the metrics module.
     """
-    from yt_uniquifier.core.runner import RunEvent
-    from yt_uniquifier.web import metrics
+    from video_uniquifier.core.runner import RunEvent
+    from video_uniquifier.web import metrics
 
     before = metrics.SEGMENTS_TOTAL.labels(status="done")._value.get()
     metrics.update_from_event(RunEvent(
@@ -950,8 +950,8 @@ def test_audit_log_records_run_start_and_cancel(
     )
 
     # Stub the orchestrator so /api/run doesn't actually encode.
-    from yt_uniquifier.core import orchestrator
-    from yt_uniquifier.core.models import (
+    from video_uniquifier.core import orchestrator
+    from video_uniquifier.core.models import (
         AudioStream,
         EncoderCandidate,
         HDRInfo,
@@ -959,10 +959,10 @@ def test_audit_log_records_run_start_and_cancel(
         SourceMeta,
         VideoStream,
     )
-    from yt_uniquifier.core.models import (
+    from video_uniquifier.core.models import (
         Profile as CoreProfile,
     )
-    from yt_uniquifier.core.pipeline import compute_plan_hash
+    from video_uniquifier.core.pipeline import compute_plan_hash
 
     src_path = tmp_path / "x.mp4"
     src_path.write_bytes(b"x")
@@ -986,10 +986,10 @@ def test_audit_log_records_run_start_and_cancel(
         return plan
 
     monkeypatch.setattr(
-        "yt_uniquifier.web.routes.run.build_plan", fake_build_plan,
+        "video_uniquifier.web.routes.run.build_plan", fake_build_plan,
     )
     monkeypatch.setattr(
-        "yt_uniquifier.web.routes.run.load_profile",
+        "video_uniquifier.web.routes.run.load_profile",
         lambda _p: prof,
     )
 
@@ -1003,7 +1003,7 @@ def test_audit_log_records_run_start_and_cancel(
         )
 
     monkeypatch.setattr(
-        "yt_uniquifier.web.routes.run.run_full", fake_run_full,
+        "video_uniquifier.web.routes.run.run_full", fake_run_full,
     )
 
     profile_path = profiles / "profile.yaml"
@@ -1042,7 +1042,7 @@ def test_audit_is_noop_when_path_unset(
     """No ``audit_log_path`` configured → audit() writes nothing,
     raises nothing.
     """
-    from yt_uniquifier.web.audit import audit
+    from video_uniquifier.web.audit import audit
 
     audit(
         "api.run.start",

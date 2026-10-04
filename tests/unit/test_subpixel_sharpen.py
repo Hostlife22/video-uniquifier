@@ -8,9 +8,9 @@ from __future__ import annotations
 import pytest
 from pydantic import ValidationError
 
-from yt_uniquifier.core.transforms import get
-from yt_uniquifier.core.transforms.base import LabelAllocator, call_build
-from yt_uniquifier.core.transforms.video_subpixel_sharpen import SubpixelSharpenParams
+from video_uniquifier.core.transforms import get
+from video_uniquifier.core.transforms.base import LabelAllocator, call_build
+from video_uniquifier.core.transforms.video_subpixel_sharpen import SubpixelSharpenParams
 
 
 def test_default_filter_shape() -> None:

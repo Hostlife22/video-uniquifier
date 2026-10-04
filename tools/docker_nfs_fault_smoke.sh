@@ -3,7 +3,7 @@ set -euo pipefail
 
 repo_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 artifact_dir="${1:-${repo_dir}/.nfs-qualification}"
-run_key="yt-uniq-nfs-${RANDOM}-$$"
+run_key="video-uniq-nfs-${RANDOM}-$$"
 network_name="${run_key}-network"
 server_name="${run_key}-server"
 client_a="${run_key}-client-a"

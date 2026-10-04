@@ -1,4 +1,4 @@
-# Dependabot config — yt-uniquifier (v1.0.1)
+# Dependabot config — video-uniquifier (v1.0.1)
 #
 # Policy:
 #   * pip:      patch + minor grouped per week; major bumps stay separate

@@ -8,7 +8,7 @@ from typing import Any
 
 import pytest
 
-from yt_uniquifier.core.qa import audio_fp
+from video_uniquifier.core.qa import audio_fp
 
 
 def _fake_fingerprint(seed: int, n: int = 50) -> str:

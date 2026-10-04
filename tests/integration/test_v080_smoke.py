@@ -18,12 +18,12 @@ from pathlib import Path
 
 import pytest
 
-from yt_uniquifier.core.calibration.loop import (
+from video_uniquifier.core.calibration.loop import (
     CalibrationTarget,
     _build_evaluator,
     calibrate,
 )
-from yt_uniquifier.core.models import (
+from video_uniquifier.core.models import (
     EncoderCandidate,
     Plan,
     Profile,
@@ -31,24 +31,24 @@ from yt_uniquifier.core.models import (
     SourceMeta,
     TransformConfig,
 )
-from yt_uniquifier.core.qa.corpus_db import CorpusDB, CorpusEntry
-from yt_uniquifier.core.runner import CancelToken
-from yt_uniquifier.core.segmenter import plan_segments
+from video_uniquifier.core.qa.corpus_db import CorpusDB, CorpusEntry
+from video_uniquifier.core.runner import CancelToken
+from video_uniquifier.core.segmenter import plan_segments
 
 # ----- R1: plugin discovery ----------------------------------------------
 
 
 def test_plugin_discovery_survives_no_third_party_plugins() -> None:
     """Importing the transforms package must not blow up with zero plugins."""
-    import yt_uniquifier.core.transforms as transforms_pkg
+    import video_uniquifier.core.transforms as transforms_pkg
 
     # ENTRY_POINT_GROUP is the public symbol third-party plugins target.
     assert hasattr(transforms_pkg, "ENTRY_POINT_GROUP")
-    assert transforms_pkg.ENTRY_POINT_GROUP == "yt_uniquifier.transforms"
+    assert transforms_pkg.ENTRY_POINT_GROUP == "video_uniquifier.transforms"
 
     # At least one built-in must register; if all 10 video transforms
     # are silently swallowed by the per-builtin try/except, this fires.
-    from yt_uniquifier.core.transforms import all_ids, get
+    from video_uniquifier.core.transforms import all_ids, get
     ids = all_ids()
     assert "video.crop_resize" in ids
     assert get("video.crop_resize") is not None
@@ -118,7 +118,7 @@ def test_scene_mode_falls_back_to_single_segment(
     # Stub the scene detector so we never actually call PySceneDetect.
     # segmenter.py imports these lazily INSIDE _plan_scene_segments,
     # so we patch the source module.
-    from yt_uniquifier.core import scene_detect as sd_mod
+    from video_uniquifier.core import scene_detect as sd_mod
 
     monkeypatch.setattr(
         sd_mod, "detect_scene_boundaries",
@@ -183,7 +183,7 @@ def test_calibrate_default_metric_is_chromaprint(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Omitting metric= keeps the v0.5/v0.7 behaviour bit-for-bit."""
-    from yt_uniquifier.core.calibration import loop as loop_mod
+    from video_uniquifier.core.calibration import loop as loop_mod
 
     # Stub the encode + score side end-to-end so this stays pure-python.
     monkeypatch.setattr(loop_mod, "_cut_test_clip", lambda s, w, _: s)

@@ -8,8 +8,8 @@ import pytest
 from typer.testing import CliRunner
 
 from tests.conftest import needs_ffmpeg
-from yt_uniquifier.cli.app import app
-from yt_uniquifier.core.qa.corpus import Corpus
+from video_uniquifier.cli.app import app
+from video_uniquifier.core.qa.corpus import Corpus
 
 
 @needs_ffmpeg

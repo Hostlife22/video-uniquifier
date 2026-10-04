@@ -1,20 +1,28 @@
-# yt-uniquifier
+# video-uniquifier
+
+Version 2.0.0 renames the Python package to `video_uniquifier` and the commands
+to `video-uniq`, `video-uniq-gui` and `video-uniq-web`. Reinstall the package and
+update imports, environment variables and plugin entry points; see
+[the naming migration](docs/api-contracts.md#how-to-import). GUI settings/history
+are copied from the previous application directory when no new state exists.
+New release assets, Pages and GHCR names take effect when their workflows publish
+this revision; historical binaries and benchmark evidence retain their names.
 
 > Production-grade re-encoder with controlled, calibrated micro-transforms for
-> owned or licensed video content. **Current source version: v1.5.0** — stable API
+> owned or licensed video content. **Current source version: v2.0.0** — stable API
 > under SemVer, signed-ready Linux AppImage + unsigned macOS / Windows
 > bundles, WCAG 2.1 AA desktop GUI, optional FastAPI web UI + Docker image,
 > third-party plugin system, community profile marketplace, opt-in local
 > telemetry, English + Russian localization.
 
-📚 **Live docs**: <https://hostlife22.github.io/yt_uniquifier/> — mkdocs-material site, auto-deployed on every `v*` tag.
+📚 **Live docs**: <https://hostlife22.github.io/video-uniquifier/> — mkdocs-material site, auto-deployed on every `v*` tag.
 
-![yt-uniquifier Run screen](./docs/screenshots/run-screen.png)
+![video-uniquifier Run screen](./docs/screenshots/run-screen.png)
 
 ## What it does
 
-- **`yt-uniq` CLI** (13 subcommands), **`yt-uniq-gui`** PyQt6 desktop (10
-  screens, full keyboard nav), and **`yt-uniq-web`** headless FastAPI
+- **`video-uniq` CLI** (13 subcommands), **`video-uniq-gui`** PyQt6 desktop (10
+  screens, full keyboard nav), and **`video-uniq-web`** headless FastAPI
   server on top of `ffmpeg`.
 - **20+ micro-transforms** composed into a single `-filter_complex` per
   ffmpeg invocation: crop+rescale, color jitter, noise, rotation, mirror,
@@ -25,7 +33,7 @@
   (pink/white/brown), EBU R128 loudness normalization with target jitter,
   Whisper-driven soft subtitle inject.
 - **Third-party plugins**: transforms register via the
-  `yt_uniquifier.transforms` entry-point group; trust model + bootstrap
+  `video_uniquifier.transforms` entry-point group; trust model + bootstrap
   in [`docs/plugins.md`](./docs/plugins.md).
 - **Keyframe-aware split** + optional **content-aware scene-cut split**
   → per-segment process → concat demuxer, so multi-hour files survive
@@ -41,7 +49,7 @@
 - **Multi-vendor encoder detect** (NVENC / QSV / AMF / VideoToolbox /
   libx264 / libx265) with real test-run on a null source; each candidate
   carries its own `max_parallel` cap. Automatic selection defaults to the
-  reproducible `quality` policy; set `YT_UNIQ_ENCODER_POLICY=balanced|speed`
+  reproducible `quality` policy; set `VIDEO_UNIQ_ENCODER_POLICY=balanced|speed`
   for long-form AV1 or verified hardware throughput. Explicit `--encoder`
   overrides are strict and never silently fall back.
 - **Per-run variability**: every invocation rolls a fresh `run_seed`,
@@ -51,15 +59,15 @@
   heuristic + optional **SSCD** semantic-similarity model
   ([`docs/sscd.md`](./docs/sscd.md)), optional check against a local
   **corpus** of previous uploads. HTML report with per-chunk heatmap.
-- **Experimental calibration** (`yt-uniq calibrate`): explores profile
+- **Experimental calibration** (`video-uniq calibrate`): explores profile
   intensity with a deterministic bounded search over start/middle/end samples,
   independent self-similarity and quality constraints, and resumable scored
   trials. It is not an external rights-system predictor; the tuned result still
   requires full-file QA.
-- **Distributed batch** via shared filesystem: `yt-uniq worker` drains
+- **Distributed batch** via shared filesystem: `video-uniq worker` drains
   a queue across N machines using atomic POSIX rename leasing —
   **no redis, no database**, just NFSv4 with `noac` (or ZFS / ext4).
-- **Profile marketplace** (`yt-uniq profile install <slug>`): HTTPS +
+- **Profile marketplace** (`video-uniq profile install <slug>`): HTTPS +
   SHA-256-pinned + schema-validated download from a community catalog.
 - **Opt-in local telemetry** — JSONL events written to your config dir,
   no network egress in v1.0; full schema in
@@ -81,24 +89,23 @@ this is the wrong tool, and I won't help you wire it up.
 
 Requires Python 3.11+ and `ffmpeg` / `ffprobe` on `PATH`.
 
-### Pre-built installers (v1.0.0)
+### Pre-built installers (v2.0.0)
 
 | OS      | Format       | Signing                       | Where                                          |
 |---------|--------------|-------------------------------|------------------------------------------------|
-| Linux   | `.AppImage`  | ✅ self-contained + SHA256SUMS | GitHub Releases → `yt-uniq-gui-*.AppImage`     |
-| macOS   | `.app.zip`   | ❌ unsigned (Gatekeeper bypass) | GitHub Releases → `yt-uniq-gui-macOS.zip`      |
-| Windows | `.zip`       | ❌ unsigned (SmartScreen bypass)| GitHub Releases → `yt-uniq-gui-Windows.zip`    |
+| Linux   | `.AppImage`  | ✅ self-contained + SHA256SUMS | GitHub Releases → `video-uniq-gui-*.AppImage`     |
+| macOS   | `.app.zip`   | ❌ unsigned (Gatekeeper bypass) | GitHub Releases → `video-uniq-gui-macOS.zip`      |
+| Windows | `.zip`       | ❌ unsigned (SmartScreen bypass)| GitHub Releases → `video-uniq-gui-Windows.zip`    |
 
 Per-OS bypass + SHA256SUMS verification: [`docs/install.md` § 0](./docs/install.md).
-macOS / Windows code signing will land as a v1.0.x patch once credentials are
-in place (see [`installers/README.md`](./installers/README.md)).
+Developer ID / Windows certificate signing requires platform credentials (see [`installers/README.md`](./installers/README.md)).
 
 ### From source (developers / contributors)
 
 ```bash
-git clone https://github.com/Hostlife22/yt-uniquifier.git && cd yt-uniquifier
+git clone https://github.com/Hostlife22/video-uniquifier.git && cd video-uniquifier
 make dev                           # .venv + pip install -e ".[dev,gui,web]"
-yt-uniq-gui                        # GUI; or `yt-uniq run <input> ...` for CLI
+video-uniq-gui                        # GUI; or `video-uniq run <input> ...` for CLI
 ```
 
 **Extras** (compose to taste):
@@ -106,12 +113,12 @@ yt-uniq-gui                        # GUI; or `yt-uniq run <input> ...` for CLI
 | Extra        | Adds                                                                |
 |--------------|---------------------------------------------------------------------|
 | `[dev]`      | pytest, ruff, mypy, coverage, benchmark deps                        |
-| `[gui]`      | PyQt6 + WebEngine for `yt-uniq-gui`                                 |
+| `[gui]`      | PyQt6 + WebEngine for `video-uniq-gui`                                 |
 | `[gui-charts]` | PyQt6-Charts for divergence sparkline + KPI widgets               |
 | `[qa]`       | chromaprint (`pyacoustid`) for audio fingerprinting                 |
 | `[scene]`    | PySceneDetect for content-aware segmentation                        |
 | `[ml]`       | torch + torchvision (CPU) for SSCD semantic-similarity QA           |
-| `[web]`      | FastAPI + uvicorn for `yt-uniq-web`                                 |
+| `[web]`      | FastAPI + uvicorn for `video-uniq-web`                                 |
 | `[docs]`     | mkdocs-material for building the docs site locally                  |
 
 Optional native binaries (graceful skip / fallback when missing):
@@ -128,7 +135,7 @@ build: see [`docs/install.md`](./docs/install.md).
 
 ## Shipped profiles (16)
 
-**Quality-family** (`src/yt_uniquifier/profiles/`):
+**Quality-family** (`src/video_uniquifier/profiles/`):
 
 | Profile                       | Intent                                                                  |
 |-------------------------------|-------------------------------------------------------------------------|
@@ -159,24 +166,24 @@ Community-contributed profiles via the marketplace —
 
 ```bash
 # 1. Inspect a source.
-yt-uniq probe /path/to/master.mp4 | jq '.video[0]'
+video-uniq probe /path/to/master.mp4 | jq '.video[0]'
 
 # 2. Validate against YouTube targets + HDR sanity.
-yt-uniq preflight /path/to/master.mp4 \
-  --profile src/yt_uniquifier/profiles/soft.yaml
+video-uniq preflight /path/to/master.mp4 \
+  --profile src/video_uniquifier/profiles/soft.yaml
 
 # 3. (Optional) Index a previous upload so the QA report can warn about
 #    accidental self-collisions across authorized derivatives.
-yt-uniq corpus add /path/to/old_upload.mp4
+video-uniq corpus add /path/to/old_upload.mp4
 
 # 4. (Optional) Auto-tune intensity for THIS source.
-yt-uniq calibrate /path/to/master.mp4 \
-  --base src/yt_uniquifier/profiles/medium.yaml \
+video-uniq calibrate /path/to/master.mp4 \
+  --base src/video_uniquifier/profiles/medium.yaml \
   --out  /path/to/tuned.yaml \
   --target 0.2
 
 # 5. Re-encode with micro-transforms (resume-capable, parallel CPU).
-yt-uniq run /path/to/master.mp4 \
+video-uniq run /path/to/master.mp4 \
   --profile /path/to/tuned.yaml \
   --out     /path/to/uniq_v1.mp4 \
   --workers 4
@@ -185,35 +192,35 @@ yt-uniq run /path/to/master.mp4 \
 open /path/to/uniq_v1.mp4.qa.html
 
 # 7. Generate a second, distinct variant.
-yt-uniq run /path/to/master.mp4 \
+video-uniq run /path/to/master.mp4 \
   --profile /path/to/tuned.yaml \
   --out     /path/to/uniq_v2.mp4 \
   --new-variant
 
 # 8. Standalone QA on a pre-existing pair (no encode).
-yt-uniq qa /path/to/master.mp4 /path/to/uniq_v1.mp4 --vs-corpus
+video-uniq qa /path/to/master.mp4 /path/to/uniq_v1.mp4 --vs-corpus
 
 # 9. Batch a directory on one machine.
-yt-uniq batch /path/to/movies/ \
-  --profile src/yt_uniquifier/profiles/soft.yaml \
+video-uniq batch /path/to/movies/ \
+  --profile src/video_uniquifier/profiles/soft.yaml \
   --out     /path/to/uniq/
 
 # 10. Distributed batch across N machines (NFSv4 + noac mount).
-yt-uniq queue init /shared/queue
-yt-uniq queue add  /shared/queue /shared/sources/*.mp4
-yt-uniq worker /shared/queue \
+video-uniq queue init /shared/queue
+video-uniq queue add  /shared/queue /shared/sources/*.mp4
+video-uniq worker /shared/queue \
   --profile /shared/profiles/soft.yaml \
   --out-dir /shared/uniq/ \
   --workers 4
 
 # 11. Install a community profile from the marketplace.
-yt-uniq profile install youtube_shorts_premium
+video-uniq profile install youtube_shorts_premium
 
 # 12. Launch the desktop GUI.
-yt-uniq-gui
+video-uniq-gui
 
 # 13. Launch the headless web UI (FastAPI + SSE).
-yt-uniq-web --host 0.0.0.0 --port 8000
+video-uniq-web --host 0.0.0.0 --port 8000
 # or via Docker: docker compose up   (see docs/web.md)
 ```
 
@@ -221,28 +228,28 @@ yt-uniq-web --host 0.0.0.0 --port 8000
 
 | Command                                                    | What it does                                                          |
 |------------------------------------------------------------|-----------------------------------------------------------------------|
-| `yt-uniq version`                                          | Print version                                                         |
-| `yt-uniq probe <path>`                                     | Print SourceMeta JSON                                                 |
-| `yt-uniq probe --encoders`                                 | List working encoders with `max_parallel` cap                         |
-| `yt-uniq preflight <in> --profile p.yaml`                  | YouTube target + HDR validation                                       |
-| `yt-uniq run <in> --profile p.yaml --out o.mp4 [--workers N] [--new-variant]` | Single-file run with resume + auto QA               |
-| `yt-uniq batch <dir> --profile p.yaml --out <dir>`         | Sequential directory processing                                       |
-| `yt-uniq qa <in> <out> [--vs-corpus] [--metric sscd]`      | Similarity report + optional corpus / SSCD                            |
-| `yt-uniq calibrate <in> --base p.yaml --out tuned.yaml [--metric sscd]` | Experimental internal similarity/quality search         |
-| `yt-uniq corpus add/list/remove`                           | Manage local fingerprint corpus                                       |
-| `yt-uniq queue init/add/status/reset`                      | Manage a shared-FS distributed queue                                  |
-| `yt-uniq worker <queue_dir> --profile p.yaml --out-dir D`  | Long-running queue drainer                                            |
-| `yt-uniq profile install/list/uninstall <slug>`            | Marketplace profile management                                        |
-| `yt-uniq subtitles <in> [--out s.srt]`                     | Whisper subtitle generation (requires `[ml]` extra)                   |
-| `yt-uniq telemetry status/enable/disable/events`           | Local opt-in telemetry control                                        |
-| `yt-uniq-gui`                                              | PyQt6 desktop UI (`[gui]` extra)                                      |
-| `yt-uniq-web`                                              | Headless FastAPI server (`[web]` extra)                               |
+| `video-uniq version`                                          | Print version                                                         |
+| `video-uniq probe <path>`                                     | Print SourceMeta JSON                                                 |
+| `video-uniq probe --encoders`                                 | List working encoders with `max_parallel` cap                         |
+| `video-uniq preflight <in> --profile p.yaml`                  | YouTube target + HDR validation                                       |
+| `video-uniq run <in> --profile p.yaml --out o.mp4 [--workers N] [--new-variant]` | Single-file run with resume + auto QA               |
+| `video-uniq batch <dir> --profile p.yaml --out <dir>`         | Sequential directory processing                                       |
+| `video-uniq qa <in> <out> [--vs-corpus] [--metric sscd]`      | Similarity report + optional corpus / SSCD                            |
+| `video-uniq calibrate <in> --base p.yaml --out tuned.yaml [--metric sscd]` | Experimental internal similarity/quality search         |
+| `video-uniq corpus add/list/remove`                           | Manage local fingerprint corpus                                       |
+| `video-uniq queue init/add/status/reset`                      | Manage a shared-FS distributed queue                                  |
+| `video-uniq worker <queue_dir> --profile p.yaml --out-dir D`  | Long-running queue drainer                                            |
+| `video-uniq profile install/list/uninstall <slug>`            | Marketplace profile management                                        |
+| `video-uniq subtitles <in> [--out s.srt]`                     | Whisper subtitle generation (requires `[ml]` extra)                   |
+| `video-uniq telemetry status/enable/disable/events`           | Local opt-in telemetry control                                        |
+| `video-uniq-gui`                                              | PyQt6 desktop UI (`[gui]` extra)                                      |
+| `video-uniq-web`                                              | Headless FastAPI server (`[web]` extra)                               |
 
 Run any command with `--help` for full flag listings.
 
 ## Project docs
 
-📖 **Hosted site**: <https://hostlife22.github.io/yt_uniquifier/> — same content as the `docs/` directory below, rendered with search and dark/light theme via mkdocs-material. Use the hosted site for casual reading; use the in-repo links below when you want to read the version that matches your local checkout.
+📖 **Hosted site**: <https://hostlife22.github.io/video-uniquifier/> — same content as the `docs/` directory below, rendered with search and dark/light theme via mkdocs-material. Use the hosted site for casual reading; use the in-repo links below when you want to read the version that matches your local checkout.
 
 **Getting started**
 
@@ -250,7 +257,7 @@ Run any command with `--help` for full flag listings.
   install, GUI launch, Docker, troubleshooting
 - [Getting started](./docs/getting-started.md) — first run walkthrough
 - [GUI walkthrough](./docs/gui-walkthrough.md) — screen-by-screen tour
-- [Web UI & Docker](./docs/web.md) — `yt-uniq-web` + container deploy
+- [Web UI & Docker](./docs/web.md) — `video-uniq-web` + container deploy
 
 **Reference**
 
@@ -265,7 +272,7 @@ Run any command with `--help` for full flag listings.
 
 **Operations**
 
-- [Calibrate workflow](./docs/calibrate.md) — `yt-uniq calibrate`
+- [Calibrate workflow](./docs/calibrate.md) — `video-uniq calibrate`
 - [QA report fields](./docs/qa_report.md) — `.qa.json` / `.qa.html` schema
 - [SSCD QA](./docs/sscd.md) — semantic-similarity model option
 - [Corpus index](./docs/corpus.md) — fingerprint database
@@ -333,7 +340,7 @@ Performance benchmarks + regression tracking under `tools/`:
 
 ```bash
 python tools/benchmark.py /path/to/movie.mp4 \
-  --profile src/yt_uniquifier/profiles/cid_aware.yaml \
+  --profile src/video_uniquifier/profiles/cid_aware.yaml \
   --out /tmp/uniq.mp4 --encoder libx264 --workers 4 \
   --json /tmp/bench.json
 

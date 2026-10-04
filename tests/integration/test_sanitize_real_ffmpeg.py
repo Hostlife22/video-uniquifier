@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 
 from tests.conftest import needs_ffmpeg
-from yt_uniquifier.core.sanitizer import sanitize_bitstream
+from video_uniquifier.core.sanitizer import sanitize_bitstream
 
 
 @needs_ffmpeg

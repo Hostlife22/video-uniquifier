@@ -19,10 +19,10 @@ from pathlib import Path
 import pytest
 
 from tests.contracts._snapshot import snapshot
-from yt_uniquifier.core import Profile
-from yt_uniquifier.core.profile_loader import load_profile
+from video_uniquifier.core import Profile
+from video_uniquifier.core.profile_loader import load_profile
 
-PROFILES_DIR = Path(__file__).resolve().parents[2] / "src" / "yt_uniquifier" / "profiles"
+PROFILES_DIR = Path(__file__).resolve().parents[2] / "src" / "video_uniquifier" / "profiles"
 
 SHIPPED = sorted(p.stem for p in PROFILES_DIR.glob("*.yaml"))
 

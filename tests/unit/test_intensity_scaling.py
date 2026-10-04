@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import pytest
 
-from yt_uniquifier.core.calibration.intensity import _around_one, scale_profile
-from yt_uniquifier.core.models import Profile, TransformConfig
+from video_uniquifier.core.calibration.intensity import _around_one, scale_profile
+from video_uniquifier.core.models import Profile, TransformConfig
 
 
 def _profile(transforms: list[TransformConfig]) -> Profile:
@@ -16,7 +16,7 @@ def _get(p: Profile, transform_id: str) -> dict:
     for tc in p.transforms:
         if tc.id == transform_id:
             # Recover the *effective* params (merge defaults).
-            from yt_uniquifier.core.transforms import get
+            from video_uniquifier.core.transforms import get
             spec = get(transform_id)
             return {**spec.defaults, **tc.params}
     raise KeyError(transform_id)

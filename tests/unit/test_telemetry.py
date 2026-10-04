@@ -19,7 +19,7 @@ from pathlib import Path
 
 import pytest
 
-from yt_uniquifier.core import telemetry
+from video_uniquifier.core import telemetry
 
 
 @pytest.fixture()

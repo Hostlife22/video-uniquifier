@@ -11,9 +11,9 @@ from __future__ import annotations
 import pytest
 from pydantic import ValidationError
 
-from yt_uniquifier.core.transforms import get
-from yt_uniquifier.core.transforms.base import LabelAllocator
-from yt_uniquifier.core.transforms.video_fit_aspect import (
+from video_uniquifier.core.transforms import get
+from video_uniquifier.core.transforms.base import LabelAllocator
+from video_uniquifier.core.transforms.video_fit_aspect import (
     FitAspectParams,
     _resolve_dims,
     _resolve_dims_for_source,

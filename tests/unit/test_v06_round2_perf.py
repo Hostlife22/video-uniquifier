@@ -8,12 +8,12 @@ from pathlib import Path
 
 import pytest
 
-from yt_uniquifier.core.checkpoint import (
+from video_uniquifier.core.checkpoint import (
     DEBOUNCE_MAX_MARKS,
     DEBOUNCE_MAX_SEC,
     CheckpointStore,
 )
-from yt_uniquifier.core.models import (
+from video_uniquifier.core.models import (
     AudioStream,
     EncoderCandidate,
     HDRInfo,
@@ -23,7 +23,7 @@ from yt_uniquifier.core.models import (
     SourceMeta,
     VideoStream,
 )
-from yt_uniquifier.core.queue.leasing import FileQueue, init_queue
+from video_uniquifier.core.queue.leasing import FileQueue, init_queue
 
 # ============================================================== B4
 
@@ -181,7 +181,7 @@ def test_close_flushes_pending_marks(tmp_path: Path) -> None:
 def test_set_loudnorm_force_flushes(tmp_path: Path) -> None:
     """B4: set_loudnorm is a phase-boundary write and force-flushes,
     so any pending marks land too."""
-    from yt_uniquifier.core.transforms.audio_loudnorm import (
+    from video_uniquifier.core.transforms.audio_loudnorm import (
         LoudnormMeasurement,
     )
     plan = _plan(tmp_path)
@@ -298,7 +298,7 @@ def test_lease_cursor_picks_up_files_added_after_drain(
 
 def test_av1_vulkan_is_not_advertised_without_a_hwupload_pipeline() -> None:
     """A CPU-frame probe cannot validate Vulkan's hardware-frame contract."""
-    from yt_uniquifier.core.encoder import _CANDIDATES
+    from video_uniquifier.core.encoder import _CANDIDATES
 
     names = [name for name, _, _ in _CANDIDATES]
     assert "av1_vulkan" not in names

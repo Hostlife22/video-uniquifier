@@ -43,11 +43,11 @@ Three layers, with the `Plan` (pydantic) as the contract between them.
 | `core/models.py` | All pydantic dataclasses: SourceMeta, Plan, Profile, Segment, QAReport |
 | `core/probe.py` | `probe(path) -> SourceMeta` via single ffprobe call |
 | `core/encoder.py` | `detect_encoders()` with real test-run + cache; `pick_encoder()`; per-candidate `max_parallel` cap |
-| `core/transforms/` | **21 built-in transforms** registered at import (12 video, 9 audio — `video_geom.py` registers `crop_resize`, `rotate`, `mirror`); third-party plugins discovered via `yt_uniquifier.transforms` entry-points (v0.8.0 R1, see [plugins.md](./plugins.md)); see [filter_graph.md](./filter_graph.md) |
+| `core/transforms/` | **21 built-in transforms** registered at import (12 video, 9 audio — `video_geom.py` registers `crop_resize`, `rotate`, `mirror`); third-party plugins discovered via `video_uniquifier.transforms` entry-points (v0.8.0 R1, see [plugins.md](./plugins.md)); see [filter_graph.md](./filter_graph.md) |
 | `core/transforms/hdr_wrap.py` | zscale linear-light roundtrip for color transforms over HDR |
 | `core/pipeline.py` | `FilterGraph.build()` + `build_video_segment_command` (+ `_fused`) + `build_main_audio_command` + `compute_plan_hash`; v0.8.0 R5 adds `crf_override` to support per-segment target-VMAF retries |
 | `core/runner.py` | subprocess wrapper with `-progress pipe:1`, RunEvent stream, CancelToken; v0.8.0 R5 adds `target_vmaf` / `target_vmaf_failed` event kinds |
-| `core/resource_budget.py` | shared local-process registry for encoder slots and estimated workspace/final-output byte reservations; `YT_UNIQ_RESOURCE_LOCK_DIR` selects the common registry |
+| `core/resource_budget.py` | shared local-process registry for encoder slots and estimated workspace/final-output byte reservations; `VIDEO_UNIQ_RESOURCE_LOCK_DIR` selects the common registry |
 | `core/segmenter.py` | keyframe-aware split (or PySceneDetect-driven scene mode, v0.8.0 R3) + per-segment process (parallel where safe) + concat demuxer; v0.8.0 R5 adds the target-VMAF feedback loop |
 | `core/scene_detect.py` | v0.8.0 R3 — `detect_scene_boundaries` (PySceneDetect ContentDetector, opt-in) + `snap_to_keyframes` (preserves stream-copy invariant) |
 | `core/checkpoint.py` | atomic `state.json` for resume (thread-safe `RLock` + fsync + `os.replace`) |
@@ -58,7 +58,7 @@ Three layers, with the `Plan` (pydantic) as the contract between them.
 | `core/sanitizer.py` | Opt-in libx264 interoperability normalization (`--sanitize-bitstream`); generation-loss warning, no-op on libx264, refuses HDR/HEVC/AV1 contracts |
 | `core/orchestrator.py` | `run_full(plan, options, on_event, cancel_token) -> RunSummary` |
 | `core/profile_loader.py` | YAML → `Profile` with pydantic validation (`extra=forbid`) |
-| `core/errors.py` | Typed exception hierarchy: `YtUniquifierError`, `ProbeError`, `EncoderError`, `FfmpegNotFoundError`, `PipelineError`, `CheckpointError`, `PreflightFailure` |
+| `core/errors.py` | Typed exception hierarchy: `VideoUniquifierError`, `ProbeError`, `EncoderError`, `FfmpegNotFoundError`, `PipelineError`, `CheckpointError`, `PreflightFailure` |
 | `core/utils/ffmpeg_paths.py` | `ffmpeg_bin()` / `ffprobe_bin()` resolver — single source of truth for binary lookup |
 | `core/qa/` | hashes, phash, audio_fp (similarity + Hamming distance), vmaf, ssim, cid_predict, corpus (SQLite-backed via `corpus_db.py` since v0.8.0 R2, see [corpus.md](./corpus.md)), quality (fallback chain), report + HTML |
 | `core/qa/sscd.py` | v0.8.0 R4 — opt-in ML-grade similarity via Meta's SSCD embedding (`[ml]` extra), see [sscd.md](./sscd.md) |

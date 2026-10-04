@@ -12,19 +12,19 @@ from pathlib import Path
 import pytest
 
 from tests.conftest import needs_ffmpeg
-from yt_uniquifier.core.auxiliary_streams import get_auxiliary_streams
-from yt_uniquifier.core.errors import PreflightFailure
-from yt_uniquifier.core.models import Profile, TransformConfig
-from yt_uniquifier.core.orchestrator import RunOptions, build_plan, run_full
-from yt_uniquifier.core.pipeline import (
+from video_uniquifier.core.auxiliary_streams import get_auxiliary_streams
+from video_uniquifier.core.errors import PreflightFailure
+from video_uniquifier.core.models import Profile, TransformConfig
+from video_uniquifier.core.orchestrator import RunOptions, build_plan, run_full
+from video_uniquifier.core.pipeline import (
     build_main_audio_command,
     build_main_audio_command_windowed,
 )
-from yt_uniquifier.core.probe import probe
-from yt_uniquifier.core.profile_loader import load_profile
-from yt_uniquifier.core.transforms.audio_loudnorm import LoudnormParams, measure
+from video_uniquifier.core.probe import probe
+from video_uniquifier.core.profile_loader import load_profile
+from video_uniquifier.core.transforms.audio_loudnorm import LoudnormParams, measure
 
-PROFILES_DIR = Path(__file__).parents[2] / "src" / "yt_uniquifier" / "profiles"
+PROFILES_DIR = Path(__file__).parents[2] / "src" / "video_uniquifier" / "profiles"
 PGS_FIXTURE = Path(__file__).parents[1] / "fixtures" / "pgs" / "minimal.sup.b64"
 
 
@@ -506,10 +506,10 @@ def test_44100_pitch_pipeline_preserves_duration_and_outputs_48000(
     loudnorm_log = (
         tmp_path / "work-soft" / plan.plan_hash / "main_audio.m4a.log"
     ).read_text(encoding="utf-8")
-    assert "[yt-uniquifier] loudnorm" in loudnorm_log
+    assert "[video-uniquifier] loudnorm" in loudnorm_log
     mode_line = next(
         line for line in loudnorm_log.splitlines()
-        if line.startswith("[yt-uniquifier] loudnorm ")
+        if line.startswith("[video-uniquifier] loudnorm ")
     )
     mode_record = json.loads(mode_line.split(" loudnorm ", 1)[1])
     assert mode_record["requested_mode"] == "linear"

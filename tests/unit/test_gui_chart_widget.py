@@ -5,7 +5,7 @@ from __future__ import annotations
 import pytest
 from PyQt6.QtWidgets import QApplication
 
-from yt_uniquifier.gui.widgets.chart_widget import ChartWidget, Series
+from video_uniquifier.gui.widgets.chart_widget import ChartWidget, Series
 
 
 @pytest.fixture(scope="module")

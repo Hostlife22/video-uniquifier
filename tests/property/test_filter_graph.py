@@ -28,7 +28,7 @@ from pathlib import Path
 from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 
-from yt_uniquifier.core.models import (
+from video_uniquifier.core.models import (
     AudioStream,
     EncoderCandidate,
     HDRInfo,
@@ -38,7 +38,7 @@ from yt_uniquifier.core.models import (
     TransformConfig,
     VideoStream,
 )
-from yt_uniquifier.core.pipeline import FilterGraph, compute_plan_hash
+from video_uniquifier.core.pipeline import FilterGraph, compute_plan_hash
 
 # Transforms that are safe to compose in arbitrary order without
 # extra setup (no extra inputs, no profile-level dependencies).

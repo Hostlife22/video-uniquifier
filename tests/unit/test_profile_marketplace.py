@@ -23,8 +23,8 @@ from typing import Any
 import pytest
 from pydantic import ValidationError
 
-from yt_uniquifier.core import profile_marketplace as pm
-from yt_uniquifier.core.profile_marketplace import (
+from video_uniquifier.core import profile_marketplace as pm
+from video_uniquifier.core.profile_marketplace import (
     Catalog,
     CatalogEntry,
     MarketplaceError,
@@ -68,7 +68,7 @@ def _make_entry(**overrides: Any) -> dict[str, Any]:
         "author": "tester",
         "tags": ["test"],
         "version": "1.0.0",
-        "min_yt_uniquifier_version": "0.9.0",
+        "min_video_uniquifier_version": "0.9.0",
     }
     base.update(overrides)
     return base
@@ -262,7 +262,7 @@ def test_install_happy_path_round_trips_through_profile_loader(
     assert result.path.exists()
     assert result.profile_name == "test-marketplace"
 
-    from yt_uniquifier.core.profile_loader import load_profile
+    from video_uniquifier.core.profile_loader import load_profile
 
     prof = load_profile(result.path)
     assert prof.name == "test-marketplace"
@@ -372,7 +372,7 @@ def test_bootstrap_catalog_is_valid_and_https() -> None:
 # v1.2.0 Task 25 — signed marketplace entries
 # ---------------------------------------------------------------------------
 
-# Test private key paired with src/yt_uniquifier/keys/marketplace.pub.
+# Test private key paired with src/video_uniquifier/keys/marketplace.pub.
 # Generated alongside the public key during Task 25 implementation; kept
 # in test code only so the operator's real private key can never collide.
 _TEST_PRIV_HEX = (
@@ -447,13 +447,13 @@ def test_install_accepts_valid_signature_end_to_end(
 def test_install_env_var_toggles_enforcement(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path,
 ) -> None:
-    """YT_UNIQ_REQUIRE_SIGNED_PROFILES=1 should drive the same behaviour
+    """VIDEO_UNIQ_REQUIRE_SIGNED_PROFILES=1 should drive the same behaviour
     as the kwarg.  The kwarg overrides the env var when explicit."""
     _install_urlopen(
         monkeypatch,
         {"https://example.invalid/profiles/test.yaml": VALID_PROFILE_YAML},
     )
-    monkeypatch.setenv("YT_UNIQ_REQUIRE_SIGNED_PROFILES", "1")
+    monkeypatch.setenv("VIDEO_UNIQ_REQUIRE_SIGNED_PROFILES", "1")
     entry = CatalogEntry.model_validate(_make_entry())  # no signature
     with pytest.raises(MarketplaceError, match="unsigned"):
         install(entry, dest_dir=tmp_path)
@@ -471,7 +471,7 @@ def test_install_unsigned_passes_when_enforcement_off(
         monkeypatch,
         {"https://example.invalid/profiles/test.yaml": VALID_PROFILE_YAML},
     )
-    monkeypatch.delenv("YT_UNIQ_REQUIRE_SIGNED_PROFILES", raising=False)
+    monkeypatch.delenv("VIDEO_UNIQ_REQUIRE_SIGNED_PROFILES", raising=False)
     entry = CatalogEntry.model_validate(_make_entry())
     result = install(entry, dest_dir=tmp_path)
     assert result.path.exists()
@@ -483,7 +483,7 @@ def test_install_unsigned_passes_when_enforcement_off(
 
 
 def test_bundled_marketplace_key_loads_to_32_bytes() -> None:
-    from yt_uniquifier.keys import load_marketplace_public_keys
+    from video_uniquifier.keys import load_marketplace_public_keys
     keys = load_marketplace_public_keys()
     assert len(keys) >= 1
     for k in keys:
@@ -498,7 +498,7 @@ def test_bundled_key_matches_test_private_key() -> None:
     from cryptography.hazmat.primitives import serialization
     from cryptography.hazmat.primitives.asymmetric import ed25519
 
-    from yt_uniquifier.keys import load_marketplace_public_keys
+    from video_uniquifier.keys import load_marketplace_public_keys
     priv = ed25519.Ed25519PrivateKey.from_private_bytes(
         bytes.fromhex(_TEST_PRIV_HEX),
     )

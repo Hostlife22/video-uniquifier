@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from unittest.mock import patch
 
-from yt_uniquifier.gui.workers.qa_worker import QaWorker
+from video_uniquifier.gui.workers.qa_worker import QaWorker
 
 
 def test_qa_worker_failed_on_build_error(tmp_path: Path) -> None:
@@ -16,7 +16,7 @@ def test_qa_worker_failed_on_build_error(tmp_path: Path) -> None:
 
     errors: list[str] = []
     with patch(
-        "yt_uniquifier.gui.workers.qa_worker.build_report",
+        "video_uniquifier.gui.workers.qa_worker.build_report",
         side_effect=RuntimeError("boom"),
     ):
         worker = QaWorker(in_p, out_p)
@@ -39,11 +39,11 @@ def test_qa_worker_qa_ready_signal(tmp_path: Path) -> None:
 
     with (
         patch(
-            "yt_uniquifier.gui.workers.qa_worker.build_report",
+            "video_uniquifier.gui.workers.qa_worker.build_report",
             return_value=_FakeReport(),
         ),
-        patch("yt_uniquifier.gui.workers.qa_worker.write_json"),
-        patch("yt_uniquifier.gui.workers.qa_worker.render_html"),
+        patch("video_uniquifier.gui.workers.qa_worker.write_json"),
+        patch("video_uniquifier.gui.workers.qa_worker.render_html"),
     ):
         worker = QaWorker(in_p, out_p)
         worker.qa_ready.connect(lambda j, h: ready.append((j, h)))

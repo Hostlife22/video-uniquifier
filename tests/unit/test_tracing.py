@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import pytest
 
-from yt_uniquifier.core import tracing
+from video_uniquifier.core import tracing
 
 
 def test_disabled_when_env_unset(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -41,7 +41,7 @@ def test_obs_extra_missing_logs_and_disables(
         return real_import(name, *a, **kw)
 
     monkeypatch.setattr(builtins, "__import__", fake_import)
-    caplog.set_level("WARNING", logger="yt_uniquifier.core.tracing")
+    caplog.set_level("WARNING", logger="video_uniquifier.core.tracing")
     with tracing.run_span(plan_hash="abc", encoder_kind="x264"):
         pass
     assert tracing._tracer is None
@@ -103,7 +103,7 @@ def test_span_records_attributes_when_enabled(
     assert keys >= {"plan_hash", "encoder_kind", "duration_us"}
     assert ("plan_hash", "ph") in set_calls
     assert ("encoder_kind", "x264") in set_calls
-    assert ("__span_name__", "yt_uniquifier.run") in set_calls
+    assert ("__span_name__", "video_uniquifier.run") in set_calls
 
 
 def test_segment_span_includes_segment_idx(
@@ -137,4 +137,4 @@ def test_segment_span_includes_segment_idx(
         pass
 
     assert ("segment_idx", 7) in set_calls
-    assert ("__span_name__", "yt_uniquifier.segment") in set_calls
+    assert ("__span_name__", "video_uniquifier.segment") in set_calls

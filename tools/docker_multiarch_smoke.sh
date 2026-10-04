@@ -2,7 +2,7 @@
 set -euo pipefail
 
 platform="${1:-linux/amd64}"
-tag="${2:-yt-uniquifier:smoke-${platform##*/}}"
+tag="${2:-video-uniquifier:smoke-${platform##*/}}"
 smoke_dir="$(mktemp -d)"
 container_id=""
 smoke_image_ready=0
@@ -48,7 +48,7 @@ docker run --rm --platform "${platform}" --entrypoint ffmpeg \
   -f lavfi -i "sine=frequency=440:sample_rate=48000:duration=1" \
   -c:v libx264 -pix_fmt yuv420p -c:a aac -shortest /work/input.mp4
 
-docker run --rm --platform "${platform}" --entrypoint yt-uniq \
+docker run --rm --platform "${platform}" --entrypoint video-uniq \
   --volume "${smoke_dir}:/work" "${tag}" \
   run /work/input/input.mp4 --profile auto --out /work/output/output.mp4 \
   --work-dir /work/work --encoder libx264 --segment-sec 1 \

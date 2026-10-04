@@ -7,8 +7,8 @@ from pathlib import Path
 
 import pytest
 
-from yt_uniquifier.core.calibration import loop as loop_mod
-from yt_uniquifier.core.calibration.loop import (
+from video_uniquifier.core.calibration import loop as loop_mod
+from video_uniquifier.core.calibration.loop import (
     CalibrationTarget,
     _CachedTrial,
     _load_trial,
@@ -16,8 +16,8 @@ from yt_uniquifier.core.calibration.loop import (
     _stratified_windows,
     calibrate,
 )
-from yt_uniquifier.core.errors import PipelineError
-from yt_uniquifier.core.models import Profile, TransformConfig
+from video_uniquifier.core.errors import PipelineError
+from video_uniquifier.core.models import Profile, TransformConfig
 
 
 def _profile() -> Profile:

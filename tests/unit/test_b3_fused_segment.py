@@ -13,7 +13,7 @@ from pathlib import Path
 
 import pytest
 
-from yt_uniquifier.core.models import (
+from video_uniquifier.core.models import (
     AudioStream,
     EncoderCandidate,
     HDRInfo,
@@ -23,8 +23,8 @@ from yt_uniquifier.core.models import (
     SourceMeta,
     VideoStream,
 )
-from yt_uniquifier.core.pipeline import build_video_segment_command_fused
-from yt_uniquifier.core.segmenter import _fuse_enabled
+from video_uniquifier.core.pipeline import build_video_segment_command_fused
+from video_uniquifier.core.segmenter import _fuse_enabled
 
 
 def _plan(tmp_path: Path) -> Plan:
@@ -154,14 +154,14 @@ def test_fused_command_outputs_to_segment_path(tmp_path: Path) -> None:
 
 def test_fuse_enabled_default(monkeypatch: pytest.MonkeyPatch) -> None:
     """Without the env var, fuse is on by default."""
-    monkeypatch.delenv("YT_UNIQ_DISABLE_FUSE", raising=False)
+    monkeypatch.delenv("VIDEO_UNIQ_DISABLE_FUSE", raising=False)
     assert _fuse_enabled() is True
 
 
 @pytest.mark.parametrize("val", ["1", "true", "yes", "on", "TRUE", " YES "])
 def test_fuse_disabled_via_env(val: str, monkeypatch: pytest.MonkeyPatch) -> None:
     """The env var accepts common truthy spellings."""
-    monkeypatch.setenv("YT_UNIQ_DISABLE_FUSE", val)
+    monkeypatch.setenv("VIDEO_UNIQ_DISABLE_FUSE", val)
     assert _fuse_enabled() is False
 
 
@@ -169,5 +169,5 @@ def test_fuse_disabled_via_env(val: str, monkeypatch: pytest.MonkeyPatch) -> Non
 def test_fuse_remains_enabled_for_non_truthy_env(
     val: str, monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    monkeypatch.setenv("YT_UNIQ_DISABLE_FUSE", val)
+    monkeypatch.setenv("VIDEO_UNIQ_DISABLE_FUSE", val)
     assert _fuse_enabled() is True

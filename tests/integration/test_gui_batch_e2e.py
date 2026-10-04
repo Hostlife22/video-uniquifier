@@ -41,8 +41,8 @@ def test_batch_screen_two_files(app, qtbot, tiny_clip: Path, tmp_path: Path) -> 
     out_dir = tmp_path / "out"
     out_dir.mkdir()
 
-    from yt_uniquifier.gui.screens.batch import BatchScreen
-    from yt_uniquifier.gui.state import AppState
+    from video_uniquifier.gui.screens.batch import BatchScreen
+    from video_uniquifier.gui.state import AppState
 
     state = AppState()
     screen = BatchScreen(state)
@@ -69,8 +69,8 @@ def test_batch_screen_no_files_shows_status(app, qtbot, tmp_path: Path) -> None:
     out_dir = tmp_path / "out"
     out_dir.mkdir()
 
-    from yt_uniquifier.gui.screens.batch import BatchScreen
-    from yt_uniquifier.gui.state import AppState
+    from video_uniquifier.gui.screens.batch import BatchScreen
+    from video_uniquifier.gui.state import AppState
 
     state = AppState()
     screen = BatchScreen(state)

@@ -25,7 +25,10 @@ tests/fixtures/*
 .coverage.*
 htmlcov/
 
-# yt-uniquifier work artifacts
+# video-uniquifier work artifacts
+.video_uniq_work/
+.video_uniq_calib/
+# Existing work caches from installations before the rename.
 .yt_uniq_work/
 .yt_uniq_calib/
 .gui_sweep_work/

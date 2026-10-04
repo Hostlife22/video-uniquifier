@@ -20,9 +20,9 @@ from typing import Any
 
 import pytest
 
-from yt_uniquifier.core.errors import PipelineError
-from yt_uniquifier.core.qa import sscd
-from yt_uniquifier.core.qa.sscd import (
+from video_uniquifier.core.errors import PipelineError
+from video_uniquifier.core.qa import sscd
+from video_uniquifier.core.qa.sscd import (
     SSCDResult,
     _ensure_model_cached,
     _extract_frames,
@@ -31,7 +31,7 @@ from yt_uniquifier.core.qa.sscd import (
     compute_sscd,
     sscd_band,
 )
-from yt_uniquifier.core.runner import CancelToken
+from video_uniquifier.core.runner import CancelToken
 
 # ---------------------------------------------------------------------------
 # Stub model + helpers
@@ -231,8 +231,8 @@ def test_extract_frames_batches_all_seeks_into_one_runner_call(
 ) -> None:
     from types import SimpleNamespace
 
-    from yt_uniquifier.core import probe as probe_module
-    from yt_uniquifier.core import runner
+    from video_uniquifier.core import probe as probe_module
+    from video_uniquifier.core import runner
 
     source = tmp_path / "source.mp4"
     source.touch()
@@ -395,7 +395,7 @@ def test_build_report_does_not_call_sscd_when_flag_off(
     """The default ``compute_sscd=False`` path must not import or call
     the SSCD module — otherwise a fresh install without ``[ml]`` would
     eat startup latency on every report."""
-    from yt_uniquifier.core.qa import report as qa_report
+    from video_uniquifier.core.qa import report as qa_report
 
     invoked = []
     monkeypatch.setattr(
@@ -453,7 +453,7 @@ def test_build_report_catches_sscd_exception_into_note(
     """A torch import error during SSCD compute must NOT take down the
     whole QA report — the cheap metrics are already collected and the
     user expects to see them. The failure surfaces as a note."""
-    from yt_uniquifier.core.qa import report as qa_report
+    from video_uniquifier.core.qa import report as qa_report
 
     def boom(*_a: object, **_kw: object) -> SSCDResult:
         raise PipelineError("SSCD requires [ml] extra — torch missing")
@@ -501,7 +501,7 @@ def test_build_report_propagates_cancel_through_sscd(
 ) -> None:
     """Cancel during SSCD must still raise — opt-in metric or not, the
     cancel button is sacred."""
-    from yt_uniquifier.core.qa import report as qa_report
+    from video_uniquifier.core.qa import report as qa_report
 
     def cancelled(*_a: object, **_kw: object) -> SSCDResult:
         raise PipelineError("SSCD cancelled by user (during embed)")

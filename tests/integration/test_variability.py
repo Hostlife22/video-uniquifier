@@ -10,10 +10,10 @@ from pathlib import Path
 import pytest
 
 from tests.conftest import needs_ffmpeg
-from yt_uniquifier.core.orchestrator import RunOptions, build_plan, run_full
-from yt_uniquifier.core.profile_loader import load_profile
+from video_uniquifier.core.orchestrator import RunOptions, build_plan, run_full
+from video_uniquifier.core.profile_loader import load_profile
 
-PROFILES_DIR = Path(__file__).parents[2] / "src" / "yt_uniquifier" / "profiles"
+PROFILES_DIR = Path(__file__).parents[2] / "src" / "video_uniquifier" / "profiles"
 
 
 def _md5(path: Path) -> str:
@@ -149,7 +149,7 @@ def test_resume_same_work_dir_reuses_seed(
 
     # Container metadata/creation timestamps may differ, but decoded video and
     # audio semantics must be exactly reproducible under the restored run seed.
-    from yt_uniquifier.core.probe import probe
+    from video_uniquifier.core.probe import probe
     m1, m2 = probe(out1), probe(out2)
     assert abs(m1.duration_sec - m2.duration_sec) < 0.05
     assert _decoded_sha256(out1, "0:v:0") == _decoded_sha256(out2, "0:v:0")

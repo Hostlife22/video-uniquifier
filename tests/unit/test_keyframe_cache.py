@@ -9,7 +9,7 @@ from typing import Any
 
 import pytest
 
-from yt_uniquifier.core import segmenter as seg_mod
+from video_uniquifier.core import segmenter as seg_mod
 
 
 @pytest.fixture(autouse=True)

@@ -87,7 +87,7 @@ encoder-policy changes.
 Locally, the same strict selection can be used without Actions:
 
 ```bash
-export YT_UNIQ_HARDWARE_ENCODERS=h264_videotoolbox,hevc_videotoolbox
+export VIDEO_UNIQ_HARDWARE_ENCODERS=h264_videotoolbox,hevc_videotoolbox
 
 pytest tests/integration/test_encoder_bitstream_matrix.py -vv \
   --basetemp=.qualification/pytest-temp \

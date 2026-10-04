@@ -3,10 +3,10 @@ matrix:
   workers: 1
   variants:
     - id: soft
-      profile: ../src/yt_uniquifier/profiles/soft.yaml
+      profile: ../src/video_uniquifier/profiles/soft.yaml
       encoder: libx264
     - id: tonemap
-      profile: ../src/yt_uniquifier/profiles/cid_aware_hdr_to_sdr.yaml
+      profile: ../src/video_uniquifier/profiles/cid_aware_hdr_to_sdr.yaml
       encoder: libx264
 cases:
   - id: sdr-dialogue

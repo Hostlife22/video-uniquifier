@@ -7,12 +7,12 @@ import imagehash
 import pytest
 
 from tools.media_diagnostics import decoded_timeline
-from yt_uniquifier.core.errors import PipelineError
-from yt_uniquifier.core.models import Profile, Segment
-from yt_uniquifier.core.orchestrator import build_plan
-from yt_uniquifier.core.qa import phash, registration
-from yt_uniquifier.core.qa.ssim import compute as compute_ssim
-from yt_uniquifier.core.qa.vmaf import compute as compute_vmaf
+from video_uniquifier.core.errors import PipelineError
+from video_uniquifier.core.models import Profile, Segment
+from video_uniquifier.core.orchestrator import build_plan
+from video_uniquifier.core.qa import phash, registration
+from video_uniquifier.core.qa.ssim import compute as compute_ssim
+from video_uniquifier.core.qa.vmaf import compute as compute_vmaf
 
 
 @pytest.mark.integration
@@ -49,7 +49,7 @@ def test_virtual_reference_matches_materialized(
     )
     video = plan.source.video[0]
     estimate = int(video.width * video.height * video.fps * plan.source.duration_sec * 0.5)
-    monkeypatch.setenv("YT_UNIQ_REGISTERED_REFERENCE_MAX_BYTES", str(estimate + 1))
+    monkeypatch.setenv("VIDEO_UNIQ_REGISTERED_REFERENCE_MAX_BYTES", str(estimate + 1))
     virtual = registration.build_transformed_reference(
         plan, tmp_path / "virtual ' path" / "ref.mkv", target_segment_sec=1,
     )
@@ -79,7 +79,7 @@ def test_measured_reference_budget_prevents_publication(
     # Admit deliberately so real encoder writes exercise the live check, not
     # the separate planning estimate. No real filesystem is filled by this test.
     monkeypatch.setattr(registration, "_check_reference_budget", lambda *_args: False)
-    monkeypatch.setenv("YT_UNIQ_REGISTERED_REFERENCE_MAX_BYTES", "16")
+    monkeypatch.setenv("VIDEO_UNIQ_REGISTERED_REFERENCE_MAX_BYTES", "16")
     destination = tmp_path / "reference.mkv"
     with pytest.raises(PipelineError, match="measured disk budget"):
         registration.build_transformed_reference(plan, destination)

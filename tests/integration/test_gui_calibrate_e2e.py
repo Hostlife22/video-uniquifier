@@ -20,8 +20,8 @@ def app():
 
 
 def test_calibrate_screen_builds_and_run_disabled(app, qtbot) -> None:
-    from yt_uniquifier.gui.screens.calibrate import CalibrateScreen
-    from yt_uniquifier.gui.state import AppState
+    from video_uniquifier.gui.screens.calibrate import CalibrateScreen
+    from video_uniquifier.gui.state import AppState
 
     state = AppState()
     screen = CalibrateScreen(state)
@@ -36,9 +36,9 @@ def test_calibrate_screen_builds_and_run_disabled(app, qtbot) -> None:
 
 def test_calibrate_screen_completed_enables_save(app, qtbot) -> None:
     """Calling _on_completed with a tuned profile enables save_btn."""
-    from yt_uniquifier.core.models import Profile
-    from yt_uniquifier.gui.screens.calibrate import CalibrateScreen
-    from yt_uniquifier.gui.state import AppState
+    from video_uniquifier.core.models import Profile
+    from video_uniquifier.gui.screens.calibrate import CalibrateScreen
+    from video_uniquifier.gui.state import AppState
 
     state = AppState()
     screen = CalibrateScreen(state)

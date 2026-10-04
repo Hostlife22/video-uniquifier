@@ -13,14 +13,14 @@ from typing import Any
 
 import pytest
 
-from yt_uniquifier.core import subtitles as subs
-from yt_uniquifier.core.subtitles import (
+from video_uniquifier.core import subtitles as subs
+from video_uniquifier.core.subtitles import (
     SubtitleGenerationError,
     find_default_model,
     generate_srt,
     is_subtitle_extension_supported,
 )
-from yt_uniquifier.core.transforms import _whisper_probe
+from video_uniquifier.core.transforms import _whisper_probe
 
 
 @pytest.fixture(autouse=True)

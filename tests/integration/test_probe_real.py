@@ -7,8 +7,8 @@ from pathlib import Path
 import pytest
 
 from tests.conftest import needs_ffmpeg
-from yt_uniquifier.core.encoder import detect_encoders, pick_encoder
-from yt_uniquifier.core.probe import probe
+from video_uniquifier.core.encoder import detect_encoders, pick_encoder
+from video_uniquifier.core.probe import probe
 
 
 @needs_ffmpeg

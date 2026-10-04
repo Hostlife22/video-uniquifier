@@ -6,10 +6,10 @@ from typing import Any
 import pytest
 
 from tests.conftest import needs_ffmpeg
-from yt_uniquifier.core import sanitizer
-from yt_uniquifier.core.errors import PipelineError
-from yt_uniquifier.core.models import Profile
-from yt_uniquifier.core.orchestrator import RunOptions, build_plan, run_full
+from video_uniquifier.core import sanitizer
+from video_uniquifier.core.errors import PipelineError
+from video_uniquifier.core.models import Profile
+from video_uniquifier.core.orchestrator import RunOptions, build_plan, run_full
 
 
 @pytest.mark.integration

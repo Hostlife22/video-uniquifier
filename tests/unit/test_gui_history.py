@@ -7,8 +7,8 @@ from pathlib import Path
 import pytest
 from PyQt6.QtWidgets import QApplication
 
-from yt_uniquifier.gui.screens.history import HistoryScreen
-from yt_uniquifier.gui.state import AppState, HistoryEntry
+from video_uniquifier.gui.screens.history import HistoryScreen
+from video_uniquifier.gui.state import AppState, HistoryEntry
 
 
 @pytest.fixture(scope="module")
@@ -20,9 +20,9 @@ def app() -> QApplication:
 
 
 def _isolate_state(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> AppState:
-    monkeypatch.setattr("yt_uniquifier.gui.state.CONFIG_DIR", tmp_path)
-    monkeypatch.setattr("yt_uniquifier.gui.state.STATE_PATH", tmp_path / "s.json")
-    monkeypatch.setattr("yt_uniquifier.gui.state.HISTORY_PATH", tmp_path / "h.json")
+    monkeypatch.setattr("video_uniquifier.gui.state.CONFIG_DIR", tmp_path)
+    monkeypatch.setattr("video_uniquifier.gui.state.STATE_PATH", tmp_path / "s.json")
+    monkeypatch.setattr("video_uniquifier.gui.state.HISTORY_PATH", tmp_path / "h.json")
     return AppState()
 
 

@@ -45,7 +45,7 @@ jobs:
     timeout-minutes: 90
     env:
       QT_QPA_PLATFORM: offscreen
-      YT_UNIQ_HARDWARE_ENCODERS: ${{ inputs.encoders }}
+      VIDEO_UNIQ_HARDWARE_ENCODERS: ${{ inputs.encoders }}
 
     steps:
       - uses: actions/checkout@v7
@@ -67,8 +67,8 @@ jobs:
           host_python="$(command -v "python${{ inputs.python_version }}")"
           "$host_python" -c \
             "import sys; assert sys.version_info[:2] == tuple(map(int, '${{ inputs.python_version }}'.split('.'))); print(sys.version)"
-          "$host_python" -m venv "$RUNNER_TEMP/ytuniq-hardware-venv"
-          echo "PYTHON_EXECUTABLE=$RUNNER_TEMP/ytuniq-hardware-venv/bin/python" >> "$GITHUB_ENV"
+          "$host_python" -m venv "$RUNNER_TEMP/videouniq-hardware-venv"
+          echo "PYTHON_EXECUTABLE=$RUNNER_TEMP/videouniq-hardware-venv/bin/python" >> "$GITHUB_ENV"
 
       - name: Select setup-python interpreter
         if: runner.os != 'macOS'

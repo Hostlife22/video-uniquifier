@@ -4,14 +4,14 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from yt_uniquifier.core.models import (
+from video_uniquifier.core.models import (
     AudioStream,
     HDRInfo,
     Profile,
     SourceMeta,
     VideoStream,
 )
-from yt_uniquifier.core.seed_resolver import resolve_run_seed
+from video_uniquifier.core.seed_resolver import resolve_run_seed
 
 
 def _src(path: Path) -> SourceMeta:

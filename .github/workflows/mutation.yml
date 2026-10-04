@@ -43,7 +43,7 @@ jobs:
         # not visual" so the mutation pass uses the fast lane only.
         run: |
           mutmut run \
-            --paths-to-mutate src/yt_uniquifier/core/ \
+            --paths-to-mutate src/video_uniquifier/core/ \
             --tests-dir tests/unit/ \
             --runner 'pytest -x -q -m "not integration and not visual"' \
             || true   # mutmut exits nonzero when survivors exist; we

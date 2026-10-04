@@ -6,8 +6,8 @@ from pathlib import Path
 
 import pytest
 
-from yt_uniquifier.core.correlation import CorrelationIds
-from yt_uniquifier.core.models import (
+from video_uniquifier.core.correlation import CorrelationIds
+from video_uniquifier.core.models import (
     EncoderCandidate,
     HDRInfo,
     Plan,
@@ -16,13 +16,13 @@ from yt_uniquifier.core.models import (
     TransformConfig,
     VideoStream,
 )
-from yt_uniquifier.core.redaction import REDACTED, redact_mapping, redact_path
-from yt_uniquifier.core.runner import RunEvent
-from yt_uniquifier.core.transform_compatibility import (
+from video_uniquifier.core.redaction import REDACTED, redact_mapping, redact_path
+from video_uniquifier.core.runner import RunEvent
+from video_uniquifier.core.transform_compatibility import (
     COMPATIBILITY_GRAPH,
     evaluate_transform_compatibility,
 )
-from yt_uniquifier.core.transforms import all_ids, get
+from video_uniquifier.core.transforms import all_ids, get
 
 
 def _plan(
@@ -214,7 +214,7 @@ def test_absolute_path_redaction_is_independent_of_host_os(path: str) -> None:
 
 def test_metrics_have_bounded_states_and_no_correlation_labels() -> None:
     prometheus_client = pytest.importorskip("prometheus_client")
-    from yt_uniquifier.web import metrics
+    from video_uniquifier.web import metrics
 
     before = metrics.RUN_STATE_EVENTS_TOTAL.labels(state="resumed")._value.get()
     metrics.update_from_event(RunEvent(
@@ -249,7 +249,7 @@ def test_transform_reference_lists_every_registered_transform() -> None:
         transform_id
         for transform_id in all_ids()
         if get(transform_id).build.__module__.startswith(
-            "yt_uniquifier.core.transforms.",
+            "video_uniquifier.core.transforms.",
         )
     ]
     missing = [

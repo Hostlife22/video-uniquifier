@@ -12,12 +12,12 @@
 # job that silently leaves an unsigned bundle is loud at build time
 # rather than at user-install time.
 #
-# Usage: installers/macos/codesign-adhoc.sh dist/yt-uniq-gui.app
+# Usage: installers/macos/codesign-adhoc.sh dist/video-uniq-gui.app
 
 set -euo pipefail
 
 if [ "$#" -ne 1 ]; then
-  echo "usage: $0 <path/to/yt-uniq-gui.app>" >&2
+  echo "usage: $0 <path/to/video-uniq-gui.app>" >&2
   exit 2
 fi
 

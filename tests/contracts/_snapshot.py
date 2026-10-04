@@ -6,7 +6,7 @@ schema, a YAML's dumped form, a literal's members, a dataclass'
 field signatures). The helper:
 
 - Compares a freshly-computed value against the golden file.
-- When ``YT_UNIQ_REGEN_CONTRACT_GOLDENS=1`` is set in the
+- When ``VIDEO_UNIQ_REGEN_CONTRACT_GOLDENS=1`` is set in the
   environment, rewrites the golden on disk instead. This is what
   ``tools/regen_contract_goldens.py`` uses; CI never sets it.
 - Surfaces a single, actionable failure message that points back
@@ -21,7 +21,7 @@ from pathlib import Path
 from typing import Any
 
 CONTRACTS_DIR = Path(__file__).parent.parent / "fixtures" / "contracts"
-REGEN_ENV = "YT_UNIQ_REGEN_CONTRACT_GOLDENS"
+REGEN_ENV = "VIDEO_UNIQ_REGEN_CONTRACT_GOLDENS"
 
 
 def _normalise(value: Any) -> str:

@@ -6,9 +6,9 @@ import pytest
 from typer.testing import CliRunner
 
 from tests.unit.test_qa_report import _report
-from yt_uniquifier.cli import cmd_qa
-from yt_uniquifier.cli.app import app
-from yt_uniquifier.core.models import QACorrectness
+from video_uniquifier.cli import cmd_qa
+from video_uniquifier.cli.app import app
+from video_uniquifier.core.models import QACorrectness
 
 
 @pytest.mark.parametrize("args,exit_code", [

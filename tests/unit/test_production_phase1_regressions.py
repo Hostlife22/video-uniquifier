@@ -7,9 +7,9 @@ from pathlib import Path
 import pytest
 
 from tests.unit.test_pipeline_graph import _plan, _src
-from yt_uniquifier.core.calibration.loop import _evaluate_sscd
-from yt_uniquifier.core.models import AudioStream, TransformConfig
-from yt_uniquifier.core.pipeline import (
+from video_uniquifier.core.calibration.loop import _evaluate_sscd
+from video_uniquifier.core.models import AudioStream, TransformConfig
+from video_uniquifier.core.pipeline import (
     _main_audio_channel_args,
     _main_audio_tail_filter,
     build_main_audio_command,
@@ -55,8 +55,8 @@ def test_asetrate_uses_actual_input_sample_rate_and_outputs_48k(tmp_path: Path) 
 def test_profile_loudness_target_is_used_when_transform_has_no_override(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    from yt_uniquifier.core import pipeline as pipeline_mod
-    from yt_uniquifier.core.transforms.audio_loudnorm import LoudnormMeasurement
+    from video_uniquifier.core import pipeline as pipeline_mod
+    from video_uniquifier.core.transforms.audio_loudnorm import LoudnormMeasurement
 
     monkeypatch.setattr(
         pipeline_mod,
@@ -87,8 +87,8 @@ def test_profile_loudness_target_is_used_when_transform_has_no_override(
 def test_loudnorm_measures_selected_nonfirst_track(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    from yt_uniquifier.core import pipeline as pipeline_mod
-    from yt_uniquifier.core.transforms.audio_loudnorm import LoudnormMeasurement
+    from video_uniquifier.core import pipeline as pipeline_mod
+    from video_uniquifier.core.transforms.audio_loudnorm import LoudnormMeasurement
 
     captured: dict[str, object] = {}
 
@@ -114,8 +114,8 @@ def test_loudnorm_measures_selected_nonfirst_track(
 def test_loudnorm_pass_one_measures_preceding_audio_transforms(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    from yt_uniquifier.core import pipeline as pipeline_mod
-    from yt_uniquifier.core.transforms.audio_loudnorm import LoudnormMeasurement
+    from video_uniquifier.core import pipeline as pipeline_mod
+    from video_uniquifier.core.transforms.audio_loudnorm import LoudnormMeasurement
 
     captured: dict[str, object] = {}
 
@@ -146,8 +146,8 @@ def test_loudnorm_jitter_uses_same_target_in_both_passes(
 ) -> None:
     import re
 
-    from yt_uniquifier.core import pipeline as pipeline_mod
-    from yt_uniquifier.core.transforms.audio_loudnorm import (
+    from video_uniquifier.core import pipeline as pipeline_mod
+    from video_uniquifier.core.transforms.audio_loudnorm import (
         LoudnormMeasurement,
         LoudnormParams,
     )
@@ -195,7 +195,7 @@ def test_window_overlap_equals_crossfade_duration(tmp_path: Path) -> None:
 def test_sscd_evaluator_returns_direct_similarity(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    import yt_uniquifier.core.qa.sscd as sscd_mod
+    import video_uniquifier.core.qa.sscd as sscd_mod
 
     class _Result:
         mean_similarity = 0.92

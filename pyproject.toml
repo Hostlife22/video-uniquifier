@@ -1,11 +1,11 @@
 [project]
-name = "yt-uniquifier"
-version = "1.6.0"
+name = "video-uniquifier"
+version = "2.0.0"
 description = "Production-grade re-encoder with controlled micro-transforms for owned/licensed video content."
 readme = "README.md"
 requires-python = ">=3.11"
 license = { file = "LICENSE" }
-authors = [{ name = "yt-uniquifier contributors" }]
+authors = [{ name = "video-uniquifier contributors" }]
 keywords = ["video", "ffmpeg", "youtube", "re-encode"]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
@@ -56,7 +56,7 @@ scene = ["scenedetect~=0.7.1"]
 # opt-in because the torch runtime is ~250 MB on CPU and ~1 GB with CUDA
 # wheels. The model itself (~80 MB torchscript) is lazy-downloaded on
 # first run, NOT bundled in the wheel. Users invoke via `--sscd` on
-# `yt-uniq qa` or `compute_sscd=True` on the build_report API.
+# `video-uniq qa` or `compute_sscd=True` on the build_report API.
 # Intel macOS PyPI currently tops out at torch 2.2.x, whose NumPy bridge was
 # compiled against NumPy 1.x. Other platforms must use a current Torch line;
 # the Intel exception is documented as trusted, hash-pinned SSCD inference only.
@@ -127,18 +127,18 @@ dev = [
 ]
 
 [project.scripts]
-yt-uniq = "yt_uniquifier.cli.app:app"
-yt-uniq-gui = "yt_uniquifier.gui.app_pyqt:main"
+video-uniq = "video_uniquifier.cli.app:app"
+video-uniq-gui = "video_uniquifier.gui.app_pyqt:main"
 # v0.9.0 R4 / F13 — headless FastAPI server. Requires `[web]` extra.
-yt-uniq-web = "yt_uniquifier.web.cli:main"
+video-uniq-web = "video_uniquifier.web.cli:main"
 
 # v0.8.0 R1 — third-party transform plugins register here. A plugin package
 # advertises an entry point whose value is an import path to a module that
-# calls ``yt_uniquifier.core.transforms.register(TransformSpec(...))`` at
+# calls ``video_uniquifier.core.transforms.register(TransformSpec(...))`` at
 # import time. See ``docs/plugins.md`` for a worked example. The stub below
 # is documentation, not a real entry point — uncomment in your own package.
 #
-# [project.entry-points."yt_uniquifier.transforms"]
+# [project.entry-points."video_uniquifier.transforms"]
 # my_transform = "my_pkg.my_transform"
 
 [build-system]
@@ -146,36 +146,36 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/yt_uniquifier"]
+packages = ["src/video_uniquifier"]
 
 [tool.hatch.build.targets.wheel.shared-data]
-"src/yt_uniquifier/profiles" = "yt_uniquifier/profiles"
-"src/yt_uniquifier/core/qa/templates" = "yt_uniquifier/core/qa/templates"
+"src/video_uniquifier/profiles" = "video_uniquifier/profiles"
+"src/video_uniquifier/core/qa/templates" = "video_uniquifier/core/qa/templates"
 # v0.9.0 R1 / F9 — bootstrap marketplace catalog shipped in the wheel
 # so a fresh install can list community profiles offline. Network
 # fetch overrides this on first run; see core/profile_marketplace.py.
-"src/yt_uniquifier/marketplace" = "yt_uniquifier/marketplace"
+"src/video_uniquifier/marketplace" = "video_uniquifier/marketplace"
 # v1.2.0 Task 25 — marketplace operator's Ed25519 public key bundle.
 # Used by ``profile_marketplace.install(require_signature=True)`` to
 # verify each catalog entry's signature.  Rotate by appending the new
 # key and removing the old one when every entry is re-signed.
-"src/yt_uniquifier/keys" = "yt_uniquifier/keys"
+"src/video_uniquifier/keys" = "video_uniquifier/keys"
 # v0.9.0 R4 / F13 — web UI templates + static assets shipped in the
-# wheel so `yt-uniq-web` works straight from a pip install (no
+# wheel so `video-uniq-web` works straight from a pip install (no
 # external asset directory hunt).
-"src/yt_uniquifier/web/templates" = "yt_uniquifier/web/templates"
-"src/yt_uniquifier/web/static" = "yt_uniquifier/web/static"
+"src/video_uniquifier/web/templates" = "video_uniquifier/web/templates"
+"src/video_uniquifier/web/static" = "video_uniquifier/web/static"
 
 [tool.hatch.build]
 include = [
-    "src/yt_uniquifier/**/*.py",
-    "src/yt_uniquifier/profiles/*.yaml",
-    "src/yt_uniquifier/core/qa/templates/*.j2",
-    "src/yt_uniquifier/marketplace/*.json",
-    "src/yt_uniquifier/keys/*.pub",
-    "src/yt_uniquifier/web/templates/*.html",
-    "src/yt_uniquifier/web/static/*.js",
-    "src/yt_uniquifier/web/static/*.css",
+    "src/video_uniquifier/**/*.py",
+    "src/video_uniquifier/profiles/*.yaml",
+    "src/video_uniquifier/core/qa/templates/*.j2",
+    "src/video_uniquifier/marketplace/*.json",
+    "src/video_uniquifier/keys/*.pub",
+    "src/video_uniquifier/web/templates/*.html",
+    "src/video_uniquifier/web/static/*.js",
+    "src/video_uniquifier/web/static/*.css",
 ]
 
 [tool.ruff]
@@ -188,11 +188,11 @@ ignore = []
 
 [tool.ruff.lint.per-file-ignores]
 # typer.Argument/Option as defaults is the idiomatic pattern.
-"src/yt_uniquifier/cli/*.py" = ["B008"]
+"src/video_uniquifier/cli/*.py" = ["B008"]
 "tools/*.py" = ["B008"]
 # v0.9.0 R4 — FastAPI ``Depends(security)`` as a default is the
 # documented idiom; suppressing B008 here matches our cli/ rule.
-"src/yt_uniquifier/web/**/*.py" = ["B008"]
+"src/video_uniquifier/web/**/*.py" = ["B008"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -225,5 +225,5 @@ ignore_missing_imports = true
 # --strict. The web layer is intentionally a thin shell over typed
 # core/ — we relax the decorator check only inside web/.
 [[tool.mypy.overrides]]
-module = ["yt_uniquifier.web.app", "yt_uniquifier.web.routes.*"]
+module = ["video_uniquifier.web.app", "video_uniquifier.web.routes.*"]
 disable_error_code = ["untyped-decorator", "no-any-return"]

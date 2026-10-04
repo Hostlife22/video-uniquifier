@@ -1,7 +1,7 @@
 """Real-video bug-hunt harness.
 
 Walks an inputs directory, builds a (input × profile × encoder × workers) matrix,
-runs yt-uniq via subprocess, captures exit code + stderr tail + qa.json, writes
+runs video-uniq via subprocess, captures exit code + stderr tail + qa.json, writes
 summary.csv. Also runs a resume cell: SIGINT after first segment_done, restart,
 verify state.json idempotency.
 """
@@ -21,8 +21,8 @@ import typer
 app = typer.Typer(no_args_is_help=True, add_completion=False)
 
 REPO = Path(__file__).resolve().parents[1]
-PROFILES_DIR = REPO / "src" / "yt_uniquifier" / "profiles"
-YT_UNIQ = REPO / ".venv" / "bin" / "yt-uniq"
+PROFILES_DIR = REPO / "src" / "video_uniquifier" / "profiles"
+VIDEO_UNIQ = REPO / ".venv" / "bin" / "video-uniq"
 STDERR_TAIL_BYTES = 4000
 
 
@@ -118,7 +118,7 @@ def _run_cell(
     out_file = cell_dir / f"{inp.stem}.out.mp4"
 
     cmd = [
-        str(YT_UNIQ), "run", str(inp),
+        str(VIDEO_UNIQ), "run", str(inp),
         "--profile", str(_profile_path(profile)),
         "--out", str(out_file),
         "--encoder", encoder,
@@ -183,7 +183,7 @@ def _run_resume_cell(
     out_file = cell_dir / f"{inp.stem}.out.mp4"
 
     cmd = [
-        str(YT_UNIQ), "run", str(inp),
+        str(VIDEO_UNIQ), "run", str(inp),
         "--profile", str(_profile_path(profile)),
         "--out", str(out_file),
         "--encoder", encoder,

@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from yt_uniquifier.core.checkpoint import CheckpointStore
-from yt_uniquifier.core.models import (
+from video_uniquifier.core.checkpoint import CheckpointStore
+from video_uniquifier.core.models import (
     AudioStream,
     EncoderCandidate,
     HDRInfo,

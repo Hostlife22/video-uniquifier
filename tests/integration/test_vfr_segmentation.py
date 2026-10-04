@@ -11,11 +11,11 @@ from typing import Any
 import pytest
 
 from tests.conftest import needs_ffmpeg
-from yt_uniquifier.core.models import EncoderCandidate, Plan, Profile, TransformConfig
-from yt_uniquifier.core.orchestrator import RunOptions, run_full
-from yt_uniquifier.core.pipeline import compute_plan_hash
-from yt_uniquifier.core.probe import probe
-from yt_uniquifier.core.segmenter import list_keyframes, plan_segments
+from video_uniquifier.core.models import EncoderCandidate, Plan, Profile, TransformConfig
+from video_uniquifier.core.orchestrator import RunOptions, run_full
+from video_uniquifier.core.pipeline import compute_plan_hash
+from video_uniquifier.core.probe import probe
+from video_uniquifier.core.segmenter import list_keyframes, plan_segments
 
 
 def _make_vfr_clip(output: Path) -> None:

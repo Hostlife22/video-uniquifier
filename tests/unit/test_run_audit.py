@@ -4,7 +4,7 @@ Covers:
 
   * record_run with a real path writes one JSONL line
   * None path → no-op (no file created)
-  * principal defaults via YT_UNIQ_AUDIT_PRINCIPAL env var
+  * principal defaults via VIDEO_UNIQ_AUDIT_PRINCIPAL env var
   * resolve_audit_log_path honours explicit > env > None
   * sha256_file matches hashlib
   * write error logged at WARN, never raised
@@ -22,7 +22,7 @@ from pathlib import Path
 
 import pytest
 
-from yt_uniquifier.core import audit
+from video_uniquifier.core import audit
 
 
 def _now() -> dt.datetime:
@@ -92,7 +92,7 @@ def test_record_run_none_path_is_noop(tmp_path: Path) -> None:
 def test_principal_falls_back_to_env_var(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path,
 ) -> None:
-    monkeypatch.setenv("YT_UNIQ_AUDIT_PRINCIPAL", "cron-bot")
+    monkeypatch.setenv("VIDEO_UNIQ_AUDIT_PRINCIPAL", "cron-bot")
     log_path = tmp_path / "audit.jsonl"
     input_p = tmp_path / "in.mp4"
     input_p.touch()
@@ -111,13 +111,13 @@ def test_resolve_audit_log_path_priority(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path,
 ) -> None:
     """Explicit > env > None."""
-    monkeypatch.setenv("YT_UNIQ_AUDIT_LOG", str(tmp_path / "from_env.jsonl"))
+    monkeypatch.setenv("VIDEO_UNIQ_AUDIT_LOG", str(tmp_path / "from_env.jsonl"))
     explicit = tmp_path / "explicit.jsonl"
     assert audit.resolve_audit_log_path(explicit) == explicit
     # Explicit None falls through to env.
     assert audit.resolve_audit_log_path(None) == tmp_path / "from_env.jsonl"
     # Env unset → None.
-    monkeypatch.delenv("YT_UNIQ_AUDIT_LOG")
+    monkeypatch.delenv("VIDEO_UNIQ_AUDIT_LOG")
     assert audit.resolve_audit_log_path(None) is None
 
 
@@ -145,7 +145,7 @@ def test_write_failure_logged_not_raised(
 
     monkeypatch.setattr(Path, "open", fake_open)
     # mkdir is fine; we want the open to fail.
-    caplog.set_level(logging.WARNING, logger="yt_uniquifier.core.audit")
+    caplog.set_level(logging.WARNING, logger="video_uniquifier.core.audit")
     audit.record_run(
         audit_log_path=log_path,
         run_id="r", started_at=_now(), ended_at=_now(),

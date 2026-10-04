@@ -9,9 +9,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from yt_uniquifier.core.profile_loader import load_profile
+from video_uniquifier.core.profile_loader import load_profile
 
-PROFILES_DIR = Path(__file__).parent.parent.parent / "src" / "yt_uniquifier" / "profiles"
+PROFILES_DIR = Path(__file__).parent.parent.parent / "src" / "video_uniquifier" / "profiles"
 
 
 def _enabled_state(profile, transform_id: str) -> bool | None:

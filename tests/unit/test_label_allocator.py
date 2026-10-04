@@ -1,4 +1,4 @@
-from yt_uniquifier.core.transforms.base import LabelAllocator
+from video_uniquifier.core.transforms.base import LabelAllocator
 
 
 def test_independent_counters() -> None:

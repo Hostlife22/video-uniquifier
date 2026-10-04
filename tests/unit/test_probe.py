@@ -9,8 +9,8 @@ from typing import Any
 
 import pytest
 
-from yt_uniquifier.core import probe as probe_mod
-from yt_uniquifier.core.errors import ProbeError
+from video_uniquifier.core import probe as probe_mod
+from video_uniquifier.core.errors import ProbeError
 
 
 def _ffprobe_json(

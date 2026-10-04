@@ -33,9 +33,9 @@ to resolve, not a parameter-optimization target.
 Start with the smallest transform set required by the editorial/delivery goal:
 
 ```bash
-yt-uniq preflight master.mp4 --profile soft
-yt-uniq run master.mp4 --profile soft --out candidate.mp4 --encoder libx264
-yt-uniq qa master.mp4 candidate.mp4 --vs-corpus
+video-uniq preflight master.mp4 --profile soft
+video-uniq run master.mp4 --profile soft --out candidate.mp4 --encoder libx264
+video-uniq qa master.mp4 candidate.mp4 --vs-corpus
 ```
 
 Inspect the final media with `ffprobe`, decode every audio/video stream, and review the

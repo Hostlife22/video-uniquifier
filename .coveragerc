@@ -1,9 +1,9 @@
 # v1.0.0 R3 — coverage configuration for the `core/` SemVer gate.
 #
-# Local development: `pytest --cov=yt_uniquifier.core` reads this
+# Local development: `pytest --cov=video_uniquifier.core` reads this
 # automatically. The 80% floor is enforced by the CI workflow rather than
 # ordinary local pytest runs. CI runs `pytest --cov-fail-under=80
-# --cov=yt_uniquifier.core ...` and blocks the merge if the floor regresses;
+# --cov=video_uniquifier.core ...` and blocks the merge if the floor regresses;
 # 85% branch coverage remains a future ratchet target.
 #
 # The gate covers `core/` only. The GUI and CLI layers have
@@ -19,7 +19,7 @@
 
 [run]
 branch = true
-source = src/yt_uniquifier/core
+source = src/video_uniquifier/core
 
 # Stamp .coverage with a stable suffix so parallel-pytest runs
 # (`-n auto` if pytest-xdist is ever added) don't clobber each other.
@@ -44,6 +44,6 @@ precision = 1
 # Windows paths can show with backslashes. Collapse them so the
 # golden coverage report stays portable.
 source =
-    src/yt_uniquifier/core
-    */src/yt_uniquifier/core
-    *\src\yt_uniquifier\core
+    src/video_uniquifier/core
+    */src/video_uniquifier/core
+    *\src\video_uniquifier\core

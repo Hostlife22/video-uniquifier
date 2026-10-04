@@ -44,8 +44,8 @@ def test_phase1_c1_runner_handles_missing_returncode(
 ) -> None:
     """run() uses `getattr(proc, 'returncode')` so test fakes without
     that attribute fall back to wait() instead of crashing."""
-    from yt_uniquifier.core import runner as runner_mod
-    from yt_uniquifier.core.pipeline import BuiltCommand
+    from video_uniquifier.core import runner as runner_mod
+    from video_uniquifier.core.pipeline import BuiltCommand
 
     class _FakeProc:
         # Deliberately omit `returncode`.
@@ -75,7 +75,7 @@ def test_phase1_c2_run_worker_has_history_signal() -> None:
     """RunWorker exposes the `_history_request` signal that marshals
     the AppState push back to the GUI thread."""
     pytest.importorskip("PyQt6")
-    from yt_uniquifier.gui.workers.run_worker import RunWorker
+    from video_uniquifier.gui.workers.run_worker import RunWorker
 
     assert hasattr(RunWorker, "_history_request")
     assert hasattr(RunWorker, "_on_history_request")
@@ -86,7 +86,7 @@ def test_phase1_c2_run_worker_has_history_signal() -> None:
 def test_phase2_h1_remark_failure_does_not_mask_original() -> None:
     """When the worker raises AND `store.mark` raises during re-mark,
     the original worker exception is the one that propagates."""
-    from yt_uniquifier.core import orchestrator as orch_mod
+    from video_uniquifier.core import orchestrator as orch_mod
 
     class _WorkerError(RuntimeError):
         pass
@@ -114,8 +114,8 @@ def test_phase2_h4_checkpoint_pending_filters_at_dict_level(
     tmp_path: Path,
 ) -> None:
     """pending() returns non-done segments without parsing the full list twice."""
-    from yt_uniquifier.core.checkpoint import CheckpointStore
-    from yt_uniquifier.core.models import Segment
+    from video_uniquifier.core.checkpoint import CheckpointStore
+    from video_uniquifier.core.models import Segment
 
     class _StubPlan:
         plan_hash = "stub_hash_001"
@@ -136,7 +136,7 @@ def test_phase2_m3_preflight_substring_no_false_positive(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """`_ffmpeg_has_filter('eq')` must not match inside 'equalizer'."""
-    from yt_uniquifier.core import preflight as pf_mod
+    from video_uniquifier.core import preflight as pf_mod
 
     fake_stdout = "  T.. equalizer       Apply N-band equalization\n"
 
@@ -148,7 +148,7 @@ def test_phase2_m3_preflight_substring_no_false_positive(
     # so patching the real subprocess module catches the local import.
     monkeypatch.setattr(subprocess, "run", fake_run)
     monkeypatch.setattr(
-        "yt_uniquifier.core.utils.ffmpeg_paths.ffmpeg_bin",
+        "video_uniquifier.core.utils.ffmpeg_paths.ffmpeg_bin",
         lambda: "/usr/bin/ffmpeg",
     )
 
@@ -158,9 +158,9 @@ def test_phase2_m3_preflight_substring_no_false_positive(
 
 def test_phase2_m5_runner_rejects_option_as_last_arg() -> None:
     """The output-path-is-last assumption is now explicit."""
-    from yt_uniquifier.core import runner as runner_mod
-    from yt_uniquifier.core.errors import PipelineError
-    from yt_uniquifier.core.pipeline import BuiltCommand
+    from video_uniquifier.core import runner as runner_mod
+    from video_uniquifier.core.errors import PipelineError
+    from video_uniquifier.core.pipeline import BuiltCommand
 
     bad = BuiltCommand(args=["ffmpeg", "-version"])
     with pytest.raises(PipelineError, match="output path"):
@@ -169,7 +169,7 @@ def test_phase2_m5_runner_rejects_option_as_last_arg() -> None:
 
 def test_phase2_l6_keyframe_dedupe_collapses_sub_ms() -> None:
     """Near-duplicate keyframes (≤1 ms apart) collapse to one entry."""
-    from yt_uniquifier.core.segmenter import _dedup_keyframes
+    from video_uniquifier.core.segmenter import _dedup_keyframes
 
     kfs = [0.0, 0.0001, 0.0002, 5.0, 5.00005, 10.0]
     assert _dedup_keyframes(kfs) == [0.0, 5.0, 10.0]
@@ -183,7 +183,7 @@ def test_phase3_h3_no_env_mutation_in_parallel_batch(
     """process_video_segments_parallel must not mutate the parent
     process's `os.environ`. The OMP_NUM_THREADS knob travels via
     `extra_env` on each runner call instead."""
-    from yt_uniquifier.core import segmenter as seg_mod
+    from video_uniquifier.core import segmenter as seg_mod
 
     monkeypatch.delenv("OMP_NUM_THREADS", raising=False)
     env_before = dict(os.environ)
@@ -199,7 +199,7 @@ def test_phase3_h3_no_env_mutation_in_parallel_batch(
     monkeypatch.setattr(seg_mod, "process_video_segment", fake_process_video_segment)
     monkeypatch.setattr(seg_mod, "parallel_safe", lambda _plan: 2)
 
-    from yt_uniquifier.core.models import Segment
+    from video_uniquifier.core.models import Segment
 
     class _StubEncoder:
         max_parallel = 2
@@ -227,7 +227,7 @@ def test_phase3_h3_no_env_mutation_in_parallel_batch(
 
 def test_phase4_h5_preflight_worker_module_importable() -> None:
     pytest.importorskip("PyQt6")
-    from yt_uniquifier.gui.workers.preflight_worker import PreflightWorker
+    from video_uniquifier.gui.workers.preflight_worker import PreflightWorker
 
     assert hasattr(PreflightWorker, "plan_ready")
     assert hasattr(PreflightWorker, "run")
@@ -235,7 +235,7 @@ def test_phase4_h5_preflight_worker_module_importable() -> None:
 
 def test_phase4_h6_queue_io_worker_module_importable() -> None:
     pytest.importorskip("PyQt6")
-    from yt_uniquifier.gui.workers.queue_io_worker import Op, QueueIoWorker
+    from video_uniquifier.gui.workers.queue_io_worker import Op, QueueIoWorker
 
     assert hasattr(QueueIoWorker, "done")
     assert hasattr(QueueIoWorker, "run")
@@ -249,7 +249,7 @@ def test_phase5_m7_filter_injection_in_fillcolor_refused() -> None:
     fillcolor string."""
     from pydantic import ValidationError
 
-    from yt_uniquifier.core.transforms.video_geom import RotateParams
+    from video_uniquifier.core.transforms.video_geom import RotateParams
 
     for bad in (
         "black,scale=1:1[x];[x]",
@@ -267,7 +267,7 @@ def test_phase5_m7_filter_injection_in_fillcolor_refused() -> None:
 def test_phase5_m8_target_segment_sec_lower_bound_enforced(
     tmp_path: Path,
 ) -> None:
-    from yt_uniquifier.core.orchestrator import RunOptions
+    from video_uniquifier.core.orchestrator import RunOptions
 
     with pytest.raises(ValueError, match="target_segment_sec"):
         RunOptions(
@@ -278,7 +278,7 @@ def test_phase5_m8_target_segment_sec_lower_bound_enforced(
 
 
 def test_phase5_m9_workers_upper_bound_enforced(tmp_path: Path) -> None:
-    from yt_uniquifier.core.orchestrator import RunOptions
+    from video_uniquifier.core.orchestrator import RunOptions
 
     with pytest.raises(ValueError, match="workers"):
         RunOptions(
@@ -293,8 +293,8 @@ def test_phase5_l3_state_json_is_owner_only(tmp_path: Path) -> None:
     paths aren't leaked on shared / mis-umask'd hosts."""
     if os.name != "posix":
         pytest.skip("POSIX-only mode check")
-    from yt_uniquifier.core.checkpoint import CheckpointStore
-    from yt_uniquifier.core.models import Segment
+    from video_uniquifier.core.checkpoint import CheckpointStore
+    from video_uniquifier.core.models import Segment
 
     class _StubPlan:
         plan_hash = "owner_only_test"
@@ -317,8 +317,8 @@ def test_phase6_m1_concat_error_includes_head_and_tail(
 ) -> None:
     """The error message for concat failure preserves both first and
     last stderr chunks, not tail-only."""
-    from yt_uniquifier.core import segmenter as seg_mod
-    from yt_uniquifier.core.errors import PipelineError
+    from video_uniquifier.core import segmenter as seg_mod
+    from video_uniquifier.core.errors import PipelineError
 
     big_stderr = "FATAL: bad container header\n" + ("noise\n" * 200) + "END."
 
@@ -345,7 +345,7 @@ def test_phase6_m11_chart_widget_refresh_repopulates_lines() -> None:
     pytest.importorskip("PyQt6.QtCharts")
     from PyQt6.QtWidgets import QApplication
 
-    from yt_uniquifier.gui.widgets.chart_widget import ChartWidget, Series
+    from video_uniquifier.gui.widgets.chart_widget import ChartWidget, Series
 
     _ = QApplication.instance() or QApplication([])
     w = ChartWidget()
@@ -359,7 +359,7 @@ def test_phase6_m12_log_console_is_deque() -> None:
 
     from PyQt6.QtWidgets import QApplication
 
-    from yt_uniquifier.gui.widgets.log_console import LogConsole
+    from video_uniquifier.gui.widgets.log_console import LogConsole
 
     _ = QApplication.instance() or QApplication([])
     c = LogConsole(max_lines=3)
@@ -372,7 +372,7 @@ def test_phase6_m12_log_console_is_deque() -> None:
 def test_phase6_l7_corpus_list_worker_finished_payload_is_count() -> None:
     """`finished_ok` carries a count, not the full entries list."""
     pytest.importorskip("PyQt6")
-    from yt_uniquifier.gui.workers.corpus_list_worker import CorpusListWorker
+    from video_uniquifier.gui.workers.corpus_list_worker import CorpusListWorker
 
     src = inspect.getsource(CorpusListWorker)
     assert "finished_ok.emit(len(entries))" in src
@@ -384,7 +384,7 @@ def test_phase7_m4_encoder_cache_path_honors_monkeypatch(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path,
 ) -> None:
     """Reassigning the module-level CACHE_PATH redirects writes."""
-    from yt_uniquifier.core import encoder as enc_mod
+    from video_uniquifier.core import encoder as enc_mod
 
     redirect = tmp_path / "redirected_encoders.json"
     monkeypatch.setattr(enc_mod, "CACHE_PATH", redirect)
@@ -395,8 +395,8 @@ def test_phase7_m6_encoder_cache_uses_json_mode_for_dump(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path,
 ) -> None:
     """`_save_cache` calls model_dump(mode='json') for forward-safety."""
-    from yt_uniquifier.core import encoder as enc_mod
-    from yt_uniquifier.core.models import EncoderCandidate
+    from video_uniquifier.core import encoder as enc_mod
+    from video_uniquifier.core.models import EncoderCandidate
 
     monkeypatch.setattr(enc_mod, "CACHE_PATH", tmp_path / "encoders.json")
     sample = EncoderCandidate(

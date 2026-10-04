@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from yt_uniquifier.core.qa.report import heatmap_color
+from video_uniquifier.core.qa.report import heatmap_color
 
 
 def test_low_is_green() -> None:

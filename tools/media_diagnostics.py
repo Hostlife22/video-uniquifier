@@ -17,8 +17,8 @@ from typing import Any
 
 import numpy as np
 
-from yt_uniquifier.core.probe import probe
-from yt_uniquifier.core.utils.ffmpeg_paths import ffmpeg_bin, ffprobe_bin
+from video_uniquifier.core.probe import probe
+from video_uniquifier.core.utils.ffmpeg_paths import ffmpeg_bin, ffprobe_bin
 
 
 def envelope_alignment(

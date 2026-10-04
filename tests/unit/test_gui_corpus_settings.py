@@ -9,11 +9,11 @@ from unittest.mock import patch
 import pytest
 from PyQt6.QtWidgets import QApplication
 
-from yt_uniquifier.core.qa.corpus import Corpus, CorpusEntry
-from yt_uniquifier.gui.screens.corpus import CorpusScreen
-from yt_uniquifier.gui.screens.settings import SettingsScreen
-from yt_uniquifier.gui.state import AppState
-from yt_uniquifier.gui.workers.corpus_worker import CorpusWorker
+from video_uniquifier.core.qa.corpus import Corpus, CorpusEntry
+from video_uniquifier.gui.screens.corpus import CorpusScreen
+from video_uniquifier.gui.screens.settings import SettingsScreen
+from video_uniquifier.gui.state import AppState
+from video_uniquifier.gui.workers.corpus_worker import CorpusWorker
 
 
 @pytest.fixture(scope="module")
@@ -25,9 +25,9 @@ def app() -> QApplication:
 
 
 def _isolate(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> AppState:
-    monkeypatch.setattr("yt_uniquifier.gui.state.CONFIG_DIR", tmp_path)
-    monkeypatch.setattr("yt_uniquifier.gui.state.STATE_PATH", tmp_path / "s.json")
-    monkeypatch.setattr("yt_uniquifier.gui.state.HISTORY_PATH", tmp_path / "h.json")
+    monkeypatch.setattr("video_uniquifier.gui.state.CONFIG_DIR", tmp_path)
+    monkeypatch.setattr("video_uniquifier.gui.state.STATE_PATH", tmp_path / "s.json")
+    monkeypatch.setattr("video_uniquifier.gui.state.HISTORY_PATH", tmp_path / "h.json")
     return AppState()
 
 

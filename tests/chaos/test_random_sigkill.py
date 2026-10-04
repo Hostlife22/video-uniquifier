@@ -32,11 +32,11 @@ import pytest
 from tests.conftest import needs_ffmpeg
 
 # Local default; the CI runner can bump this via env.
-N_ROUNDS = int(os.environ.get("YT_UNIQ_CHAOS_ROUNDS", "3"))
+N_ROUNDS = int(os.environ.get("VIDEO_UNIQ_CHAOS_ROUNDS", "3"))
 SOFT_PROFILE = (
     Path(__file__).resolve().parents[2]
     / "src"
-    / "yt_uniquifier"
+    / "video_uniquifier"
     / "profiles"
     / "soft.yaml"
 )
@@ -145,7 +145,7 @@ def test_sigkill_then_resume_produces_equivalent_output(
 def _clean_run(source: Path, output: Path, work: Path, profile: Path) -> None:
     """Run the orchestrator to completion via the CLI surface."""
     cmd = [
-        sys.executable, "-m", "yt_uniquifier", "run", str(source),
+        sys.executable, "-m", "video_uniquifier", "run", str(source),
         "--profile", str(profile),
         "--out", str(output),
         "--work-dir", str(work),
@@ -159,7 +159,7 @@ def _launch_orchestrator(
 ) -> subprocess.Popen[bytes]:
     """Start the orchestrator and return the Popen for the watchdog."""
     cmd = [
-        sys.executable, "-m", "yt_uniquifier", "run", str(source),
+        sys.executable, "-m", "video_uniquifier", "run", str(source),
         "--profile", str(profile),
         "--out", str(output),
         "--work-dir", str(work),

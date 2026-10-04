@@ -8,8 +8,8 @@ from typing import Any
 
 import pytest
 
-from yt_uniquifier.core.qa import phash, vmaf
-from yt_uniquifier.core.qa.phash import adaptive_n
+from video_uniquifier.core.qa import phash, vmaf
+from video_uniquifier.core.qa.phash import adaptive_n
 
 # ---- phash.adaptive_n ------------------------------------------------------
 

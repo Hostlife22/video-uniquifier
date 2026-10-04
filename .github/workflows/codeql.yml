@@ -1,4 +1,4 @@
-# CodeQL — yt-uniquifier (v1.0.1)
+# CodeQL — video-uniquifier (v1.0.1)
 #
 # Runs github/codeql-action on every push to main and weekly so latent
 # vulns flagged by new query rollouts surface within a week of release.

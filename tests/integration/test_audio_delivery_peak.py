@@ -6,12 +6,12 @@ from pathlib import Path
 import pytest
 
 from tests.conftest import needs_ffmpeg
-from yt_uniquifier.core.errors import PipelineError
-from yt_uniquifier.core.models import Profile, TransformConfig
-from yt_uniquifier.core.orchestrator import build_plan
-from yt_uniquifier.core.probe import probe
-from yt_uniquifier.core.segmenter import process_main_audio, require_audio_delivery_peak
-from yt_uniquifier.core.transforms.audio_loudnorm import measure
+from video_uniquifier.core.errors import PipelineError
+from video_uniquifier.core.models import Profile, TransformConfig
+from video_uniquifier.core.orchestrator import build_plan
+from video_uniquifier.core.probe import probe
+from video_uniquifier.core.segmenter import process_main_audio, require_audio_delivery_peak
+from video_uniquifier.core.transforms.audio_loudnorm import measure
 
 
 @pytest.mark.integration

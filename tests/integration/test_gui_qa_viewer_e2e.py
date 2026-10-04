@@ -23,8 +23,8 @@ def app():
 
 
 def test_qa_viewer_builds_with_two_tabs(app, qtbot) -> None:
-    from yt_uniquifier.gui.screens.qa_viewer import QaViewerScreen
-    from yt_uniquifier.gui.state import AppState
+    from video_uniquifier.gui.screens.qa_viewer import QaViewerScreen
+    from video_uniquifier.gui.state import AppState
 
     state = AppState()
     screen = QaViewerScreen(state)
@@ -38,8 +38,8 @@ def test_qa_viewer_builds_with_two_tabs(app, qtbot) -> None:
 
 def test_qa_viewer_load_html_enables_browser(app, qtbot, tmp_path: Path) -> None:
     """_load_html on a real path enables Open-in-browser."""
-    from yt_uniquifier.gui.screens.qa_viewer import QaViewerScreen
-    from yt_uniquifier.gui.state import AppState
+    from video_uniquifier.gui.screens.qa_viewer import QaViewerScreen
+    from video_uniquifier.gui.state import AppState
 
     qa_html = tmp_path / "report.qa.html"
     qa_html.write_text("<html><body>fake</body></html>")

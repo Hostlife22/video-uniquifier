@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from yt_uniquifier.core.models import (
+from video_uniquifier.core.models import (
     AudioStream,
     EncoderCandidate,
     HDRInfo,
@@ -12,7 +12,7 @@ from yt_uniquifier.core.models import (
     SourceMeta,
     VideoStream,
 )
-from yt_uniquifier.core.pipeline import compute_plan_hash
+from video_uniquifier.core.pipeline import compute_plan_hash
 
 
 def _src(tmp_path: Path) -> SourceMeta:

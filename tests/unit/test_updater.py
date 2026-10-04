@@ -5,7 +5,7 @@ Covers:
   * semver comparison: dotted-numeric > suffix > string
   * manifest schema rejects unknown fields + bad sha format
   * check_for_update collapses transport errors to available=False
-  * YT_UNIQ_DISABLE_UPDATER=1 short-circuits the check
+  * VIDEO_UNIQ_DISABLE_UPDATER=1 short-circuits the check
   * non-HTTPS URL rejected
   * downgrade refused in apply_update
   * platform key mismatch raises
@@ -20,8 +20,8 @@ from pathlib import Path
 
 import pytest
 
-from yt_uniquifier.core import updater
-from yt_uniquifier.core.updater import (
+from video_uniquifier.core import updater
+from video_uniquifier.core.updater import (
     UpdateAsset,
     UpdateManifest,
     UpdaterError,
@@ -78,7 +78,7 @@ def test_update_manifest_rejects_unknown_field() -> None:
 
 
 def test_check_disabled_via_env(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setenv("YT_UNIQ_DISABLE_UPDATER", "1")
+    monkeypatch.setenv("VIDEO_UNIQ_DISABLE_UPDATER", "1")
     result = check_for_update()
     assert result.available is False
     assert result.current_version == result.latest_version
@@ -91,7 +91,7 @@ def test_check_transport_error_returns_not_available(
         raise UpdaterError("network down")
 
     monkeypatch.setattr(updater, "_fetch_manifest", boom)
-    monkeypatch.delenv("YT_UNIQ_DISABLE_UPDATER", raising=False)
+    monkeypatch.delenv("VIDEO_UNIQ_DISABLE_UPDATER", raising=False)
     result = check_for_update()
     assert result.available is False
 
@@ -104,7 +104,7 @@ def test_check_newer_version_marks_available(
         assets=[],
     )
     monkeypatch.setattr(updater, "_fetch_manifest", lambda _u: fake)
-    monkeypatch.delenv("YT_UNIQ_DISABLE_UPDATER", raising=False)
+    monkeypatch.delenv("VIDEO_UNIQ_DISABLE_UPDATER", raising=False)
     result = check_for_update()
     assert result.available is True
     assert result.latest_version == "99.0.0"

@@ -2,7 +2,7 @@
 
 The transforms package must:
   1. survive a single broken built-in (log + continue with the rest),
-  2. discover third-party transforms via the ``yt_uniquifier.transforms``
+  2. discover third-party transforms via the ``video_uniquifier.transforms``
      entry-points group, and
   3. survive a broken third-party plugin without breaking other plugins
      or built-ins.
@@ -29,10 +29,10 @@ from unittest import mock
 import pytest
 from pydantic import BaseModel
 
-import yt_uniquifier.core.transforms as transforms_pkg
-from yt_uniquifier.core import plugins as plugins_mod
-from yt_uniquifier.core.plugins import MANIFEST_FILENAME
-from yt_uniquifier.core.transforms import (
+import video_uniquifier.core.transforms as transforms_pkg
+from video_uniquifier.core import plugins as plugins_mod
+from video_uniquifier.core.plugins import MANIFEST_FILENAME
+from video_uniquifier.core.transforms import (
     ENTRY_POINT_GROUP,
     FilterChain,
     LabelAllocator,
@@ -44,7 +44,7 @@ from yt_uniquifier.core.transforms import (
 
 
 # v1.2.0 Task 23 — every third-party EntryPoint now must ship a
-# yt_uniquifier_plugin.toml manifest.  Fake entry points used by the
+# video_uniquifier_plugin.toml manifest.  Fake entry points used by the
 # v0.8.0 tests below were created before the manifest gate existed;
 # this helper attaches the smallest valid manifest so discovery
 # proceeds to the loader.
@@ -80,7 +80,7 @@ def _isolated_plugin_id() -> Iterator[str]:
 
     Avoids cross-test contamination since the registry is a process-global.
     """
-    from yt_uniquifier.core.transforms import base as _base
+    from video_uniquifier.core.transforms import base as _base
 
     # Use a high-entropy id so parallel pytest-xdist workers don't collide.
     pid = f"_test.plugin_{id(_isolated_plugin_id):x}"
@@ -173,7 +173,7 @@ def test_broken_third_party_plugin_logs_warning_and_continues(
     _attach_video_manifest(good_ep)
     _attach_video_manifest(broken_ep)
 
-    caplog.set_level(logging.WARNING, logger="yt_uniquifier.core.transforms")
+    caplog.set_level(logging.WARNING, logger="video_uniquifier.core.transforms")
     with mock.patch.object(
         plugins_mod.importlib_metadata,
         "entry_points",
@@ -205,7 +205,7 @@ def test_broken_builtin_logs_warning_and_continues(
     ``importlib.import_module`` to raise for one specific submodule and
     verify (a) the warning, (b) the other modules still get imported.
     """
-    bad_target = "yt_uniquifier.core.transforms.audio_eq"
+    bad_target = "video_uniquifier.core.transforms.audio_eq"
     seen: list[str] = []
     real_import = importlib.import_module
 
@@ -215,7 +215,7 @@ def test_broken_builtin_logs_warning_and_continues(
             raise RuntimeError("intentional built-in failure")
         return real_import(name, *a, **kw)  # type: ignore[arg-type]
 
-    caplog.set_level(logging.WARNING, logger="yt_uniquifier.core.transforms")
+    caplog.set_level(logging.WARNING, logger="video_uniquifier.core.transforms")
     with mock.patch.object(transforms_pkg.importlib, "import_module", side_effect=shim):
         transforms_pkg._load_builtins()
 
@@ -247,7 +247,7 @@ def test_entry_points_lookup_failure_is_logged_not_raised(
     # module, not transforms.  Capture from the new logger but keep
     # asserting on the same message text so a future refactor that
     # silently swallowed the WARN still fails this regression.
-    caplog.set_level(logging.WARNING, logger="yt_uniquifier.core.plugins")
+    caplog.set_level(logging.WARNING, logger="video_uniquifier.core.plugins")
     with mock.patch.object(
         plugins_mod.importlib_metadata,
         "entry_points",
@@ -276,9 +276,9 @@ def test_all_builtins_registered_after_package_import() -> None:
 
 def test_entry_point_group_constant_is_exported() -> None:
     """Plugin authors copy-paste this constant; pin its value."""
-    assert ENTRY_POINT_GROUP == "yt_uniquifier.transforms"
+    assert ENTRY_POINT_GROUP == "video_uniquifier.transforms"
     # And confirm it's importable from the public surface.
-    from yt_uniquifier.core.transforms import ENTRY_POINT_GROUP as exported
+    from video_uniquifier.core.transforms import ENTRY_POINT_GROUP as exported
 
     assert exported == ENTRY_POINT_GROUP
 

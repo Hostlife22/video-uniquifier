@@ -93,7 +93,7 @@ jobs:
         timeout-minutes: 15
         run: |
           python tools/benchmark.py .perf/fixture_720p.mp4 \
-            --profile src/yt_uniquifier/profiles/cid_aware.yaml \
+            --profile src/video_uniquifier/profiles/cid_aware.yaml \
             --out .perf/out.mp4 \
             --encoder libx264 \
             --workers 2 \

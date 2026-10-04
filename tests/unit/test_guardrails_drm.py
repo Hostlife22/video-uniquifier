@@ -21,11 +21,11 @@ from pathlib import Path
 
 import pytest
 
-from yt_uniquifier.core import preflight as pf
-from yt_uniquifier.core.errors import PipelineError
-from yt_uniquifier.core.guardrails import drm
-from yt_uniquifier.core.guardrails.drm import DrmFinding
-from yt_uniquifier.core.models import (
+from video_uniquifier.core import preflight as pf
+from video_uniquifier.core.errors import PipelineError
+from video_uniquifier.core.guardrails import drm
+from video_uniquifier.core.guardrails.drm import DrmFinding
+from video_uniquifier.core.models import (
     EncoderCandidate,
     HDRInfo,
     Plan,
@@ -33,7 +33,7 @@ from yt_uniquifier.core.models import (
     SourceMeta,
     VideoStream,
 )
-from yt_uniquifier.core.pipeline import compute_plan_hash
+from video_uniquifier.core.pipeline import compute_plan_hash
 
 
 def _src(tmp_path: Path) -> SourceMeta:
@@ -177,7 +177,7 @@ def test_preflight_drm_encrypted_emits_fail(
 ) -> None:
     src = _src(tmp_path)
     monkeypatch.setattr(
-        "yt_uniquifier.core.guardrails.drm.detect_drm",
+        "video_uniquifier.core.guardrails.drm.detect_drm",
         lambda _p: DrmFinding(is_encrypted=True, matched_marker="pssh"),
     )
     findings = pf._check_input_drm(src)
@@ -193,7 +193,7 @@ def test_preflight_drm_clean_emits_nothing(
 ) -> None:
     src = _src(tmp_path)
     monkeypatch.setattr(
-        "yt_uniquifier.core.guardrails.drm.detect_drm",
+        "video_uniquifier.core.guardrails.drm.detect_drm",
         lambda _p: DrmFinding(is_encrypted=False),
     )
     assert pf._check_input_drm(src) == []
@@ -209,7 +209,7 @@ def test_preflight_drm_probe_error_warn_not_silent(
     def boom(_p: Path) -> DrmFinding:
         raise PipelineError("ffprobe not found")
 
-    monkeypatch.setattr("yt_uniquifier.core.guardrails.drm.detect_drm", boom)
+    monkeypatch.setattr("video_uniquifier.core.guardrails.drm.detect_drm", boom)
     findings = pf._check_input_drm(src)
     assert len(findings) == 1
     assert findings[0].code == "drm.probe_failed"

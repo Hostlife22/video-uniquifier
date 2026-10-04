@@ -6,7 +6,7 @@ a legacy ``index.json`` that ``Corpus(root)`` triggers on first open.
 Parity property: every entry that round-trips through the legacy JSON
 path comes back bit-identical out of the SQLite store. That's the
 contract upgrade-in-place users rely on — if a corpus survives across a
-yt-uniquifier version bump, none of its phash/audio fingerprints may
+video-uniquifier version bump, none of its phash/audio fingerprints may
 silently drift.
 """
 
@@ -17,8 +17,8 @@ import sqlite3
 import threading
 from pathlib import Path
 
-from yt_uniquifier.core.qa.corpus import Corpus, CorpusEntry
-from yt_uniquifier.core.qa.corpus_db import (
+from video_uniquifier.core.qa.corpus import Corpus, CorpusEntry
+from video_uniquifier.core.qa.corpus_db import (
     LEGACY_JSON_FILENAME,
     SQLITE_FILENAME,
     CorpusDB,

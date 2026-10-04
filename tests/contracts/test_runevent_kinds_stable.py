@@ -16,7 +16,7 @@ import dataclasses
 from typing import get_args
 
 from tests.contracts._snapshot import snapshot
-from yt_uniquifier.core import EventKind, RunEvent
+from video_uniquifier.core import EventKind, RunEvent
 
 
 def test_eventkind_literal_members_are_stable() -> None:

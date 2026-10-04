@@ -10,7 +10,7 @@ body:
         new CLI flags that default to a no-op, new GUI panels, new
         profiles. Changes that would alter `Plan`, `Profile`, `RunEvent`,
         an existing CLI flag, or a shipped profile require an
-        [RFC](https://github.com/Hostlife22/yt-uniquifier/issues/new?template=rfc.yml)
+        [RFC](https://github.com/Hostlife22/video-uniquifier/issues/new?template=rfc.yml)
         instead — see `docs/api-contracts.md` for the stable surface.
 
   - type: textarea

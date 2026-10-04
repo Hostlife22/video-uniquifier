@@ -29,7 +29,7 @@ def _snapshot(
     """Build a v1 perf snapshot in the shape tools/benchmark.py emits."""
     return {
         "schema_version": 1,
-        "yt_uniquifier_version": "1.0.0",
+        "video_uniquifier_version": "1.0.0",
         "git_sha": git_sha,
         "py_version": "3.12.3",
         "platform": "Linux-x86_64",
@@ -205,7 +205,7 @@ def test_benchmark_json_shape_lock(tmp_path: Path) -> None:
     perf_compare goes blind. Locking the produced shape here keeps the
     two tools in step — additions are fine, removals require updating
     the perf-history baselines too."""
-    pytest.importorskip("yt_uniquifier")
+    pytest.importorskip("video_uniquifier")
     # Import the module-level constants from perf_compare to confirm
     # the contract list does not regress unintentionally.
     sys.path.insert(0, str(REPO_ROOT / "tools"))

@@ -18,14 +18,14 @@ import sys
 
 import pytest
 
-from yt_uniquifier.gui import app_pyqt
+from video_uniquifier.gui import app_pyqt
 
 
 def test_gui_version_option_exits_before_qapplication(
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    monkeypatch.setattr(sys, "argv", ["yt-uniq-gui", "--version"])
+    monkeypatch.setattr(sys, "argv", ["video-uniq-gui", "--version"])
 
     app_pyqt.main()
 
@@ -36,7 +36,7 @@ def test_gui_version_option_exits_before_qapplication(
 def isolated_crash_log(tmp_path, monkeypatch):
     """Redirect CONFIG_DIR so crash.log lands under tmp_path."""
     monkeypatch.setattr(app_pyqt, "CONFIG_DIR", tmp_path)
-    monkeypatch.setattr("yt_uniquifier.gui.state.CONFIG_DIR", tmp_path)
+    monkeypatch.setattr("video_uniquifier.gui.state.CONFIG_DIR", tmp_path)
     yield tmp_path
 
 

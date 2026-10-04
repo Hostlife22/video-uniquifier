@@ -13,8 +13,8 @@ you TLS and saner auth than the built-in basic-auth bypass.
 ## Run it locally
 
 ```bash
-pip install yt-uniquifier[web]
-yt-uniq-web                           # binds 127.0.0.1:8080 by default
+pip install video-uniquifier[web]
+video-uniq-web                           # binds 127.0.0.1:8080 by default
 ```
 
 Then open <http://127.0.0.1:8080>. The page is a vanilla-JS SPA
@@ -26,18 +26,18 @@ CLI flags (env-var equivalents in parentheses):
 
 | Flag             | Env var                  | Default                       |
 |------------------|--------------------------|-------------------------------|
-| `--host`         | `YT_UNIQ_WEB_HOST`       | `127.0.0.1`                   |
-| `--port`         | `YT_UNIQ_WEB_PORT`       | `8080`                        |
-| `--work-dir`     | `YT_UNIQ_WEB_WORK_DIR`   | `~/.cache/yt_uniquifier/web`  |
-| `--output-dir`   | `YT_UNIQ_WEB_OUTPUT_DIR` | `./output`                    |
-| `--profile-dir`  | `YT_UNIQ_WEB_PROFILE_DIR`| per-user XDG config           |
-| `--input-root`   | `YT_UNIQ_WEB_INPUT_ROOT` | current working directory     |
-| —                | `YT_UNIQ_WEB_MAX_CONCURRENT_RUNS` | `2`                    |
-| —                | `YT_UNIQ_WEB_RUN_RETENTION_SEC` | `604800` (7 days)       |
-| —                | `YT_UNIQ_WEB_MAX_RUN_RECORDS` | `1000`                    |
+| `--host`         | `VIDEO_UNIQ_WEB_HOST`       | `127.0.0.1`                   |
+| `--port`         | `VIDEO_UNIQ_WEB_PORT`       | `8080`                        |
+| `--work-dir`     | `VIDEO_UNIQ_WEB_WORK_DIR`   | `~/.cache/video_uniquifier/web`  |
+| `--output-dir`   | `VIDEO_UNIQ_WEB_OUTPUT_DIR` | `./output`                    |
+| `--profile-dir`  | `VIDEO_UNIQ_WEB_PROFILE_DIR`| per-user XDG config           |
+| `--input-root`   | `VIDEO_UNIQ_WEB_INPUT_ROOT` | current working directory     |
+| —                | `VIDEO_UNIQ_WEB_MAX_CONCURRENT_RUNS` | `2`                    |
+| —                | `VIDEO_UNIQ_WEB_RUN_RETENTION_SEC` | `604800` (7 days)       |
+| —                | `VIDEO_UNIQ_WEB_MAX_RUN_RECORDS` | `1000`                    |
 
-Basic auth is gated on both `YT_UNIQ_WEB_USER` and
-`YT_UNIQ_WEB_PASS` being set. With neither set, the server is
+Basic auth is gated on both `VIDEO_UNIQ_WEB_USER` and
+`VIDEO_UNIQ_WEB_PASS` being set. With neither set, the server is
 LAN-trust mode and treats every request as authenticated — acceptable
 only for a loopback bind or an isolated container network. HTTP Basic
 credentials are merely encoded, not encrypted: never publish this service
@@ -50,7 +50,7 @@ on the same host.
 The shipped `Dockerfile` is a two-stage build: a Python wheel
 builder and a `python:3.12-slim-bookworm` runtime that installs Debian's
 architecture-matched `ffmpeg` and `ffprobe`. The runtime user is non-root
-(`uid 1000 ytuniq`); writable data-volume mount points are pre-created and `tini`
+(`uid 1000 videouniq`); writable data-volume mount points are pre-created and `tini`
 reaps zombie ffmpeg subprocesses if the container is killed
 mid-encode.
 
@@ -59,26 +59,26 @@ The image deliberately does **not** install the `[ml]` extra
 container, bake your own:
 
 ```dockerfile
-FROM yt-uniquifier:1.5.0
+FROM video-uniquifier:2.0.0
 USER root
-RUN pip install --no-cache-dir "yt-uniquifier[ml]"
-USER ytuniq
+RUN pip install --no-cache-dir "video-uniquifier[ml]"
+USER videouniq
 ```
 
 ### Build
 
 ```bash
-docker build -t yt-uniquifier:1.5.0 .
+docker build -t video-uniquifier:2.0.0 .
 ```
 
 The release workflow publishes one manifest for `linux/amd64` and `linux/arm64`.
 Before publishing, each architecture must build, generate an H.264/AAC fixture,
-process it through `yt-uniq`, verify the output bitstream, start the web service and
+process it through `video-uniq`, verify the output bitstream, start the web service and
 pass `/healthz`:
 
 ```bash
-tools/docker_multiarch_smoke.sh linux/amd64 yt-uniquifier:smoke-amd64
-tools/docker_multiarch_smoke.sh linux/arm64 yt-uniquifier:smoke-arm64
+tools/docker_multiarch_smoke.sh linux/amd64 video-uniquifier:smoke-amd64
+tools/docker_multiarch_smoke.sh linux/arm64 video-uniquifier:smoke-arm64
 ```
 
 Running the non-native architecture uses QEMU and can be several times slower than
@@ -92,18 +92,18 @@ docker run --rm -p 127.0.0.1:8080:8080 \
     -v $PWD/input:/data/input:ro \
     -v $PWD/output:/data/output \
     -v $PWD/work:/data/work \
-    yt-uniquifier:1.5.0
+    video-uniquifier:2.0.0
 ```
 
 ### Run behind a same-host TLS reverse proxy
 
 ```bash
 docker run --rm -p 127.0.0.1:8080:8080 \
-    -e YT_UNIQ_WEB_USER=alice \
-    -e YT_UNIQ_WEB_PASS=hunter2 \
+    -e VIDEO_UNIQ_WEB_USER=alice \
+    -e VIDEO_UNIQ_WEB_PASS=hunter2 \
     -v $PWD/input:/data/input:ro \
     -v $PWD/output:/data/output \
-    yt-uniquifier:1.5.0
+    video-uniquifier:2.0.0
 ```
 
 Configure nginx, Caddy, or Traefik to expose an `https://` endpoint and proxy
@@ -118,8 +118,8 @@ the basic-auth env vars commented out. It also applies default hard ceilings of
 4 CPUs, 12 GiB RAM, 512 PIDs, and two concurrent web runs. The RAM default includes
 headroom above the observed ~8.8 GiB peak of a 1080p60 HDR/VMAF pass; lower-memory
 hosts should disable heavyweight QA or qualify a smaller explicit limit. Copy it to your NAS,
-edit the volume paths, tune `YT_UNIQ_CPU_LIMIT`, `YT_UNIQ_MEMORY_LIMIT`,
-`YT_UNIQ_PIDS_LIMIT`, and `YT_UNIQ_MAX_CONCURRENT_RUNS` for the host, then run
+edit the volume paths, tune `VIDEO_UNIQ_CPU_LIMIT`, `VIDEO_UNIQ_MEMORY_LIMIT`,
+`VIDEO_UNIQ_PIDS_LIMIT`, and `VIDEO_UNIQ_MAX_CONCURRENT_RUNS` for the host, then run
 `docker compose up -d`. Native installs must enforce equivalent hard CPU/RAM
 limits through the operating-system service manager; `--workers` alone is an
 encoder scheduler, not a memory ceiling.
@@ -177,7 +177,7 @@ this web registry.
 The default output filename uses the selected profile's container (`.mp4`, `.mkv`,
 or `.mov`). An explicit filename with an incompatible suffix is rejected before a
 background job starts. Active final outputs are reserved atomically in
-`<output-dir>/.yt_uniquifier-reservations/`, so separate server processes sharing a
+`<output-dir>/.video_uniquifier-reservations/`, so separate server processes sharing a
 local filesystem return **409** instead of writing the same file. The exact owner
 releases its reservation at terminal state; a dead owner on the same host can be
 recovered. Foreign-host stale records fail closed because remote process liveness
@@ -186,7 +186,7 @@ semantics for their filesystem; that matrix is currently **NOT VERIFIED**.
 
 `max_concurrent_runs` is enforced across server processes that share the same
 `output_dir`. Atomic owner slots and their immutable capacity record live under
-`<output-dir>/.yt_uniquifier-admission/`; a full pool returns **429**, while an
+`<output-dir>/.video_uniquifier-admission/`; a full pool returns **429**, while an
 unavailable or inconsistently configured pool returns **503**. Every instance that
 shares the directory must use the same value. To change it, stop every such server,
 verify no encode process is still active, remove only that admission directory, and
@@ -194,8 +194,8 @@ then restart the servers with the new common value. Dead same-host owners are
 recovered; malformed and foreign-host owners fail closed.
 
 Every `run_full` caller also coordinates encoder slots and estimated temporary-disk
-bytes through `YT_UNIQ_RESOURCE_LOCK_DIR` (default:
-`~/.cache/yt_uniquifier/resource-admission`). The Docker image points it at the
+bytes through `VIDEO_UNIQ_RESOURCE_LOCK_DIR` (default:
+`~/.cache/video_uniquifier/resource-admission`). The Docker image points it at the
 mounted `/data/work/.resource-admission`, so sibling containers must share that work
 volume to share the budget. Use the same absolute registry path and service account
 for all local instances. Stop all participating processes before clearing it or

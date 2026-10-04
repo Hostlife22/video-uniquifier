@@ -20,8 +20,8 @@ from pathlib import Path
 
 import pytest
 
-from yt_uniquifier.core import segmenter as seg_mod
-from yt_uniquifier.core.models import (
+from video_uniquifier.core import segmenter as seg_mod
+from video_uniquifier.core.models import (
     AudioStream,
     EncoderCandidate,
     HDRInfo,
@@ -31,7 +31,7 @@ from yt_uniquifier.core.models import (
     SourceMeta,
     VideoStream,
 )
-from yt_uniquifier.core.runner import RunEvent
+from video_uniquifier.core.runner import RunEvent
 
 
 def _make_plan(tmp_path: Path) -> Plan:

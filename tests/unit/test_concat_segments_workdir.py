@@ -1,7 +1,7 @@
 """Regression: concat.txt must live in work_dir, not output.parent.
 
 The earlier implementation placed the transient ffmpeg concat-demuxer
-file at ``output.parent / 'concat.txt'``. Two parallel ``yt-uniq batch``
+file at ``output.parent / 'concat.txt'``. Two parallel ``video-uniq batch``
 jobs writing to the same output directory raced on that path and
 silently swapped each other's contents.
 """
@@ -12,9 +12,9 @@ from pathlib import Path
 
 import pytest
 
-from yt_uniquifier.core import segmenter as segmenter_mod
-from yt_uniquifier.core.errors import PipelineError
-from yt_uniquifier.core.runner import RunResult
+from video_uniquifier.core import segmenter as segmenter_mod
+from video_uniquifier.core.errors import PipelineError
+from video_uniquifier.core.runner import RunResult
 
 
 def _stub_run(command, *, output, **_kwargs):  # type: ignore[no-untyped-def]

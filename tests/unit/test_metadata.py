@@ -5,8 +5,8 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from pathlib import Path
 
-from yt_uniquifier.core.metadata import build_metadata_args, resolve_title
-from yt_uniquifier.core.models import (
+from video_uniquifier.core.metadata import build_metadata_args, resolve_title
+from video_uniquifier.core.models import (
     AudioStream,
     EncoderCandidate,
     HDRInfo,
@@ -62,7 +62,7 @@ def test_metadata_args_minimum(tmp_path: Path) -> None:
     # Must strip original metadata first.
     assert args[:2] == ["-map_metadata", "-1"]
     # No tool-specific encoder=… signature (fingerprint hygiene).
-    assert not any("yt-uniquifier" in s for s in args)
+    assert not any("video-uniquifier" in s for s in args)
     assert any("creation_time=2026-05-17T21:00:00" in s for s in args)
     # Language tags propagated for each audio stream.
     assert "-metadata:s:a:0" in args

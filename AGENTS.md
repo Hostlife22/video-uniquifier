@@ -3,7 +3,7 @@
 ## Project Structure & Module Organization
 
 This Python 3.11+ project uses a `src` layout. Application code lives in
-`src/yt_uniquifier/`: `core/` contains UI-independent processing, `cli/` the Typer
+`src/video_uniquifier/`: `core/` contains UI-independent processing, `cli/` the Typer
 commands, `gui/` the PyQt6 desktop application, and `web/` the FastAPI interface.
 Shipped YAML profiles are under `profiles/`. Tests mirror behavior by scope in
 `tests/unit`, `tests/integration`, `tests/gui`, `tests/smoke`, `tests/contracts`,

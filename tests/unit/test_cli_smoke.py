@@ -18,7 +18,7 @@ import pytest
 from click import unstyle
 from typer.testing import CliRunner
 
-from yt_uniquifier.cli.app import app
+from video_uniquifier.cli.app import app
 
 
 @pytest.mark.parametrize(
@@ -42,7 +42,7 @@ def test_subcommand_help_is_wired(command: str) -> None:
     """
     result = CliRunner().invoke(app, [command, "--help"])
     assert result.exit_code == 0, (
-        f"`yt-uniq {command} --help` failed:\n{result.output}"
+        f"`video-uniq {command} --help` failed:\n{result.output}"
     )
     assert result.output, f"empty help output for {command}"
 
@@ -75,7 +75,7 @@ def test_subgroup_help_is_wired(group: str) -> None:
     """Subcommand groups (``corpus``, ``queue``) resolve from the root app."""
     result = CliRunner().invoke(app, [group, "--help"])
     assert result.exit_code == 0, (
-        f"`yt-uniq {group} --help` failed:\n{result.output}"
+        f"`video-uniq {group} --help` failed:\n{result.output}"
     )
 
 

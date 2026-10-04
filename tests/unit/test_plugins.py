@@ -12,8 +12,8 @@ Coverage:
 * manifest missing → PluginViolation at discovery
 * manifest unparseable / schema mismatch → PluginViolation
 * capability mismatch → register() raises PluginViolation
-* YT_UNIQ_NO_PLUGINS env var skips discovery
-* YT_UNIQ_PLUGINS_ALLOWLIST filters discovery
+* VIDEO_UNIQ_NO_PLUGINS env var skips discovery
+* VIDEO_UNIQ_PLUGINS_ALLOWLIST filters discovery
 * audit-hook sandbox catches os.unlink inside in_plugin_code()
 * audit hook is a no-op outside the contextvar window
 * drop_disabled_plugins removes registered plugin specs
@@ -29,8 +29,8 @@ from typing import Any
 import pytest
 from pydantic import BaseModel
 
-from yt_uniquifier.core import plugin_sandbox, plugins
-from yt_uniquifier.core.plugins import (
+from video_uniquifier.core import plugin_sandbox, plugins
+from video_uniquifier.core.plugins import (
     MANIFEST_FILENAME,
     PluginManifest,
     PluginViolation,
@@ -38,8 +38,8 @@ from yt_uniquifier.core.plugins import (
     list_entry_points,
     read_manifest,
 )
-from yt_uniquifier.core.transforms import base as transform_base
-from yt_uniquifier.core.transforms.base import (
+from video_uniquifier.core.transforms import base as transform_base
+from video_uniquifier.core.transforms.base import (
     FilterChain,
     LabelAllocator,
     TransformSpec,
@@ -250,18 +250,18 @@ def test_register_passes_for_matching_capability(_clean_registry: None) -> None:
 
 
 def test_no_plugins_env_var_skips_discovery(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setenv("YT_UNIQ_NO_PLUGINS", "1")
+    monkeypatch.setenv("VIDEO_UNIQ_NO_PLUGINS", "1")
     # Even if there were real plugins installed, list_entry_points must
     # return an empty tuple under the env var.
-    assert list_entry_points("yt_uniquifier.transforms") == ()
+    assert list_entry_points("video_uniquifier.transforms") == ()
 
 
 def test_allowlist_env_var_filters(monkeypatch: pytest.MonkeyPatch) -> None:
-    """YT_UNIQ_PLUGINS_ALLOWLIST keeps only the listed entry-point
+    """VIDEO_UNIQ_PLUGINS_ALLOWLIST keeps only the listed entry-point
     names.  We stub importlib_metadata.entry_points to return three
     synthetic EPs and assert the filter."""
-    monkeypatch.delenv("YT_UNIQ_NO_PLUGINS", raising=False)
-    monkeypatch.setenv("YT_UNIQ_PLUGINS_ALLOWLIST", "alpha, gamma")
+    monkeypatch.delenv("VIDEO_UNIQ_NO_PLUGINS", raising=False)
+    monkeypatch.setenv("VIDEO_UNIQ_PLUGINS_ALLOWLIST", "alpha, gamma")
     fakes = [
         SimpleNamespace(name="alpha", value="m1"),
         SimpleNamespace(name="beta", value="m2"),
@@ -269,9 +269,9 @@ def test_allowlist_env_var_filters(monkeypatch: pytest.MonkeyPatch) -> None:
     ]
     monkeypatch.setattr(
         plugins.importlib_metadata, "entry_points",
-        lambda group: fakes if group == "yt_uniquifier.transforms" else [],
+        lambda group: fakes if group == "video_uniquifier.transforms" else [],
     )
-    result = list_entry_points("yt_uniquifier.transforms")
+    result = list_entry_points("video_uniquifier.transforms")
     names = {ep.name for ep in result}
     assert names == {"alpha", "gamma"}
 

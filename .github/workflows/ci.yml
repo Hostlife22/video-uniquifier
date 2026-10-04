@@ -155,6 +155,6 @@ jobs:
           QT_QPA_PLATFORM: offscreen
         run: |
           pytest -q -m "not integration and not visual" \
-            --cov=yt_uniquifier.core \
+            --cov=video_uniquifier.core \
             --cov-report=term \
             --cov-fail-under=80

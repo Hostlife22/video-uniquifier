@@ -11,8 +11,8 @@ from types import SimpleNamespace
 
 import pytest
 
-from yt_uniquifier.core import resource_budget as budget
-from yt_uniquifier.core.models import AudioStream, HDRInfo, SourceMeta, VideoStream
+from video_uniquifier.core import resource_budget as budget
+from video_uniquifier.core.models import AudioStream, HDRInfo, SourceMeta, VideoStream
 
 
 def _source(tmp_path: Path, *, duration: float = 10.0, bitrate: int = 8_000_000) -> SourceMeta:

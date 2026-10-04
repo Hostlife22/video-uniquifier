@@ -5,7 +5,7 @@ Each variant rolls a fresh run_seed (per_run / divergent strategy semantics).
 
 Usage:
   python tools/generate_variants.py /path/to/master.mp4 \\
-    --profile src/yt_uniquifier/profiles/cid_aware.yaml \\
+    --profile src/video_uniquifier/profiles/cid_aware.yaml \\
     --out-dir /tmp/cid_test \\
     --n 10 \\
     --encoder libx264
@@ -32,8 +32,8 @@ import sys
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
-from yt_uniquifier.core.orchestrator import RunOptions, build_plan, run_full
-from yt_uniquifier.core.profile_loader import load_profile
+from video_uniquifier.core.orchestrator import RunOptions, build_plan, run_full
+from video_uniquifier.core.profile_loader import load_profile
 
 
 @dataclass

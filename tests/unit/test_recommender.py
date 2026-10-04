@@ -6,13 +6,13 @@ from pathlib import Path
 
 import pytest
 
-from yt_uniquifier.core.models import (
+from video_uniquifier.core.models import (
     AudioStream,
     HDRInfo,
     SourceMeta,
     VideoStream,
 )
-from yt_uniquifier.core.recommender import explain, recommend
+from video_uniquifier.core.recommender import explain, recommend
 
 
 def _src(
@@ -82,7 +82,7 @@ def test_recommended_slugs_match_shipped_profiles(tmp_path: Path) -> None:
     """Every slug the recommender can return MUST exist as a shipped
     YAML, otherwise ``--profile auto`` would fail at run time.
     """
-    from yt_uniquifier.core import recommender as rec_mod
+    from video_uniquifier.core import recommender as rec_mod
 
     profile_dir = (
         Path(rec_mod.__file__).resolve().parents[1] / "profiles"

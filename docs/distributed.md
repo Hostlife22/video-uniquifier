@@ -1,6 +1,6 @@
 # Distributed batch
 
-`yt-uniq queue` + `yt-uniq worker` let multiple machines share a single
+`video-uniq queue` + `video-uniq worker` let multiple machines share a single
 work queue without any external coordinator. Coordination is just
 `os.rename(2)` between two directories on a shared filesystem.
 
@@ -20,7 +20,7 @@ worker wins each lease. Compatible setups:
 | SMB1 | NOT supported |
 | SMB2/3 | partial; verify with `init` step |
 
-`yt-uniq queue init` performs a real atomic-rename test against the chosen
+`video-uniq queue init` performs a real atomic-rename test against the chosen
 directory and fails fast with a clear error if the filesystem can't honour
 the contract.
 
@@ -40,13 +40,13 @@ trade-off for correct leasing.
 
 ```bash
 # On one machine (or any one machine that mounts the share):
-yt-uniq queue init /shared/queue
-yt-uniq queue add  /shared/queue /shared/sources/movie1.mp4 \
+video-uniq queue init /shared/queue
+video-uniq queue add  /shared/queue /shared/sources/movie1.mp4 \
                                   /shared/sources/movie2.mp4 \
                                   /shared/sources/movie3.mp4
 
 # On worker hosts A and B (both mount /shared):
-yt-uniq worker /shared/queue \
+video-uniq worker /shared/queue \
   --profile /shared/profiles/cid_aware.yaml \
   --out-dir /shared/uniq/ \
   --encoder libx264 \
@@ -54,7 +54,7 @@ yt-uniq worker /shared/queue \
   --heartbeat-sec 30 &
 
 # Monitor from anywhere:
-yt-uniq queue status /shared/queue --json
+video-uniq queue status /shared/queue --json
 # {"pending": 0, "in_progress": 2, "done": 1, "failed": 0}
 ```
 
@@ -62,7 +62,7 @@ yt-uniq queue status /shared/queue --json
 
 Each worker process has a host+PID+nonce identity and touches its `.alive` file every
 `--heartbeat-sec` (default 30s). If the file's mtime is older than
-`stale_sec` (default 300s, configurable via `yt-uniq queue reset
+`stale_sec` (default 300s, configurable via `video-uniq queue reset
 --stale-sec`), any other worker's next `lease()` will move that host's
 leased files back to `pending/`.
 
@@ -145,13 +145,13 @@ output directory and race on equal stems. Avoid that deployment by:
 ```yaml
 services:
   worker:
-    image: yt-uniquifier:1.4.0
+    image: video-uniquifier:2.0.0
     volumes:
       - /mnt/shared:/shared:rw            # NFSv4 noac mount on host
     environment:
-      YT_UNIQ_PROFILE: /shared/profiles/cid_aware.yaml
+      VIDEO_UNIQ_PROFILE: /shared/profiles/cid_aware.yaml
     command:
-      - yt-uniq
+      - video-uniq
       - worker
       - /shared/queue
       - --profile=/shared/profiles/cid_aware.yaml
@@ -175,6 +175,6 @@ Do not prune a `done/` marker while a matching file remains in `<queue>/.commits
 the marker is the publication fence. Healthy workers reconcile journals after the
 owner heartbeat timeout, well before the 30-day example retention window.
 
-(A `yt-uniq queue prune --done-older-than 30d` subcommand is deferred to
+(A `video-uniq queue prune --done-older-than 30d` subcommand is deferred to
 v0.4 — there's no work going into it before the real-CID validation
 harness lands. Use the `find` snippet above in cron until then.)

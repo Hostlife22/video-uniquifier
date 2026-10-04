@@ -7,12 +7,12 @@ from pathlib import Path
 
 import pytest
 
-from yt_uniquifier.core.calibration import loop as loop_mod
-from yt_uniquifier.core.calibration.loop import (
+from video_uniquifier.core.calibration import loop as loop_mod
+from video_uniquifier.core.calibration.loop import (
     CalibrationTarget,
     calibrate,
 )
-from yt_uniquifier.core.models import Profile, TransformConfig
+from video_uniquifier.core.models import Profile, TransformConfig
 
 
 @dataclass

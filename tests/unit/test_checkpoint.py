@@ -8,9 +8,9 @@ from pathlib import Path
 
 import pytest
 
-from yt_uniquifier.core.checkpoint import CheckpointStore
-from yt_uniquifier.core.errors import CheckpointError
-from yt_uniquifier.core.models import (
+from video_uniquifier.core.checkpoint import CheckpointStore
+from video_uniquifier.core.errors import CheckpointError
+from video_uniquifier.core.models import (
     AudioStream,
     EncoderCandidate,
     HDRInfo,
@@ -20,7 +20,7 @@ from yt_uniquifier.core.models import (
     SourceMeta,
     VideoStream,
 )
-from yt_uniquifier.core.transforms.audio_loudnorm import LoudnormMeasurement
+from video_uniquifier.core.transforms.audio_loudnorm import LoudnormMeasurement
 
 
 def _plan(tmp_path: Path, plan_hash: str = "abc1234567890def") -> Plan:
@@ -203,7 +203,7 @@ def test_resume_demotes_truncated_segment(tmp_path: Path) -> None:
     store1.init_or_resume(_segments())
     seg0 = tmp_path / "seg0.mkv"
     seg0.write_bytes(b"good payload")
-    from yt_uniquifier.core.checkpoint import sha256_file
+    from video_uniquifier.core.checkpoint import sha256_file
     store1.mark(0, "done", out_path=seg0, sha256=sha256_file(seg0))
     store1.close()
 
@@ -225,7 +225,7 @@ def test_resume_demotes_sha256_mismatch(tmp_path: Path) -> None:
     store1.init_or_resume(_segments())
     seg0 = tmp_path / "seg0.mkv"
     seg0.write_bytes(b"original encoded payload")
-    from yt_uniquifier.core.checkpoint import sha256_file
+    from video_uniquifier.core.checkpoint import sha256_file
     store1.mark(0, "done", out_path=seg0, sha256=sha256_file(seg0))
     store1.close()
 
@@ -266,7 +266,7 @@ def test_mark_pending_clears_stale_sha256(tmp_path: Path) -> None:
     store.init_or_resume(_segments())
     seg0 = tmp_path / "seg0.mkv"
     seg0.write_bytes(b"v1")
-    from yt_uniquifier.core.checkpoint import sha256_file
+    from video_uniquifier.core.checkpoint import sha256_file
     store.mark(0, "done", out_path=seg0, sha256=sha256_file(seg0))
     store.mark(0, "pending")
     store.flush()

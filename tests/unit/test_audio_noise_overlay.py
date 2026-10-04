@@ -8,9 +8,9 @@ from __future__ import annotations
 
 import random
 
-from yt_uniquifier.core.transforms import get
-from yt_uniquifier.core.transforms.audio_noise_overlay import NoiseOverlayParams
-from yt_uniquifier.core.transforms.base import LabelAllocator, call_build
+from video_uniquifier.core.transforms import get
+from video_uniquifier.core.transforms.audio_noise_overlay import NoiseOverlayParams
+from video_uniquifier.core.transforms.base import LabelAllocator, call_build
 
 
 def test_default_filter_shape() -> None:

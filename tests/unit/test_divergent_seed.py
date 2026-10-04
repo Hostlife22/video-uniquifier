@@ -6,8 +6,8 @@ of transform parameters across segments. Divergent seeds break that.
 
 from __future__ import annotations
 
-from yt_uniquifier.core.seed_resolver import derive_segment_seed
-from yt_uniquifier.core.segmenter import _plan_for_segment
+from video_uniquifier.core.seed_resolver import derive_segment_seed
+from video_uniquifier.core.segmenter import _plan_for_segment
 
 
 def test_divergent_deterministic_for_same_triple() -> None:
@@ -43,7 +43,7 @@ def test_plan_for_segment_passthrough_when_not_divergent(monkeypatch) -> None:
     from pathlib import Path
 
     from tests.unit.test_pipeline_graph import _plan, _src
-    from yt_uniquifier.core.models import TransformConfig
+    from video_uniquifier.core.models import TransformConfig
 
     tmp = Path(tempfile.mkdtemp())
     src = _src(tmp)
@@ -60,7 +60,7 @@ def test_plan_for_segment_diverges_seed_when_strategy_set() -> None:
     from pathlib import Path
 
     from tests.unit.test_pipeline_graph import _plan, _src
-    from yt_uniquifier.core.models import TransformConfig
+    from video_uniquifier.core.models import TransformConfig
 
     tmp = Path(tempfile.mkdtemp())
     src = _src(tmp)

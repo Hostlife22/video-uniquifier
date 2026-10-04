@@ -1,7 +1,7 @@
 # Security policy
 
 The canonical security policy ships in the repository root as
-[`SECURITY.md`](https://github.com/hostlife22/Video-Deduplicator/blob/main/SECURITY.md)
+[`SECURITY.md`](https://github.com/hostlife22/video-uniquifier/blob/main/SECURITY.md)
 so that GitHub auto-detects it and surfaces the
 **Security → Report a vulnerability** button.
 
@@ -27,9 +27,9 @@ Use one of these channels:
 
 1. **GitHub Private Vulnerability Reporting** — on the repository
    page, **Security → Report a vulnerability**, or open
-   [the direct link](https://github.com/hostlife22/Video-Deduplicator/security/advisories/new).
+   [the direct link](https://github.com/hostlife22/video-uniquifier/security/advisories/new).
 2. **Email** — `sen.serafim.dev2gmail.com` with subject prefix
-   `[yt-uniquifier security]`.
+   `[video-uniquifier security]`.
 
 **Please do not open a public issue for a suspected vulnerability.**
 
@@ -52,7 +52,7 @@ Security fixes land on the most recent MAJOR.MINOR line.
 | 1.2.x and earlier | ❌ end-of-life |
 
 See the full policy — scope, disclosure timeline, hall of fame —
-in [`SECURITY.md`](https://github.com/hostlife22/Video-Deduplicator/blob/main/SECURITY.md).
+in [`SECURITY.md`](https://github.com/hostlife22/video-uniquifier/blob/main/SECURITY.md).
 
 For the SemVer commitment and how breaking changes are proposed,
 see [Versioning](versioning.md).

@@ -17,7 +17,7 @@ upgrade.
 ```bash
 make dev                                                # installs PyQt6
 # Real-window run, native platform:
-.venv/bin/python -m yt_uniquifier.gui.app_pyqt          # interactive
+.venv/bin/python -m video_uniquifier.gui.app_pyqt          # interactive
 # OR drive the harness (fast, automated, captures PNG + Qt log):
 .venv/bin/python tools/gui_sweep.py                     # writes out/gui_sweep/<ts>/
 .venv/bin/python tools/gui_sweep.py --smoke-worker      # + tiny RunWorker pass
@@ -84,7 +84,7 @@ silently no-ops, leaks worker threads, or shows visibly wrong content.
 - **Interactions**: open `cid_aware.yaml`; toggle a transform;
   edit a numeric param; save as new file.
 - **Verify**: pydantic validation fires on bad input; diff vs
-  original shown before save; new file readable by `yt-uniq run`.
+  original shown before save; new file readable by `video-uniq run`.
 - **Watch for**: silent overwrite of the original — should always
   prompt with a save-as dialog.
 
@@ -129,7 +129,7 @@ silently no-ops, leaks worker threads, or shows visibly wrong content.
 
 - **Interactions**: change theme; toggle "show preflight as modal";
   set custom ffmpeg path; click Save.
-- **Verify**: changes persist via `AppState` to `~/.yt_uniquifier/`;
+- **Verify**: changes persist via `AppState` to `~/.video_uniquifier/`;
   invalid ffmpeg path shows inline error.
 - **Watch for**: theme switch requiring restart — currently does
   require it; documented in tooltip.

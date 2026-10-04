@@ -12,7 +12,7 @@ from pathlib import Path
 
 import pytest
 
-from yt_uniquifier.core.output_reservation import (
+from video_uniquifier.core.output_reservation import (
     OutputReservation,
     OutputReservationConflict,
     OutputReservationError,
@@ -36,7 +36,7 @@ def test_conflict_release_and_reacquire(tmp_path: Path) -> None:
 
 def test_dead_local_owner_is_reclaimed(tmp_path: Path) -> None:
     output = tmp_path / "result.mp4"
-    lock_dir = tmp_path / ".yt_uniquifier-reservations"
+    lock_dir = tmp_path / ".video_uniquifier-reservations"
     lock_dir.mkdir()
     lock = lock_dir / "result.mp4.lock"
     lock.write_text(json.dumps({
@@ -55,7 +55,7 @@ def test_dead_local_owner_is_reclaimed(tmp_path: Path) -> None:
 
 def test_foreign_host_owner_is_not_reclaimed(tmp_path: Path) -> None:
     output = tmp_path / "result.mp4"
-    lock_dir = tmp_path / ".yt_uniquifier-reservations"
+    lock_dir = tmp_path / ".video_uniquifier-reservations"
     lock_dir.mkdir()
     lock = lock_dir / "result.mp4.lock"
     lock.write_text(json.dumps({
@@ -90,7 +90,7 @@ def test_persistence_failure_removes_partial_lock(
             OutputReservation.acquire(output, "failed-run")
         assert isinstance(exc_info.value.__cause__, OSError)
 
-    lock = tmp_path / ".yt_uniquifier-reservations" / "result.mp4.lock"
+    lock = tmp_path / ".video_uniquifier-reservations" / "result.mp4.lock"
     assert not lock.exists()
     replacement = OutputReservation.acquire(output, "replacement-run")
     replacement.release()
@@ -145,7 +145,7 @@ def test_separate_process_observes_live_reservation(tmp_path: Path) -> None:
     reservation = OutputReservation.acquire(output, "parent-run")
     snippet = textwrap.dedent(f"""
         from pathlib import Path
-        from yt_uniquifier.core.output_reservation import (
+        from video_uniquifier.core.output_reservation import (
             OutputReservation, OutputReservationConflict,
         )
 
@@ -171,7 +171,7 @@ def test_separate_process_observes_live_reservation(tmp_path: Path) -> None:
 def test_reservation_directory_symlink_is_rejected(tmp_path: Path) -> None:
     outside = tmp_path / "outside"
     outside.mkdir()
-    reservation_dir = tmp_path / ".yt_uniquifier-reservations"
+    reservation_dir = tmp_path / ".video_uniquifier-reservations"
     try:
         reservation_dir.symlink_to(outside, target_is_directory=True)
     except OSError:
@@ -204,7 +204,7 @@ def test_shared_admission_retries_when_contended_slot_disappears(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """A concurrent release after O_EXCL contention is not pool corruption."""
-    admission_dir = tmp_path / ".yt_uniquifier-admission"
+    admission_dir = tmp_path / ".video_uniquifier-admission"
     admission_dir.mkdir()
     (admission_dir / "capacity.json").write_text(json.dumps({
         "schema_version": 1,
@@ -243,7 +243,7 @@ def test_shared_admission_rejects_capacity_mismatch(tmp_path: Path) -> None:
 
 
 def test_shared_admission_reclaims_dead_local_owner(tmp_path: Path) -> None:
-    admission_dir = tmp_path / ".yt_uniquifier-admission"
+    admission_dir = tmp_path / ".video_uniquifier-admission"
     admission_dir.mkdir()
     (admission_dir / "capacity.json").write_text(json.dumps({
         "schema_version": 1,
@@ -264,7 +264,7 @@ def test_shared_admission_reclaims_dead_local_owner(tmp_path: Path) -> None:
 
 
 def test_shared_admission_foreign_owner_fails_closed(tmp_path: Path) -> None:
-    admission_dir = tmp_path / ".yt_uniquifier-admission"
+    admission_dir = tmp_path / ".video_uniquifier-admission"
     admission_dir.mkdir()
     (admission_dir / "capacity.json").write_text(json.dumps({
         "schema_version": 1,
@@ -288,7 +288,7 @@ def test_separate_process_observes_shared_admission_limit(tmp_path: Path) -> Non
     admission = RunAdmission.acquire(tmp_path, "parent-run", 1)
     snippet = textwrap.dedent(f"""
         from pathlib import Path
-        from yt_uniquifier.core.output_reservation import RunAdmission, RunAdmissionFull
+        from video_uniquifier.core.output_reservation import RunAdmission, RunAdmissionFull
 
         try:
             RunAdmission.acquire(Path({str(tmp_path)!r}), "child-run", 1)
@@ -346,14 +346,14 @@ def test_admission_persistence_failure_removes_partial_slot(
             RunAdmission.acquire(tmp_path, "failed-run", 1)
         assert isinstance(exc_info.value.__cause__, OSError)
 
-    slot = tmp_path / ".yt_uniquifier-admission" / "slot-0000.lock"
+    slot = tmp_path / ".video_uniquifier-admission" / "slot-0000.lock"
     assert not slot.exists()
     replacement = RunAdmission.acquire(tmp_path, "replacement-run", 1)
     replacement.release()
 
 
 def test_admission_malformed_owner_fails_closed(tmp_path: Path) -> None:
-    admission_dir = tmp_path / ".yt_uniquifier-admission"
+    admission_dir = tmp_path / ".video_uniquifier-admission"
     admission_dir.mkdir()
     (admission_dir / "capacity.json").write_text(json.dumps({
         "schema_version": 1,
@@ -371,7 +371,7 @@ def test_admission_malformed_owner_fails_closed(tmp_path: Path) -> None:
 def test_admission_directory_symlink_is_rejected(tmp_path: Path) -> None:
     outside = tmp_path / "outside"
     outside.mkdir()
-    admission_dir = tmp_path / ".yt_uniquifier-admission"
+    admission_dir = tmp_path / ".video_uniquifier-admission"
     try:
         admission_dir.symlink_to(outside, target_is_directory=True)
     except OSError:

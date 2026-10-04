@@ -8,11 +8,11 @@ from typing import Any
 import pytest
 
 from tests.unit.test_pipeline_graph import _plan, _src
-from yt_uniquifier.core import segmenter
-from yt_uniquifier.core.errors import PipelineError
-from yt_uniquifier.core.models import TransformConfig
-from yt_uniquifier.core.pipeline import BuiltCommand
-from yt_uniquifier.core.transforms.audio_loudnorm import LoudnormMeasurement
+from video_uniquifier.core import segmenter
+from video_uniquifier.core.errors import PipelineError
+from video_uniquifier.core.models import TransformConfig
+from video_uniquifier.core.pipeline import BuiltCommand
+from video_uniquifier.core.transforms.audio_loudnorm import LoudnormMeasurement
 
 
 def test_audio_encode_failure_preserves_cached_audio_and_removes_partial(

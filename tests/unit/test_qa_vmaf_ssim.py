@@ -8,9 +8,9 @@ from typing import Any
 
 import pytest
 
-from yt_uniquifier.core.errors import PipelineError
-from yt_uniquifier.core.qa import ssim, vmaf
-from yt_uniquifier.core.runner import CancelToken
+from video_uniquifier.core.errors import PipelineError
+from video_uniquifier.core.qa import ssim, vmaf
+from video_uniquifier.core.runner import CancelToken
 
 
 @pytest.fixture(autouse=True)
@@ -144,7 +144,7 @@ def test_registered_metric_resets_both_input_timelines(
 def test_registered_metric_propagates_cancellation(
     metric: Any, monkeypatch: pytest.MonkeyPatch, tmp_path: Path,
 ) -> None:
-    from yt_uniquifier.core import runner as runner_mod
+    from video_uniquifier.core import runner as runner_mod
 
     if metric is vmaf:
         monkeypatch.setattr(vmaf, "vmaf_available", lambda: True)

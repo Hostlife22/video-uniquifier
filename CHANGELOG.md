@@ -10,14 +10,31 @@ versioning follows the git tags `v0.1.0`, `v0.2.0`, `v0.3.x`, `v0.4.x`,
 The `[Unreleased]` section, if present, summarises post-tip changes since
 the last tag.
 
-## [Unreleased]
+## [2.0.0] — 2026-10-04
+
+### Changed — project rename
+
+- Rename the distribution/repository to `video-uniquifier` and Python imports to
+  `video_uniquifier`. CLI entry points are `video-uniq`, `video-uniq-gui` and
+  `video-uniq-web`; plugin discovery uses `video_uniquifier.transforms`.
+- Rename environment prefixes to `VIDEO_UNIQ_*`, `VIDEO_UNIQUIFIER_*` and `VU_*`;
+  update Docker/GHCR names, native bundles, AppImage, SBOM properties and metrics.
+- Include the offline marketplace catalog and public verification keys in native
+  GUI bundles alongside renamed profile/template resources.
+- Update GitHub, documentation, marketplace and updater endpoints to
+  `Hostlife22/video-uniquifier`, including the new release-signing identity.
+- Copy previous GUI settings/history into the new config directory on first
+  launch without overwriting existing state or deleting the original directory.
+- This is a MAJOR naming-contract change authorized by the owner's rename request;
+  see `specs/29-project-rename-rfc.md`. Historical release and benchmark artifact
+  names remain unchanged as provenance; previous command/import aliases are removed.
 
 ### Added — v1.6.0 QA contract (RFC #21)
 
 - Nullable structured `correctness`, `loudness` and `quality_policy` in QA JSON,
   with matching HTML evidence. Old reports remain readable. Correctness reports
   contract/decode scope, not a guarantee of internal A/V synchronization.
-- Opt-in `yt-uniq qa --loudness` measures full output tracks without downmixing;
+- Opt-in `video-uniq qa --loudness` measures full output tracks without downmixing;
   silence/undefined measurements use JSON null. No extra audio scan by default.
 - Independent `--min-vmaf` / `--min-ssim` gates and `--quality-domain raw|registered`.
   Every requested measurement must pass; missing metrics cannot pass by substitution.
@@ -103,7 +120,7 @@ the last tag.
   default retains headroom above the measured 1080p60 HDR/VMAF peak.
 - Make custom `video.fit_aspect` profiles source-aware and no-upscale by default;
   fixed-resolution shipped profiles retain their existing canvas through an explicit
-  `allow_upscale: true` migration ([RFC #11](https://github.com/Hostlife22/yt_uniquifier/issues/11)).
+  `allow_upscale: true` migration ([RFC #11](https://github.com/Hostlife22/video-uniquifier/issues/11)).
 - Migrate the advanced-security workflow to `github/codeql-action@v4` and keep the
   concurrent-admission regression helper's fallback file mode least-privileged.
 - Make the documented `--version` option functional in both CLI and GUI entry points,
@@ -241,7 +258,7 @@ the last tag.
 - Enforce the web run-count limit across server processes sharing an output
   directory with atomic owner slots, conservative stale-owner recovery and an
   immutable capacity contract; expose the cap through
-  `YT_UNIQ_WEB_MAX_CONCURRENT_RUNS`.
+  `VIDEO_UNIQ_WEB_MAX_CONCURRENT_RUNS`.
 - Make complete primary-video/all-audio decode validation a mandatory `run_full`
   publication gate for CLI, GUI, web and distributed workers, including `--no-qa`;
   corrupt tails now fail before checkpoint completion or segment cleanup.
@@ -342,8 +359,8 @@ the last tag.
 ### Added
 
 - Add a default 10-minute FFmpeg silent-stall watchdog and opt-in wall timeout;
-  configure them with `YT_UNIQ_STALL_TIMEOUT_SEC` and
-  `YT_UNIQ_WALL_TIMEOUT_SEC` (`0` disables either policy).
+  configure them with `VIDEO_UNIQ_STALL_TIMEOUT_SEC` and
+  `VIDEO_UNIQ_WALL_TIMEOUT_SEC` (`0` disables either policy).
 - Probe the selected encoder at the job's actual resolution, pixel format, color
   tags, and rate-control mode before segment work begins.
 - Preserve audio/subtitle titles and dispositions, report container-imposed
@@ -467,8 +484,8 @@ The original roadmap is retained in Git history at
   `svtav1` and `libaom` tags.
 - **Task 23: plugin manifest + capability gate + audit-hook sandbox**
   — third-party transform plugins discovered via the
-  `yt_uniquifier.transforms` entry-points group must now ship a
-  `yt_uniquifier_plugin.toml` manifest declaring `name`, `version`,
+  `video_uniquifier.transforms` entry-points group must now ship a
+  `video_uniquifier_plugin.toml` manifest declaring `name`, `version`,
   and `capabilities` (`video_transform` and/or `audio_transform`).
   `register()` is gated on the active manifest. Plugin code runs
   inside a `sys.addaudithook` gate that raises `PluginViolation` on
@@ -480,10 +497,10 @@ The original roadmap is retained in Git history at
 - **Task 25: signed marketplace entries** — `CatalogEntry` gains an
   optional 128-hex-char `signature` field (Ed25519 over the body
   SHA). `install(..., require_signature=True)` (or env
-  `YT_UNIQ_REQUIRE_SIGNED_PROFILES=1`) hard-rejects unsigned and
+  `VIDEO_UNIQ_REQUIRE_SIGNED_PROFILES=1`) hard-rejects unsigned and
   invalid-signature entries. New `[crypto]` extra pulls
   `cryptography>=42,<46` lazily. Bundled key set at
-  `src/yt_uniquifier/keys/marketplace.pub` supports multi-key
+  `src/video_uniquifier/keys/marketplace.pub` supports multi-key
   rotation. `docs/marketplace.md` gains a signing workflow + key
   rotation policy.
 - **Task 27: property + mutation + chaos test infrastructure**
@@ -498,10 +515,10 @@ The original roadmap is retained in Git history at
 - **Task 28: PGO cache for ETA prediction** — new `core/pgo.py`
   records each successful run's `(resolution_bucket, codec,
   encoder_kind) → (workers, segment_sec, seconds_per_min)` into
-  `~/.cache/yt_uniquifier/pgo.sqlite`. `--dry-run` ETA uses the
+  `~/.cache/video_uniquifier/pgo.sqlite`. `--dry-run` ETA uses the
   calibrated prediction when available; cache miss falls back to
   the v1.1.0 heuristic. Writers use `BEGIN IMMEDIATE` so concurrent
-  `yt-uniq batch` workers serialise cleanly.
+  `video-uniq batch` workers serialise cleanly.
 - **Tasks 30–35: production guardrails and operations** — persistent-corner
   watermark detection with explicit ownership attestation, DRM preflight,
   per-run JSONL audit records, cosign-verified updater, opt-in OpenTelemetry,
@@ -581,8 +598,8 @@ The original roadmap is retained in Git history at
   pushes to ghcr.io, attaches provenance + SBOM, and cosign-signs
   the digest-pinned image reference.
 - **Task 13: structured logging** — new `core/logging_config.py`
-  centralises structlog setup. `YT_UNIQ_LOG_FORMAT=json` flips to
-  JSON renderer; `YT_UNIQ_LOG_LEVEL` controls level. Stdlib root
+  centralises structlog setup. `VIDEO_UNIQ_LOG_FORMAT=json` flips to
+  JSON renderer; `VIDEO_UNIQ_LOG_LEVEL` controls level. Stdlib root
   logger is wired through structlog's `ProcessorFormatter` so
   existing `_log.warning` calls render through the same renderer
   without a big-bang rewrite.
@@ -592,8 +609,8 @@ The original roadmap is retained in Git history at
   Web layer passes its locally-generated ID to `RunOptions.run_id`
   so HTTP response, SSE stream, and structured log all share one ID.
 - **Task 15: `/readyz` + `/metrics`** — Prometheus families:
-  `yt_uniq_segments_total{status}`, `yt_uniq_ffmpeg_failures_total`,
-  `yt_uniq_runs_total`, segment + run duration histograms, active
+  `video_uniq_segments_total{status}`, `video_uniq_ffmpeg_failures_total`,
+  `video_uniq_runs_total`, segment + run duration histograms, active
   runs gauge, last pHash divergence gauge. `/readyz` returns 503 when
   no working encoder OR `work_dir` is read-only.
 - **Task 16: rate limit + upload cap + audit log** — `slowapi`
@@ -601,7 +618,7 @@ The original roadmap is retained in Git history at
   `30/minute` on `POST /api/run`); `ContentLengthLimitMiddleware`
   rejects >5 GiB requests with 413; `web/audit.py` appends JSONL
   lines on every state-changing request to `WebConfig.audit_log_path`.
-- **Task 20: `yt-uniq run --dry-run`** — builds Plan + preflight +
+- **Task 20: `video-uniq run --dry-run`** — builds Plan + preflight +
   segment plan, prints encoder + ETA + disk estimate + first segment
   `filter_complex`, exits 0 without spawning ffmpeg.
 - **Task 21: `--profile auto`** — `core/recommender.py` picks a
@@ -697,8 +714,8 @@ code-signing credentials (see `docs/install.md`).
 
 - **`pyproject.toml`** — `version` bumped to `1.0.0`; classifier
   `Development Status :: 5 - Production/Stable`.
-- **`src/yt_uniquifier/__init__.py`** — `__version__` sourced from
-  `importlib.metadata.version("yt-uniquifier")` (single source of
+- **`src/video_uniquifier/__init__.py`** — `__version__` sourced from
+  `importlib.metadata.version("video-uniquifier")` (single source of
   truth in `pyproject.toml`).
 - **Coverage gate** — CI enforces `--cov-fail-under=85` on `core/`,
   `--cov-fail-under=80` on `cli/`, `--cov-fail-under=75` on `gui/`.
@@ -718,7 +735,7 @@ smoke = 942 tests green; mypy --strict clean across 136 source files.
 ### Added
 
 - **R1 / F9 — Profile marketplace** (`42fa5d3`). HTTPS-only,
-  SHA-pinned, schema-validated. `yt-uniq profile {list-community,
+  SHA-pinned, schema-validated. `video-uniq profile {list-community,
   show, install, purge-cache, install-dir}`. GUI
   `CommunityProfilesDialog` in Profile Editor. 5-entry bootstrap
   catalogue shipped in the wheel.
@@ -731,11 +748,11 @@ smoke = 942 tests green; mypy --strict clean across 136 source files.
 - **R3 — Opt-in local telemetry** (`96c6f48`). `core/telemetry.py`
   (off by default, append-only JSONL, HOME redaction, bounded
   rotation), `_maybe_record_telemetry` in orchestrator, CLI
-  `yt-uniq telemetry {status,export,purge}` (no `enable`
+  `video-uniq telemetry {status,export,purge}` (no `enable`
   subcommand — by design), Settings groupbox + first-run consent.
 - **R4 / F13 — Docker headless + web UI** (`f7e954f`).
-  `src/yt_uniquifier/web/` FastAPI app (lazy import), SSE event
-  streaming, vanilla-JS SPA, `yt-uniq-web` uvicorn launcher,
+  `src/video_uniquifier/web/` FastAPI app (lazy import), SSE event
+  streaming, vanilla-JS SPA, `video-uniq-web` uvicorn launcher,
   multi-stage Dockerfile (ffmpeg + python + non-root + tini +
   healthcheck), docker-compose.yml for NAS deployments,
   `input_root` chroot + basic-auth gate.
@@ -761,7 +778,7 @@ ML-grade QA + Plugin system. Seven rounds.
 
 - **R1 — Transform plugin system** (`b664044`). Third-party
   transforms discoverable via
-  `importlib.metadata.entry_points("yt_uniquifier.transforms")`.
+  `importlib.metadata.entry_points("video_uniquifier.transforms")`.
 - **R2 — SQLite-backed corpus** (`3dc9d0b`). `core/qa/corpus_db.py`,
   auto-migration from `index.json`, scale to 50k+ references.
 - **R3 — PySceneDetect segment boundary mode** (`e5cf603`). Opt-in
@@ -814,10 +831,10 @@ that were then fixed.
   `importlib.resources`** (`cbf243a`). All `# type: ignore`
   removed (C1-C7). `QStandardPaths.AppConfigLocation` for config,
   `CacheLocation` for cache; migration helper copies from legacy
-  `~/.config/yt_uniquifier/`. Theme leaks fixed (`kpi_pills`,
+  `~/.config/video_uniquifier/`. Theme leaks fixed (`kpi_pills`,
   `preflight_panel` subscribe to `state.theme_changed`).
   Profiles loaded via
-  `importlib.resources.files("yt_uniquifier").joinpath("profiles")`
+  `importlib.resources.files("video_uniquifier").joinpath("profiles")`
   for PyInstaller portability.
 - **R2 — Accessibility framework + Run/Settings sweep + global
   excepthook** (`5959ce5`, `dc3d237`). `setAccessibleName/Description/
@@ -884,7 +901,7 @@ Performance + Distribution. Three rounds + CI matrix expansion.
     exhaust. ~5× fewer `iterdir` round-trips.
 - **R3 — fused single-fork segment encode** (`d37e6fd`):
   - **B3** `build_video_segment_command_fused`. Env-flag
-    `YT_UNIQ_DISABLE_FUSE=1` for emergency rollback.
+    `VIDEO_UNIQ_DISABLE_FUSE=1` for emergency rollback.
 
 ## [v0.5.5] — 2026-06-01
 
@@ -1010,7 +1027,7 @@ hotfix sprint shortly after.
   check still runs.
 - **`core/encoder.py`** — race condition in shared encoder cache writes;
   atomic write now uses a `os.getpid()`-suffixed temp name to avoid
-  cross-process collisions during parallel `yt-uniq batch`.
+  cross-process collisions during parallel `video-uniq batch`.
 - **`core/orchestrator.py`** — idempotent resume; in-progress segments
   are reset to `failed` on worker crash so the next run picks them up.
 - **`core/runner.py`** — `CancelToken` backed by `threading.Event` for
@@ -1055,8 +1072,8 @@ GUI phase 25 (final): Settings + Corpus screens + PyInstaller packaging.
   reset-cache buttons (encoder cache, keyframe cache, app state).
 - **Corpus screen** — list / add / remove fingerprints from the local
   corpus index used by `cid_predict_vs_corpus`.
-- **PyInstaller packaging** — `pyinstaller/yt-uniq-gui.spec` builds
-  `dist/yt-uniq-gui.app` on macOS (~250 MB), `dist/yt-uniq-gui/` on
+- **PyInstaller packaging** — `pyinstaller/video-uniq-gui.spec` builds
+  `dist/video-uniq-gui.app` on macOS (~250 MB), `dist/video-uniq-gui/` on
   Windows / Linux. `make build` is the canonical entry point.
 
 ## [v0.5.3] — 2026-05-29
@@ -1066,7 +1083,7 @@ GUI phase 24: Queue dashboard + Validation wizard.
 ### Added
 
 - **Queue dashboard** — list/init/add/status/reset on a shared-FS queue
-  (the GUI face of `yt-uniq queue` + `yt-uniq worker`).
+  (the GUI face of `video-uniq queue` + `video-uniq worker`).
 - **Validation wizard** — 3-step UI for the real-CID validation harness
   (Generate variants → Upload to YouTube → Correlate observations).
 
@@ -1079,11 +1096,11 @@ GUI phase 23: QA Viewer + Profile Editor + History.
 - **QA Viewer screen** — embedded `QWebEngineView` for `<out>.qa.html`
   with graceful "Open in browser" fallback when WebEngine is absent
   (e.g. `QT_QPA_PLATFORM=offscreen`). Standalone QA pair mode
-  (`yt-uniq qa` equivalent) also lives here.
+  (`video-uniq qa` equivalent) also lives here.
 - **Profile Editor** — YAML profile editing with live schema validation
   via the pydantic `Profile` model.
 - **History screen** — last 100 runs persisted to
-  `~/.config/yt_uniquifier/history.json`.
+  `~/.config/video_uniquifier/history.json`.
 
 ## [v0.5.1] — 2026-05-29
 
@@ -1105,7 +1122,7 @@ GUI phase 21: PyQt6 desktop foundation.
 - **PyQt6 desktop shell** — `MainWindow` with `QListWidget` sidebar +
   `QStackedWidget` content area (Slack / Discord / VSCode style).
 - **AppState** — single source of truth, persisted to
-  `~/.config/yt_uniquifier/state.json`. Screens subscribe via Qt signals.
+  `~/.config/video_uniquifier/state.json`. Screens subscribe via Qt signals.
 - **Run screen** — drag-drop input → auto-probe → preflight → Run with
   segment-timeline progress and KPI pills.
 - **Worker contract** — `WorkerBase(QThread)` with `started_`,
@@ -1123,14 +1140,14 @@ Phase 20: opt-in bitstream sanitization.
 
 ### Added
 
-- **`--sanitize-bitstream` flag on `yt-uniq run`** — second-pass
+- **`--sanitize-bitstream` flag on `video-uniq run`** — second-pass
   `libx264` normalization that strips encoder-specific bitstream
   signatures (NVENC / QSV / AMF / VideoToolbox). Default off (adds
   wall time + costs ~3 VMAF).
 
 ### Changed
 
-- Output metadata stripped of `encoder=yt-uniquifier/X` (the v0.3.x
+- Output metadata stripped of `encoder=video-uniquifier/X` (the v0.3.x
   default that fingerprinted output as tool-generated).
 
 ## [v0.4.2] — 2026-05-29
@@ -1178,7 +1195,7 @@ Phase 17: quick wins + Poisson temporal_jitter + subpixel_sharpen.
 
 ### Changed
 
-- Stripped `-metadata encoder=yt-uniquifier/X` from output — was a
+- Stripped `-metadata encoder=video-uniquifier/X` from output — was a
   file-level signature visible to any metadata heuristic.
 - Dropped placebo `audio.resample 48000 → 47999 → 48000` (0.002 %
   shift, below chromaprint quantization, no measurable audio FP delta).
@@ -1298,10 +1315,10 @@ HDR→SDR tonemap, parallel encoding, distributed batch on a shared filesystem.
 - **`video.tonemap_sdr` transform** — zscale linearize → tonemap (hable /
   reinhard / mobius / aces) → SDR. Enables HDR-source content to be
   uniquified into SDR output.
-- **Parallel GPU/CPU encoding** — `--workers N` flag on `yt-uniq run`.
+- **Parallel GPU/CPU encoding** — `--workers N` flag on `video-uniq run`.
   Each `EncoderCandidate` carries its own `max_parallel` cap (NVENC
   consumer = 3, NVENC pro = 8, CPU = ½ cores, GPU vendors auto-detected).
-- **Distributed batch** — `yt-uniq queue` + `yt-uniq worker` commands.
+- **Distributed batch** — `video-uniq queue` + `video-uniq worker` commands.
   Atomic POSIX-rename leasing on a shared filesystem (NFSv4 with `noac`,
   ZFS, ext4). Heartbeat + reaper for failed workers. No redis / no DB.
 - `cid_aware_hdr_to_sdr.yaml` profile.
@@ -1327,11 +1344,11 @@ loop, corpus collision check, scale validation.
   Per-run variability for batch uploads of N variants.
 - **`cid_predict`** — chunked per-4-sec phash + audio Jaccard, predicts
   CID self-match. Drives the HTML heatmap and the calibrate target.
-- **Corpus** — `yt-uniq corpus add/list/remove`. QA reports flag matches
+- **Corpus** — `video-uniq corpus add/list/remove`. QA reports flag matches
   against previously-uploaded files.
-- **`yt-uniq calibrate`** — bisect intensity to hit a CID self-match target
+- **`video-uniq calibrate`** — bisect intensity to hit a CID self-match target
   without crashing quality.
-- **Scale validation** — keyframe cache (`~/.cache/yt_uniquifier/keyframes/`,
+- **Scale validation** — keyframe cache (`~/.cache/video_uniquifier/keyframes/`,
   30-day TTL), parallel segment processing, adaptive QA stage sampling.
 - `cid_aware.yaml`, `cid_aggressive.yaml`, `medium_hdr.yaml` profiles.
 
@@ -1351,7 +1368,7 @@ Foundation pipeline: probe, transforms, segmenter, QA, GUI.
   language tag detection.
 - `core/encoder.py` — multi-vendor encoder detect with real test-run
   (NVENC, QSV, AMF, VideoToolbox, libx264, libx265). Cached in
-  `~/.cache/yt_uniquifier/encoders.json`.
+  `~/.cache/video_uniquifier/encoders.json`.
 - 9 initial transforms: `video.crop_resize`, `video.rotate`,
   `video.color_eq`, `video.noise`, `video.blend_b`, `video.speed`,
   `video.mirror`, `audio.pitch_tempo`, `audio.eq`, `audio.loudnorm`.
@@ -1364,30 +1381,30 @@ Foundation pipeline: probe, transforms, segmenter, QA, GUI.
 - `core/preflight.py` — YouTube target matrix + HDR validation.
 - `core/qa/` — pHash, audio fingerprint (chromaprint), VMAF, SSIM, HTML
   report with jinja2 template.
-- CLI: `yt-uniq version | probe | run | preflight | qa | batch`.
+- CLI: `video-uniq version | probe | run | preflight | qa | batch`.
 - GUI: PyQt6 desktop UI as a thin `core.orchestrator.run_full` consumer.
 - Profiles: `soft.yaml`, `medium.yaml`, `aggressive.yaml`, `legacy_ab.yaml`.
 - Docs: architecture, profiles, filter graph, YouTube targets.
 
 ## [baseline] — pre-v0.1.0
 
-Legacy `Video-Deduplicator` prototype: PyQt5 single-window app, pipeline
+Legacy `video-uniquifier` prototype: PyQt5 single-window app, pipeline
 embedded in a `QThread`, frame blending via raw `bgr24` over
 `subprocess.stdin`. Replaced by the v0.1.0 rewrite.
 
-[Unreleased]: https://github.com/Hostlife22/yt_uniquifier/compare/v0.5.4...HEAD
-[v0.5.4]: https://github.com/Hostlife22/yt_uniquifier/releases/tag/v0.5.4
-[v0.5.3]: https://github.com/Hostlife22/yt_uniquifier/releases/tag/v0.5.3
-[v0.5.2]: https://github.com/Hostlife22/yt_uniquifier/releases/tag/v0.5.2
-[v0.5.1]: https://github.com/Hostlife22/yt_uniquifier/releases/tag/v0.5.1
-[v0.5.0]: https://github.com/Hostlife22/yt_uniquifier/releases/tag/v0.5.0
-[v0.4.3]: https://github.com/Hostlife22/yt_uniquifier/releases/tag/v0.4.3
-[v0.4.2]: https://github.com/Hostlife22/yt_uniquifier/releases/tag/v0.4.2
-[v0.4.1]: https://github.com/Hostlife22/yt_uniquifier/releases/tag/v0.4.1
-[v0.4.0]: https://github.com/Hostlife22/yt_uniquifier/releases/tag/v0.4.0
-[v0.3.3]: https://github.com/Hostlife22/yt_uniquifier/releases/tag/v0.3.3
-[v0.3.2]: https://github.com/Hostlife22/yt_uniquifier/releases/tag/v0.3.2
-[v0.3.1]: https://github.com/Hostlife22/yt_uniquifier/releases/tag/v0.3.1
-[v0.3.0]: https://github.com/Hostlife22/yt_uniquifier/releases/tag/v0.3.0
-[v0.2.0]: https://github.com/Hostlife22/yt_uniquifier/releases/tag/v0.2.0
-[v0.1.0]: https://github.com/Hostlife22/yt_uniquifier/releases/tag/v0.1.0
+[Unreleased]: https://github.com/Hostlife22/video-uniquifier/compare/v0.5.4...HEAD
+[v0.5.4]: https://github.com/Hostlife22/video-uniquifier/releases/tag/v0.5.4
+[v0.5.3]: https://github.com/Hostlife22/video-uniquifier/releases/tag/v0.5.3
+[v0.5.2]: https://github.com/Hostlife22/video-uniquifier/releases/tag/v0.5.2
+[v0.5.1]: https://github.com/Hostlife22/video-uniquifier/releases/tag/v0.5.1
+[v0.5.0]: https://github.com/Hostlife22/video-uniquifier/releases/tag/v0.5.0
+[v0.4.3]: https://github.com/Hostlife22/video-uniquifier/releases/tag/v0.4.3
+[v0.4.2]: https://github.com/Hostlife22/video-uniquifier/releases/tag/v0.4.2
+[v0.4.1]: https://github.com/Hostlife22/video-uniquifier/releases/tag/v0.4.1
+[v0.4.0]: https://github.com/Hostlife22/video-uniquifier/releases/tag/v0.4.0
+[v0.3.3]: https://github.com/Hostlife22/video-uniquifier/releases/tag/v0.3.3
+[v0.3.2]: https://github.com/Hostlife22/video-uniquifier/releases/tag/v0.3.2
+[v0.3.1]: https://github.com/Hostlife22/video-uniquifier/releases/tag/v0.3.1
+[v0.3.0]: https://github.com/Hostlife22/video-uniquifier/releases/tag/v0.3.0
+[v0.2.0]: https://github.com/Hostlife22/video-uniquifier/releases/tag/v0.2.0
+[v0.1.0]: https://github.com/Hostlife22/video-uniquifier/releases/tag/v0.1.0

@@ -5,7 +5,7 @@ Workflow:
 
     python tools/regen_contract_goldens.py --apply
 
-This sets ``YT_UNIQ_REGEN_CONTRACT_GOLDENS=1`` in the environment
+This sets ``VIDEO_UNIQ_REGEN_CONTRACT_GOLDENS=1`` in the environment
 and re-runs the contract test suite. Each test that uses
 ``tests.contracts._snapshot.snapshot`` writes its current value to
 the golden file instead of asserting equality. The tests still
@@ -47,7 +47,7 @@ FIXTURES_DIR = REPO_ROOT / "tests" / "fixtures" / "contracts"
 def _run_suite(*, regen: bool) -> int:
     env = os.environ.copy()
     if regen:
-        env["YT_UNIQ_REGEN_CONTRACT_GOLDENS"] = "1"
+        env["VIDEO_UNIQ_REGEN_CONTRACT_GOLDENS"] = "1"
     cmd = [sys.executable, "-m", "pytest", "tests/contracts", "-q"]
     completed = subprocess.run(cmd, cwd=REPO_ROOT, env=env, check=False)
     return completed.returncode

@@ -15,11 +15,11 @@ from unittest.mock import patch
 
 import pytest
 
-from yt_uniquifier.core import resource_budget as budget
+from video_uniquifier.core import resource_budget as budget
 
 
 def _reserve(root: str, owner: str, ready: Any, release: Any, crash: bool) -> None:
-    os.environ["YT_UNIQ_RESOURCE_LOCK_DIR"] = str(Path(root) / "registry")
+    os.environ["VIDEO_UNIQ_RESOURCE_LOCK_DIR"] = str(Path(root) / "registry")
     with patch.object(
         budget.shutil, "disk_usage", return_value=SimpleNamespace(free=100),
     ):

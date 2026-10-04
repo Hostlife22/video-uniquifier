@@ -5,19 +5,19 @@ from pathlib import Path
 import pytest
 
 from tests.unit.test_preflight import _plan, _source
-from yt_uniquifier.core import media_validation
-from yt_uniquifier.core import segmenter as segmenter_mod
-from yt_uniquifier.core.auxiliary_streams import (
+from video_uniquifier.core import media_validation
+from video_uniquifier.core import segmenter as segmenter_mod
+from video_uniquifier.core.auxiliary_streams import (
     AuxiliaryStream,
     get_auxiliary_streams,
     set_auxiliary_streams,
 )
-from yt_uniquifier.core.errors import PipelineError
-from yt_uniquifier.core.models import SourceMeta
-from yt_uniquifier.core.pipeline import compute_plan_hash
-from yt_uniquifier.core.preflight import has_fail, preflight
-from yt_uniquifier.core.probe import _parse_auxiliary_streams
-from yt_uniquifier.core.runner import RunResult
+from video_uniquifier.core.errors import PipelineError
+from video_uniquifier.core.models import SourceMeta
+from video_uniquifier.core.pipeline import compute_plan_hash
+from video_uniquifier.core.preflight import has_fail, preflight
+from video_uniquifier.core.probe import _parse_auxiliary_streams
+from video_uniquifier.core.runner import RunResult
 
 
 def _attachment() -> AuxiliaryStream:

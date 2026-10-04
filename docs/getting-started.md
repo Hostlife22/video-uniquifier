@@ -1,12 +1,12 @@
 # Getting started
 
-A 5-minute tour of `yt-uniquifier`. Covers CLI, GUI, and web —
+A 5-minute tour of `video-uniquifier`. Covers CLI, GUI, and web —
 pick one and the others will look familiar afterwards.
 
 ## 1. Install
 
 ```bash
-pip install yt-uniquifier[gui,web]
+pip install "video-uniquifier[gui,web] @ git+https://github.com/Hostlife22/video-uniquifier.git@v2.0.0"
 ```
 
 Pulls the core CLI, the PyQt6 desktop GUI, and the FastAPI web
@@ -36,8 +36,8 @@ The shipped profiles cover most use cases:
 Browse community-contributed profiles too:
 
 ```bash
-yt-uniq profile list-community
-yt-uniq profile install cid_aware       # installs into ~/.config/yt_uniquifier/profiles/
+video-uniq profile list-community
+video-uniq profile install cid_aware       # installs into ~/.config/video_uniquifier/profiles/
 ```
 
 The catalog is SHA-pinned per entry; the installer refuses to
@@ -47,8 +47,8 @@ write the file if the hash does not match. Details in
 ## 3. Sanity-check the input
 
 ```bash
-yt-uniq probe ~/Videos/in.mp4
-yt-uniq preflight ~/Videos/in.mp4 --profile cid_aware
+video-uniq probe ~/Videos/in.mp4
+video-uniq preflight ~/Videos/in.mp4 --profile cid_aware
 ```
 
 `probe` prints the parsed `SourceMeta` (container, streams, HDR
@@ -61,7 +61,7 @@ starts.
 === "CLI"
 
     ```bash
-    yt-uniq run ~/Videos/in.mp4 \
+    video-uniq run ~/Videos/in.mp4 \
         --profile cid_aware \
         --output ~/Videos/out.mp4
     ```
@@ -69,7 +69,7 @@ starts.
 === "Desktop GUI"
 
     ```bash
-    yt-uniq-gui
+    video-uniq-gui
     ```
 
     Then on the **Run** screen: pick input, pick profile, click
@@ -83,7 +83,7 @@ starts.
         -v $PWD/input:/data/input:ro \
         -v $PWD/output:/data/output \
         -v $PWD/work:/data/work \
-        yt-uniquifier:1.4.0
+        video-uniquifier:2.0.0
     ```
 
     Open http://127.0.0.1:8080 and fill in the form. Full guide
@@ -98,19 +98,19 @@ schema is documented in [QA report](qa_report.md).
 
 ## 6. Next steps
 
-* **Auto-tune a profile against this source** — `yt-uniq
+* **Auto-tune a profile against this source** — `video-uniq
   calibrate` (or the **Auto-tune** button in the GUI Run screen)
   bisects parameters against a quality target. See
   [Calibration](calibrate.md).
-* **Batch a folder** — `yt-uniq batch ~/Videos/in/` or the
+* **Batch a folder** — `video-uniq batch ~/Videos/in/` or the
   Batch screen.
-* **Distribute across a NAS / lab** — `yt-uniq worker` + a
+* **Distribute across a NAS / lab** — `video-uniq worker` + a
   shared filesystem. See [Distributed batch](distributed.md).
-* **Pre-generate subtitles** — `yt-uniq subtitles generate
+* **Pre-generate subtitles** — `video-uniq subtitles generate
   ~/Videos/in.mp4`. The `video.subtitles` transform burns them
   in at encode time.
 * **Opt into telemetry** — Settings → Local telemetry, or pass
   `--telemetry` in your own scripts. Local-only JSONL; no network.
 
-Stuck? Open `yt-uniq <subcommand> --help` for any subcommand,
+Stuck? Open `video-uniq <subcommand> --help` for any subcommand,
 or file an issue.

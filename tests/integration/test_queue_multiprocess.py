@@ -8,7 +8,7 @@ from queue import Empty
 
 import pytest
 
-from yt_uniquifier.core.queue.leasing import FileQueue, init_queue
+from video_uniquifier.core.queue.leasing import FileQueue, init_queue
 
 
 def _drain_queue(root: str, results: multiprocessing.Queue) -> None:

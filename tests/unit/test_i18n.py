@@ -19,13 +19,13 @@ from pathlib import Path
 
 import pytest
 
-from yt_uniquifier.gui.i18n import (
+from video_uniquifier.gui.i18n import (
     SOURCE_LOCALE,
     available_locales,
     coverage_ratio,
     system_locale_hint,
 )
-from yt_uniquifier.gui.i18n.translations import SOURCE_KEYS, TRANSLATIONS
+from video_uniquifier.gui.i18n.translations import SOURCE_KEYS, TRANSLATIONS
 
 # ---------------------------------------------------------------------------
 # Catalogue invariants
@@ -144,10 +144,10 @@ def test_appstate_persists_and_reloads_locale(
     # real state.json.
     state_path = tmp_path / "state.json"
     monkeypatch.setattr(
-        "yt_uniquifier.gui.state.STATE_PATH", state_path,
+        "video_uniquifier.gui.state.STATE_PATH", state_path,
     )
     monkeypatch.setattr(
-        "yt_uniquifier.gui.state.CONFIG_DIR", tmp_path,
+        "video_uniquifier.gui.state.CONFIG_DIR", tmp_path,
     )
 
     # Force-load PyQt6.QtCore before AppState — pytest-qt usually
@@ -155,7 +155,7 @@ def test_appstate_persists_and_reloads_locale(
     # hint that may not be set in this minimal context.
     os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
-    from yt_uniquifier.gui.state import AppState
+    from video_uniquifier.gui.state import AppState
     a = AppState()
     a.set_locale("ru_RU")
     assert state_path.exists()
@@ -180,7 +180,7 @@ def test_install_translator_translates_known_key() -> None:
     from PyQt6.QtCore import QCoreApplication
     from PyQt6.QtWidgets import QApplication
 
-    from yt_uniquifier.gui.i18n import (
+    from video_uniquifier.gui.i18n import (
         active_locale,
         install_translator,
     )
@@ -210,7 +210,7 @@ def test_install_translator_unknown_locale_falls_back_silently() -> None:
     os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
     from PyQt6.QtWidgets import QApplication
 
-    from yt_uniquifier.gui.i18n import active_locale, install_translator
+    from video_uniquifier.gui.i18n import active_locale, install_translator
 
     app = QApplication.instance() or QApplication([])
     install_translator(app, "xx_XX")

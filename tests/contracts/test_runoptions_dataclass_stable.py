@@ -17,7 +17,7 @@ from __future__ import annotations
 import dataclasses
 
 from tests.contracts._snapshot import snapshot
-from yt_uniquifier.core import RunOptions, RunResult, RunSummary
+from video_uniquifier.core import RunOptions, RunResult, RunSummary
 
 LOCKED_DATACLASSES = [RunOptions, RunSummary, RunResult]
 

@@ -12,10 +12,10 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from yt_uniquifier.core import runner as runner_mod
-from yt_uniquifier.core.errors import PipelineError
-from yt_uniquifier.core.pipeline import BuiltCommand
-from yt_uniquifier.core.runner import CancelToken, PauseToken, RunEvent, run
+from video_uniquifier.core import runner as runner_mod
+from video_uniquifier.core.errors import PipelineError
+from video_uniquifier.core.pipeline import BuiltCommand
+from video_uniquifier.core.runner import CancelToken, PauseToken, RunEvent, run
 
 
 class _FakeStream:
@@ -333,11 +333,11 @@ def test_wall_watchdog_terminates_active_process(tmp_path: Path) -> None:
 def test_invalid_timeout_environment_fails_before_spawn(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    monkeypatch.setenv("YT_UNIQ_STALL_TIMEOUT_SEC", "not-a-number")
+    monkeypatch.setenv("VIDEO_UNIQ_STALL_TIMEOUT_SEC", "not-a-number")
     popen = MagicMock()
     monkeypatch.setattr(runner_mod.subprocess, "Popen", popen)
 
-    with pytest.raises(PipelineError, match="YT_UNIQ_STALL_TIMEOUT_SEC"):
+    with pytest.raises(PipelineError, match="VIDEO_UNIQ_STALL_TIMEOUT_SEC"):
         run(_cmd(tmp_path), output=tmp_path / "out.mp4")
 
     popen.assert_not_called()

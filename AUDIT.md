@@ -213,7 +213,7 @@ Chromaprint и SSCD полезны только как внутренние diag
 
 | Область | Файлы / объём |
 |---|---:|
-| `src/yt_uniquifier/core` | 77 Python files |
+| `src/video_uniquifier/core` | 77 Python files |
 | GUI | 47 files |
 | Web | 14 files |
 | Tests | 226 files |

@@ -6,12 +6,12 @@ import random
 
 import pytest
 
-from yt_uniquifier.core.transforms.audio_loudnorm import (
+from video_uniquifier.core.transforms.audio_loudnorm import (
     LoudnormMeasurement,
     LoudnormParams,
     build_apply,
 )
-from yt_uniquifier.core.transforms.base import LabelAllocator
+from video_uniquifier.core.transforms.base import LabelAllocator
 
 
 def _measurement() -> LoudnormMeasurement:

@@ -7,8 +7,8 @@ from pathlib import Path
 
 import pytest
 
-from yt_uniquifier.core import preflight as preflight_mod
-from yt_uniquifier.core.models import (
+from video_uniquifier.core import preflight as preflight_mod
+from video_uniquifier.core.models import (
     AudioStream,
     EncoderCandidate,
     HDRInfo,
@@ -18,11 +18,11 @@ from yt_uniquifier.core.models import (
     TransformConfig,
     VideoStream,
 )
-from yt_uniquifier.core.pipeline import compute_plan_hash
-from yt_uniquifier.core.preflight import has_fail, preflight
-from yt_uniquifier.core.transforms import get
-from yt_uniquifier.core.transforms.audio_pitch import PitchTempoParams
-from yt_uniquifier.core.transforms.base import LabelAllocator, call_build
+from video_uniquifier.core.pipeline import compute_plan_hash
+from video_uniquifier.core.preflight import has_fail, preflight
+from video_uniquifier.core.transforms import get
+from video_uniquifier.core.transforms.audio_pitch import PitchTempoParams
+from video_uniquifier.core.transforms.base import LabelAllocator, call_build
 
 
 def test_rubberband_method_emits_rubberband_filter() -> None:
@@ -244,7 +244,7 @@ def test_verify_audio_filters_passes_when_rubberband_available(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Happy path: rubberband enabled + available → silent return."""
-    from yt_uniquifier.core.audio_windows import verify_audio_filters_available
+    from video_uniquifier.core.audio_windows import verify_audio_filters_available
 
     _stub_filter_works(monkeypatch)
     plan = _rb_plan(_source(tmp_path))
@@ -255,8 +255,8 @@ def test_verify_audio_filters_raises_when_rubberband_lost_post_preflight(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Filter became unavailable between preflight and audio chain → PipelineError."""
-    from yt_uniquifier.core.audio_windows import verify_audio_filters_available
-    from yt_uniquifier.core.errors import PipelineError
+    from video_uniquifier.core.audio_windows import verify_audio_filters_available
+    from video_uniquifier.core.errors import PipelineError
 
     plan = _rb_plan(_source(tmp_path))
     monkeypatch.setattr(
@@ -271,7 +271,7 @@ def test_verify_audio_filters_skips_when_no_rubberband(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """asetrate-only profile → no probe, no error even if filter is 'missing'."""
-    from yt_uniquifier.core.audio_windows import verify_audio_filters_available
+    from video_uniquifier.core.audio_windows import verify_audio_filters_available
 
     plan = _rb_plan(_source(tmp_path), method="asetrate")
     # Even if probe would report False, asetrate path must not call it.

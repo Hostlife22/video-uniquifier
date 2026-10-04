@@ -6,15 +6,15 @@ from pathlib import Path
 
 import pytest
 
-from yt_uniquifier.core.transforms import get
-from yt_uniquifier.core.transforms.audio_pitch import (
+from video_uniquifier.core.transforms import get
+from video_uniquifier.core.transforms.audio_pitch import (
     ATEMPO_MAX,
     ATEMPO_MIN,
     PitchTempoParams,
     cascade_atempo,
 )
-from yt_uniquifier.core.transforms.base import LabelAllocator
-from yt_uniquifier.core.transforms.video_geom import CropResizeParams, RotateParams
+from video_uniquifier.core.transforms.base import LabelAllocator
+from video_uniquifier.core.transforms.video_geom import CropResizeParams, RotateParams
 
 
 def test_crop_resize_is_deterministic_with_seed() -> None:
@@ -97,7 +97,7 @@ def test_pitch_tempo_chain_shape() -> None:
 
 
 def test_blend_b_has_extra_input() -> None:
-    from yt_uniquifier.core.transforms.video_blend import BlendBParams
+    from video_uniquifier.core.transforms.video_blend import BlendBParams
 
     spec = get("video.blend_b")
     c = spec.build(
@@ -124,7 +124,7 @@ def test_blend_b_scale2ref_ordering() -> None:
     dimensions and then blended an unchanged B at 97 % with a scaled A
     at 3 % — the inverse of the intended effect.
     """
-    from yt_uniquifier.core.transforms.video_blend import (
+    from video_uniquifier.core.transforms.video_blend import (
         IN_PLACEHOLDER,
         BlendBParams,
     )
@@ -147,7 +147,7 @@ def test_blend_b_scale2ref_ordering() -> None:
 
 
 def test_loudnorm_parse_measurement() -> None:
-    from yt_uniquifier.core.transforms.audio_loudnorm import (
+    from video_uniquifier.core.transforms.audio_loudnorm import (
         _parse_measurement,
         parse_reported_normalization_mode,
     )
@@ -179,7 +179,7 @@ ffmpeg done.
 
 
 def test_loudnorm_reported_mode_parser_uses_last_pass() -> None:
-    from yt_uniquifier.core.transforms.audio_loudnorm import (
+    from video_uniquifier.core.transforms.audio_loudnorm import (
         parse_reported_normalization_mode,
     )
 

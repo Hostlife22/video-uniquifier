@@ -1,12 +1,12 @@
 # Accessibility
 
-`yt-uniquifier` targets **WCAG 2.1 Level AA** conformance for the desktop
-GUI (`yt-uniq-gui`) and for the optional web UI (`yt-uniq-web`).
+`video-uniquifier` targets **WCAG 2.1 Level AA** conformance for the desktop
+GUI (`video-uniq-gui`) and for the optional web UI (`video-uniq-web`).
 This page is the conformance statement, the manual-test checklist, and
 the rationale for the few AA criteria where we apply a documented desktop
 adaptation rather than the literal web wording.
 
-The CLI (`yt-uniq …`) inherits the accessibility of the user's terminal
+The CLI (`video-uniq …`) inherits the accessibility of the user's terminal
 emulator and screen reader; it is not in scope for WCAG and is not
 audited here.
 
@@ -77,8 +77,8 @@ with a real screen reader. We test against:
 
 ### Smoke test (10 minutes)
 
-1. Launch `yt-uniq-gui`. The screen reader should announce
-   **"yt-uniquifier window, Main navigation list, Run"**.
+1. Launch `video-uniq-gui`. The screen reader should announce
+   **"video-uniquifier window, Main navigation list, Run"**.
 2. Press `Ctrl+1` through `Ctrl+0`. Each step should announce the new
    screen's heading (e.g. *"Run screen"*, *"Settings screen"*).
 3. From Run, press `Tab` repeatedly. Every focused control should
@@ -115,7 +115,7 @@ security reports, with a 5-business-day acknowledgement target. Please
 include:
 
 - OS + version, screen reader + version, application version
-  (`yt-uniq-gui --version`), and the installed PyQt6/Qt version.
+  (`video-uniq-gui --version`), and the installed PyQt6/Qt version.
 - The exact screen + chord that failed.
 - Whether the failure is in the *announcement* (silent, wrong text,
   wrong role) or in the *interaction* (unreachable control, lost focus,

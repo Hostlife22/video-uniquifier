@@ -6,8 +6,8 @@ from pathlib import Path
 
 import pytest
 
-from yt_uniquifier.core.errors import PipelineError
-from yt_uniquifier.core.models import (
+from video_uniquifier.core.errors import PipelineError
+from video_uniquifier.core.models import (
     EncoderCandidate,
     HDRInfo,
     Plan,
@@ -16,10 +16,10 @@ from yt_uniquifier.core.models import (
     SourceMeta,
     VideoStream,
 )
-from yt_uniquifier.core.pipeline import BuiltCommand
-from yt_uniquifier.core.qa import registration
-from yt_uniquifier.core.runner import CancelToken
-from yt_uniquifier.core.seed_resolver import derive_segment_seed
+from video_uniquifier.core.pipeline import BuiltCommand
+from video_uniquifier.core.qa import registration
+from video_uniquifier.core.runner import CancelToken
+from video_uniquifier.core.seed_resolver import derive_segment_seed
 
 
 def _plan(source_path: Path) -> Plan:
@@ -114,7 +114,7 @@ def test_reference_budget_fails_before_large_temp_encode(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     plan = _plan(tmp_path / "source.mp4")
-    monkeypatch.setenv("YT_UNIQ_REGISTERED_REFERENCE_MAX_BYTES", "1")
+    monkeypatch.setenv("VIDEO_UNIQ_REGISTERED_REFERENCE_MAX_BYTES", "1")
 
     with pytest.raises(PipelineError, match="bounded disk budget"):
         registration.build_transformed_reference(plan, tmp_path / "reference.mkv")
@@ -124,9 +124,9 @@ def test_reference_single_copy_budget_and_retiming_guard(tmp_path, monkeypatch):
     plan = _plan(tmp_path / "source.mp4")
     destination = tmp_path / "reference.mkv"
     estimate = 320 * 180 * 24 * 2 // 2
-    monkeypatch.setenv("YT_UNIQ_REGISTERED_REFERENCE_MAX_BYTES", str(estimate * 2))
+    monkeypatch.setenv("VIDEO_UNIQ_REGISTERED_REFERENCE_MAX_BYTES", str(estimate * 2))
     assert registration._check_reference_budget(plan, destination) is False
-    monkeypatch.setenv("YT_UNIQ_REGISTERED_REFERENCE_MAX_BYTES", str(estimate))
+    monkeypatch.setenv("VIDEO_UNIQ_REGISTERED_REFERENCE_MAX_BYTES", str(estimate))
     assert registration._check_reference_budget(plan, destination) is True
     monkeypatch.setattr(registration, "expected_output_duration", lambda _plan: 1.0)
     with pytest.raises(PipelineError, match="bounded disk budget"):
@@ -136,7 +136,7 @@ def test_reference_single_copy_budget_and_retiming_guard(tmp_path, monkeypatch):
 def test_reference_measured_growth_stops_before_concat(tmp_path, monkeypatch):
     plan = _plan(tmp_path / "source.mp4")
     monkeypatch.setattr(registration, "_check_reference_budget", lambda *_args: False)
-    monkeypatch.setenv("YT_UNIQ_REGISTERED_REFERENCE_MAX_BYTES", "16")
+    monkeypatch.setenv("VIDEO_UNIQ_REGISTERED_REFERENCE_MAX_BYTES", "16")
     monkeypatch.setattr(registration, "reference_provenance_key", lambda *a, **k: "test")
     monkeypatch.setattr(registration, "plan_segments", lambda *a: [
         Segment(idx=0, start_sec=0.0, end_sec=2.0),

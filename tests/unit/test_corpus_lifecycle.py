@@ -6,8 +6,8 @@ from pathlib import Path
 
 import pytest
 
-from yt_uniquifier.core.qa import corpus as corpus_mod
-from yt_uniquifier.core.qa.corpus import Corpus, CorpusEntry
+from video_uniquifier.core.qa import corpus as corpus_mod
+from video_uniquifier.core.qa.corpus import Corpus, CorpusEntry
 
 
 def _patch_phash_and_audio(monkeypatch: pytest.MonkeyPatch) -> None:

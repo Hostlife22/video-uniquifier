@@ -9,18 +9,18 @@ robustness to crop, colour jitter, frame-rate retiming and re-encode. Here it is
 used as an internal regression/self-collision diagnostic for owned or licensed
 content. It does not predict or validate a third-party rights-detection system.
 
-In `yt-uniquifier` SSCD is **opt-in**: the model is not bundled, torch is
+In `video-uniquifier` SSCD is **opt-in**: the model is not bundled, torch is
 not a hard dependency, and the metric runs only when you ask for it.
 
 ## Install
 
 ```bash
-pip install 'yt-uniquifier[ml]'
+pip install 'video-uniquifier[ml]'
 ```
 
 This pulls a current Torch/torchvision pair. On first use the
 ~94 MB `sscd_disc_mixup` TorchScript checkpoint is fetched from the
-official Meta CDN to `~/.cache/yt_uniquifier/models/` and verified by
+official Meta CDN to `~/.cache/video_uniquifier/models/` and verified by
 SHA-256. A mismatching cached file is deleted and re-downloaded — the
 hash is pinned in `core/qa/sscd.py::_MODEL_SHA256` so a CDN swap fails
 loudly rather than silently using unknown weights.
@@ -45,9 +45,9 @@ ffmpeg pipeline, chromaprint QA, calibration — stays usable.
 ## In the QA report
 
 ```bash
-yt-uniq qa source.mp4 output.mp4 --sscd
+video-uniq qa source.mp4 output.mp4 --sscd
 # or, for finer per-frame resolution:
-yt-uniq qa source.mp4 output.mp4 --sscd --sscd-frames 64
+video-uniq qa source.mp4 output.mp4 --sscd --sscd-frames 64
 ```
 
 The console emits the banded headline (`high` / `caution` / `clean`) and
@@ -77,7 +77,7 @@ it must be read alongside VMAF/SSIM, audio and media-contract results.
 ## In calibration
 
 ```bash
-yt-uniq calibrate input.mp4 \
+video-uniq calibrate input.mp4 \
   --base profiles/cid_aware.yaml \
   --out tuned.yaml \
   --metric sscd \
@@ -108,7 +108,7 @@ the same clip in CI tomorrow.
 ## Public API
 
 ```python
-from yt_uniquifier.core.qa.sscd import compute_sscd, sscd_band, SSCDResult
+from video_uniquifier.core.qa.sscd import compute_sscd, sscd_band, SSCDResult
 
 result: SSCDResult = compute_sscd(
     source=Path("in.mp4"),
@@ -138,7 +138,7 @@ matching the v0.5.5 A6 behaviour for the chromaprint path.
 ## Architecture notes
 
 * **Lazy import**: `import torch` lives inside `compute_sscd`, not at
-  module top. Importing `yt_uniquifier.core.qa.sscd` is free.
+  module top. Importing `video_uniquifier.core.qa.sscd` is free.
 * **Uniform timeline sampling**: midpoint seeks cover the complete source
   timeline without decoding every preceding frame of a multi-hour file. All seeks
   for one file are issued through one FFmpeg process with single-threaded decoder

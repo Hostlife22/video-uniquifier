@@ -32,11 +32,11 @@ from pathlib import Path
 import pytest
 
 from tests.conftest import needs_ffmpeg
-from yt_uniquifier.core.orchestrator import RunOptions, build_plan, run_full
-from yt_uniquifier.core.profile_loader import load_profile
-from yt_uniquifier.core.runner import CancelToken, PauseToken, RunEvent
+from video_uniquifier.core.orchestrator import RunOptions, build_plan, run_full
+from video_uniquifier.core.profile_loader import load_profile
+from video_uniquifier.core.runner import CancelToken, PauseToken, RunEvent
 
-PROFILES_DIR = Path(__file__).parents[2] / "src" / "yt_uniquifier" / "profiles"
+PROFILES_DIR = Path(__file__).parents[2] / "src" / "video_uniquifier" / "profiles"
 
 
 @pytest.fixture

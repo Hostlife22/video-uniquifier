@@ -3,7 +3,7 @@ matrix:
   workers: 2
   variants:
     - id: v6
-      profile: ../src/yt_uniquifier/profiles/soft.yaml
+      profile: ../src/video_uniquifier/profiles/soft.yaml
       encoder: libx264
 cases:
   - id: archival-180m-av

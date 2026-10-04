@@ -9,15 +9,15 @@ from typing import cast
 
 import pytest
 
-from yt_uniquifier.core.errors import PipelineError
-from yt_uniquifier.core.media_validation import MediaInvariantFailure, MediaInvariantReport
-from yt_uniquifier.core.models import (
+from video_uniquifier.core.errors import PipelineError
+from video_uniquifier.core.media_validation import MediaInvariantFailure, MediaInvariantReport
+from video_uniquifier.core.models import (
     Plan,
     QARegistration,
     QARegistrationDetail,
     QAReport,
 )
-from yt_uniquifier.core.qa import report as report_mod
+from video_uniquifier.core.qa import report as report_mod
 
 
 def _report(**overrides: object) -> QAReport:
@@ -381,7 +381,7 @@ def test_build_report_uses_strict_plan_media_contract(
 def test_complete_decode_failure_is_a_correctness_failure(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path,
 ) -> None:
-    from yt_uniquifier.core import media_validation
+    from video_uniquifier.core import media_validation
 
     output = tmp_path / "broken.mp4"
     output.touch()

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-`yt-uniquifier` — a Python 3.11+ CLI/GUI re-encoder that wraps `ffmpeg` and applies controlled micro-transforms (crop+rescale, color jitter, noise, rotation, frame-blend, pitch/tempo, EQ, EBU R128 loudnorm) to owned/licensed video. The scope is legitimate use only (re-uploading your own content, fair-use derivatives). The README and CLI help text explicitly disclaim Content-ID evasion — preserve that framing in user-facing strings and docs.
+`video-uniquifier` — a Python 3.11+ CLI/GUI re-encoder that wraps `ffmpeg` and applies controlled micro-transforms (crop+rescale, color jitter, noise, rotation, frame-blend, pitch/tempo, EQ, EBU R128 loudnorm) to owned/licensed video. The scope is legitimate use only (re-uploading your own content, fair-use derivatives). The README and CLI help text explicitly disclaim Content-ID evasion — preserve that framing in user-facing strings and docs.
 
 ## Common commands
 
@@ -20,7 +20,7 @@ make test-unit                    # unit only (~10s, no ffmpeg)
 make test-gui                     # GUI tests via QT_QPA_PLATFORM=offscreen
 make test-integration             # real ffmpeg required
 make check                        # ruff + mypy + full pytest (CI gate)
-make build                        # PyInstaller → dist/yt-uniq-gui.app (macOS)
+make build                        # PyInstaller → dist/video-uniq-gui.app (macOS)
 make build-wheel                  # pip wheel → dist/
 make reset-cache                  # wipe encoder + keyframe caches
 make probe-encoders               # show ffmpeg encoders detected on this box
@@ -39,8 +39,8 @@ Custom pytest markers (declared in `pyproject.toml`): `integration` (real ffmpeg
 
 CLI entry points (after `pip install -e .`):
 
-- `yt-uniq` — `yt_uniquifier.cli.app:app` (subcommands: `version`, `probe`, `preflight`, `run`, `qa`, `batch`, `calibrate`, `worker`, `corpus`, `queue`)
-- `yt-uniq-gui` — `yt_uniquifier.gui.app_pyqt:main` (requires `[gui]` extra)
+- `video-uniq` — `video_uniquifier.cli.app:app` (subcommands: `version`, `probe`, `preflight`, `run`, `qa`, `batch`, `calibrate`, `worker`, `corpus`, `queue`)
+- `video-uniq-gui` — `video_uniquifier.gui.app_pyqt:main` (requires `[gui]` extra)
 
 Requires `ffmpeg`/`ffprobe` on PATH. Optional binaries — graceful skip if absent: `fpcalc` (chromaprint), ffmpeg with `libvmaf`.
 
@@ -79,7 +79,7 @@ Key invariants:
 - **Even-dimensions guard at the tail of the video chain.** `scale=trunc(iw/2)*2:trunc(ih/2)*2,format=yuv420p` — `libx264` rejects odd dims after micro-crop.
 - **`video.blend_b` is the only multi-input transform.** It returns `extra_inputs` and uses the `__B__` token rewritten to `[1:v]` after `-i B.mp4` is appended.
 - **`FilterChain.filter_str` must NOT include its own `[in_label]` prefix.** The pipeline always wraps each fragment as `f"[{chain.in_label}]{chain.filter_str}[{chain.out_label}]"`. A builder that emits `[{in_lbl}]<expr>` produces a double-prefix and an invalid `-filter_complex` argument. Multi-input transforms (only `blend_b` today) get their secondary input via the `__B__` placeholder, not by prefixing.
-- **`CheckpointStore` is thread-safe.** All public mutators and `_flush` acquire `_lock: threading.RLock`. The atomic write is `open()` → `flush()` → `fsync()` → `os.replace()` — both fsync and the lock are load-bearing for `workers > 1` parallel-segment runs (`ThreadPoolExecutor` workers fire `on_segment_done` concurrently). Shared caches that may be touched by concurrent `yt-uniq batch` processes (`encoder.py::_save_cache`) use `encoders.{os.getpid()}.tmp` to avoid cross-process tmp-name collisions.
+- **`CheckpointStore` is thread-safe.** All public mutators and `_flush` acquire `_lock: threading.RLock`. The atomic write is `open()` → `flush()` → `fsync()` → `os.replace()` — both fsync and the lock are load-bearing for `workers > 1` parallel-segment runs (`ThreadPoolExecutor` workers fire `on_segment_done` concurrently). Shared caches that may be touched by concurrent `video-uniq batch` processes (`encoder.py::_save_cache`) use `encoders.{os.getpid()}.tmp` to avoid cross-process tmp-name collisions.
 - **Plan hash is platform-portable.** `compute_plan_hash` uses `profile.model_dump(mode="json")` so `Path` / `Enum` / `datetime` fields serialise to their JSON form. A raw `model_dump()` would leak `str(Path)` which is platform-dependent (backslashes on Windows) and break resume across OSes.
 - **Per-segment seed is derived from `(plan_hash, idx, run_seed)`** in `core/seed_resolver.py::derive_segment_seed`. Builders that consume randomness must accept the `rng: random.Random | None = None` kwarg and prefer it over constructing their own `Random(...)` — otherwise resumed runs re-roll non-deterministically. The `call_build` helper inspects builder signatures (cached via `functools.cache`) to decide whether to pass `rng`.
 
@@ -87,7 +87,7 @@ Key invariants:
 
 `core/models.py` holds every pydantic dataclass: `SourceMeta`, `Profile`, `Plan`, `Segment`, `EncoderCandidate`, `QAReport`, `RunEvent`. The `Plan` is JSON-serializable on purpose — it crosses thread/process boundaries and is hashed for resume.
 
-Profiles (`src/yt_uniquifier/profiles/*.yaml`) are loaded via `core/profile_loader.py` with `extra=forbid`. Shipped: `soft.yaml`, `medium.yaml`, `medium_hdr.yaml`, `aggressive.yaml`, `legacy_ab.yaml`, `cid_aware.yaml`, `cid_aware_hdr_to_sdr.yaml`, `cid_aggressive.yaml`. See `docs/profiles.md` for the schema.
+Profiles (`src/video_uniquifier/profiles/*.yaml`) are loaded via `core/profile_loader.py` with `extra=forbid`. Shipped: `soft.yaml`, `medium.yaml`, `medium_hdr.yaml`, `aggressive.yaml`, `legacy_ab.yaml`, `cid_aware.yaml`, `cid_aware_hdr_to_sdr.yaml`, `cid_aggressive.yaml`. See `docs/profiles.md` for the schema.
 
 ## Tests
 

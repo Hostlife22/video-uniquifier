@@ -57,8 +57,8 @@ def _make_three_scene_clip(out: Path) -> None:
 @needs_ffmpeg
 @pytest.mark.integration
 def test_scene_mode_produces_more_segments_than_keyframe_mode(tmp_path: Path) -> None:
-    from yt_uniquifier.core import segmenter
-    from yt_uniquifier.core.models import (
+    from video_uniquifier.core import segmenter
+    from video_uniquifier.core.models import (
         EncoderCandidate,
         Plan,
         Profile,
@@ -133,8 +133,8 @@ def test_scene_mode_is_deterministic_across_calls(tmp_path: Path) -> None:
     segments for the same source bytes on two separate ``plan_segments``
     calls (the keyframe cache + PySceneDetect determinism cover this,
     but a regression here would silently break resume across versions)."""
-    from yt_uniquifier.core import segmenter
-    from yt_uniquifier.core.models import (
+    from video_uniquifier.core import segmenter
+    from video_uniquifier.core.models import (
         EncoderCandidate,
         Plan,
         Profile,

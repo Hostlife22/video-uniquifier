@@ -20,7 +20,7 @@ long-form footage, NFS, NVENC/QSV/AMF and hardware-HDR recovery remain `NOT VERI
 
 ## Prerequisites
 
-- Python environment from `make dev` and `.venv/bin/yt-uniq`.
+- Python environment from `make dev` and `.venv/bin/video-uniq`.
 - `ffmpeg` and `ffprobe` on `PATH`; libvmaf is required only for the chaos-equivalence
   assertion.
 - A fixed source checksum and enough free space. Start with `--dry-run`; do not rely on
@@ -33,8 +33,8 @@ Record before every run:
 ```bash
 shasum -a 256 "$SOURCE"
 ffmpeg -version | head -n 1
-.venv/bin/yt-uniq run "$SOURCE" \
-  --profile src/yt_uniquifier/profiles/medium.yaml \
+.venv/bin/video-uniq run "$SOURCE" \
+  --profile src/video_uniquifier/profiles/medium.yaml \
   --out "$OUTPUT" --encoder libx264 --work-dir "$WORK" --dry-run
 ```
 
@@ -42,15 +42,15 @@ ffmpeg -version | head -n 1
 
 ```bash
 # Sequential baseline. Keep artifacts so resume identity can be inspected.
-.venv/bin/yt-uniq run "$SOURCE" \
-  --profile src/yt_uniquifier/profiles/medium.yaml \
+.venv/bin/video-uniq run "$SOURCE" \
+  --profile src/video_uniquifier/profiles/medium.yaml \
   --out "$CASE_DIR/sequential.mp4" \
   --encoder libx264 --workers 1 --segment-sec 600 \
   --keep-segments --work-dir "$CASE_DIR/sequential.work"
 
 # Parallel run of the same declared combination.
-.venv/bin/yt-uniq run "$SOURCE" \
-  --profile src/yt_uniquifier/profiles/medium.yaml \
+.venv/bin/video-uniq run "$SOURCE" \
+  --profile src/video_uniquifier/profiles/medium.yaml \
   --out "$CASE_DIR/parallel.mp4" \
   --encoder libx264 --workers 4 --segment-sec 600 \
   --keep-segments --work-dir "$CASE_DIR/parallel.work"
@@ -66,7 +66,7 @@ SIGKILL to the group at deterministic pseudo-random offsets, resumes the same wo
 directory, and compares the result with a clean baseline:
 
 ```bash
-YT_UNIQ_CHAOS_ROUNDS=3 \
+VIDEO_UNIQ_CHAOS_ROUNDS=3 \
   .venv/bin/pytest tests/chaos/test_random_sigkill.py -q
 ```
 

@@ -7,6 +7,7 @@ This directory retains design and compatibility decisions for public contracts:
 | [26 — No-upscale geometry policy](26-no-upscale-policy-rfc.md) | Explicit scaling policy and profile migration; GitHub RFC #11. |
 | [27 — Raw and registered QA metrics](27-registered-qa-metrics-rfc.md) | Separate raw/registered metrics and bounded audio alignment; GitHub RFC #12. |
 | [28 — QA correctness, loudness and quality thresholds](28-qa-correctness-loudness-rfc.md) | Accepted additive QA evidence and opt-in quality gates; GitHub issue #21. |
+| [29 — Project rename](29-project-rename-rfc.md) | Owner-authorized v2.0.0 naming migration across packages, executables and builds. |
 
 RFCs preserve the proposal and decision record. For current shipped behavior,
 consult [API contracts](../docs/api-contracts.md), [profiles](../docs/profiles.md)

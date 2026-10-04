@@ -2,7 +2,7 @@
 
 Дата актуализации: 2026-09-06. Статусы: `RESOLVED`, `PARTIAL`, `OPEN`, `NOT VERIFIED`. Сокращённые
 `core/...`, `web/...` и `cli/...` пути в таблице имеют общий префикс
-`src/yt_uniquifier/`.
+`src/video_uniquifier/`.
 
 `RESOLVED` означает наличие regression test и локально пройденного соответствующего
 gate. Это не переносит результат автоматически на непроверенные OS/GPU/HDR cases.
@@ -94,7 +94,7 @@ gate. Это не переносит результат автоматическ
 | P4 | Dual pipelines | **PARTIAL:** encoder policy унифицирован через `_encoder_args_for`; mapping/filter shapes ещё различаются | `core/pipeline.py` command builders | Remaining behavior/test drift | Продолжать shared argv helpers без второго pipeline |
 | P4 | Web version | **RESOLVED:** hardcoded 0.9.0 | `web/app.py::create_app` | Incorrect diagnostics | Uses package `__version__` |
 | P4 | Correlation/metrics | **RESOLVED:** events exposed only a run ID and web lifecycle transitions were not counted | `core/correlation.py`, `core/orchestrator.py`, `web/routes/run.py`, `web/metrics.py`; event-chain/lifecycle regressions and Docker smoke | Segment failure could not be traced to a plan/job; queue/resume health invisible | Deterministic run → plan → job → segment fields and bounded queued/active/resumed/terminal counters |
-| P4 | Profile duplication | Platform YAML copies same values | `src/yt_uniquifier/profiles/*.yaml` | Magic-number drift | Generated inheritance/composition or validated shared fragments |
+| P4 | Profile duplication | Platform YAML copies same values | `src/video_uniquifier/profiles/*.yaml` | Magic-number drift | Generated inheritance/composition or validated shared fragments |
 | P5 | Documentation | README chapters/subtitles and architecture claims stale | `README.md:35`, `CLAUDE.md:65` | Operator trusts behavior that fails | Update only after fixes; add verified capability matrix |
 
 ## Release blocker policy

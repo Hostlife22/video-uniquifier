@@ -11,8 +11,8 @@ from pathlib import Path
 
 import pytest
 
-from yt_uniquifier.core import pipeline as pipeline_mod
-from yt_uniquifier.core.models import (
+from video_uniquifier.core import pipeline as pipeline_mod
+from video_uniquifier.core.models import (
     AudioStream,
     EncoderCandidate,
     HDRInfo,
@@ -23,15 +23,15 @@ from yt_uniquifier.core.models import (
     TransformConfig,
     VideoStream,
 )
-from yt_uniquifier.core.pipeline import (
+from video_uniquifier.core.pipeline import (
     FilterGraph,
     build_encoder_capability_probe,
     build_video_segment_command,
     build_video_segment_command_fused,
     compute_plan_hash,
 )
-from yt_uniquifier.core.transforms import audio_loudnorm
-from yt_uniquifier.core.transforms.audio_loudnorm import LoudnormMeasurement
+from video_uniquifier.core.transforms import audio_loudnorm
+from video_uniquifier.core.transforms.audio_loudnorm import LoudnormMeasurement
 
 
 @pytest.fixture(autouse=True)
@@ -577,8 +577,8 @@ def test_audio_chain_rejects_naked_in_prefix(
     """
     from pydantic import BaseModel
 
-    from yt_uniquifier.core.errors import PipelineError
-    from yt_uniquifier.core.transforms import base as tbase
+    from video_uniquifier.core.errors import PipelineError
+    from video_uniquifier.core.transforms import base as tbase
 
     class _NoOpParams(BaseModel):
         pass

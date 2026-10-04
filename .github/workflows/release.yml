@@ -50,17 +50,17 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
-            artifact_name: yt-uniq-gui-Linux
-            archive_cmd: tar -C dist -czf "$ARTIFACT.tar.gz" yt-uniq-gui
+            artifact_name: video-uniq-gui-Linux
+            archive_cmd: tar -C dist -czf "$ARTIFACT.tar.gz" video-uniq-gui
             archive_ext: tar.gz
           - os: macos-latest
-            artifact_name: yt-uniq-gui-macOS
+            artifact_name: video-uniq-gui-macOS
             # ditto preserves resource forks + the .app bundle structure
             # that `zip -r` mangles on macOS.
-            archive_cmd: ditto -c -k --keepParent "dist/yt-uniq-gui.app" "$ARTIFACT.zip"
+            archive_cmd: ditto -c -k --keepParent "dist/video-uniq-gui.app" "$ARTIFACT.zip"
             archive_ext: zip
           - os: windows-latest
-            artifact_name: yt-uniq-gui-Windows
+            artifact_name: video-uniq-gui-Windows
             archive_ext: zip
     runs-on: ${{ matrix.os }}
 
@@ -106,29 +106,29 @@ jobs:
         env:
           QT_QPA_PLATFORM: offscreen
         run: |
-          python -c "import yt_uniquifier.gui.app_pyqt; print('GUI imports OK')"
-          python -c "from yt_uniquifier.core.transforms import all_ids; print('transforms:', len(all_ids()))"
+          python -c "import video_uniquifier.gui.app_pyqt; print('GUI imports OK')"
+          python -c "from video_uniquifier.core.transforms import all_ids; print('transforms:', len(all_ids()))"
 
       - name: Build PyInstaller bundle
-        run: python -m PyInstaller pyinstaller/yt-uniq-gui.spec --clean --noconfirm
+        run: python -m PyInstaller pyinstaller/video-uniq-gui.spec --clean --noconfirm
 
       - name: Verify bundle artefact exists (macOS)
         if: runner.os == 'macOS'
-        run: test -d dist/yt-uniq-gui.app
+        run: test -d dist/video-uniq-gui.app
 
       - name: Verify bundle artefact exists (Linux)
         if: runner.os == 'Linux'
         run: |
-          find dist/yt-uniq-gui -mindepth 1 -maxdepth 1 -print -quit
+          find dist/video-uniq-gui -mindepth 1 -maxdepth 1 -print -quit
 
       - name: Verify bundle artefact exists (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          if (-not (Test-Path -PathType Container "dist/yt-uniq-gui")) {
+          if (-not (Test-Path -PathType Container "dist/video-uniq-gui")) {
             throw "Windows release bundle directory was not created"
           }
-          if (-not (Get-ChildItem "dist/yt-uniq-gui" | Select-Object -First 1)) {
+          if (-not (Get-ChildItem "dist/video-uniq-gui" | Select-Object -First 1)) {
             throw "Windows release bundle directory is empty"
           }
 
@@ -140,7 +140,7 @@ jobs:
         # Program account materialises.
         if: runner.os == 'macOS'
         run: |
-          bash installers/macos/codesign-adhoc.sh dist/yt-uniq-gui.app
+          bash installers/macos/codesign-adhoc.sh dist/video-uniq-gui.app
 
       - name: Verify embedded version (Linux)
         if: runner.os == 'Linux'
@@ -148,7 +148,7 @@ jobs:
           QT_QPA_PLATFORM: offscreen
         run: |
           expected="$(python -c "import tomllib; print(tomllib.load(open('pyproject.toml','rb'))['project']['version'])")"
-          actual="$(dist/yt-uniq-gui/yt-uniq-gui --version)"
+          actual="$(dist/video-uniq-gui/video-uniq-gui --version)"
           test "${actual}" = "${expected}"
 
       - name: Verify embedded version and signature (macOS)
@@ -157,22 +157,22 @@ jobs:
           QT_QPA_PLATFORM: offscreen
         run: |
           expected="$(python -c "import tomllib; print(tomllib.load(open('pyproject.toml','rb'))['project']['version'])")"
-          actual="$(dist/yt-uniq-gui.app/Contents/MacOS/yt-uniq-gui --version)"
+          actual="$(dist/video-uniq-gui.app/Contents/MacOS/video-uniq-gui --version)"
           test "${actual}" = "${expected}"
-          codesign --verify --deep --strict --verbose=2 dist/yt-uniq-gui.app
+          codesign --verify --deep --strict --verbose=2 dist/video-uniq-gui.app
 
       - name: Verify embedded package version (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
           $expected = python -c "import tomllib; print(tomllib.load(open('pyproject.toml','rb'))['project']['version'])"
-          $metadata = Get-ChildItem "dist/yt-uniq-gui" -Recurse -Filter "METADATA" |
+          $metadata = Get-ChildItem "dist/video-uniq-gui" -Recurse -Filter "METADATA" |
             Where-Object {
-              Select-String -Path $_.FullName -Pattern '^Name: yt-uniquifier$' -Quiet
+              Select-String -Path $_.FullName -Pattern '^Name: video-uniquifier$' -Quiet
             } |
             Select-Object -First 1
           if (-not $metadata) {
-            throw "Bundled yt-uniquifier package metadata was not found"
+            throw "Bundled video-uniquifier package metadata was not found"
           }
           $versionLine = Get-Content $metadata.FullName |
             Where-Object { $_ -match '^Version: ' } |
@@ -196,7 +196,7 @@ jobs:
           ARTIFACT: ${{ matrix.artifact_name }}
         run: |
           $destination = "$env:ARTIFACT.zip"
-          Compress-Archive -Path "dist/yt-uniq-gui" -DestinationPath $destination -Force
+          Compress-Archive -Path "dist/video-uniq-gui" -DestinationPath $destination -Force
           if (-not (Test-Path -PathType Leaf $destination)) {
             throw "Windows release archive was not created: $destination"
           }
@@ -208,8 +208,8 @@ jobs:
           ARTIFACT: ${{ matrix.artifact_name }}
           ARCHIVE_EXT: ${{ matrix.archive_ext }}
         run: |
-          bundle_root=dist/yt-uniq-gui
-          if [ "${RUNNER_OS}" = "macOS" ]; then bundle_root=dist/yt-uniq-gui.app; fi
+          bundle_root=dist/video-uniq-gui
+          if [ "${RUNNER_OS}" = "macOS" ]; then bundle_root=dist/video-uniq-gui.app; fi
           version="$(python -c "import tomllib; print(tomllib.load(open('pyproject.toml','rb'))['project']['version'])")"
           python tools/bundle_sbom.py "${bundle_root}" "${ARTIFACT}.${ARCHIVE_EXT}" \
             --version "${version}" --commit "$(git rev-parse HEAD)" \
@@ -243,16 +243,16 @@ jobs:
       - name: Download Linux bundle
         uses: actions/download-artifact@v4
         with:
-          name: yt-uniq-gui-Linux
+          name: video-uniq-gui-Linux
           path: _dl
 
       - name: Restore PyInstaller dist/ layout
-        # The build job archived `dist/yt-uniq-gui/` as a tarball;
+        # The build job archived `dist/video-uniq-gui/` as a tarball;
         # AppImageBuilder.yml expects to find it back at dist/.
         run: |
           mkdir -p dist
-          tar -xzf _dl/yt-uniq-gui-Linux.tar.gz -C dist
-          find dist/yt-uniq-gui -mindepth 1 -maxdepth 1 -print -quit
+          tar -xzf _dl/video-uniq-gui-Linux.tar.gz -C dist
+          find dist/video-uniq-gui -mindepth 1 -maxdepth 1 -print -quit
 
       - name: Fetch pinned static ffmpeg
         # AppImage must be portable across glibc versions, so the
@@ -274,7 +274,7 @@ jobs:
           .perf_cache/ffmpeg-static/ffprobe -version | head -1
 
       - name: Generate placeholder icon
-        # The recipe references installers/linux/yt-uniq-gui.png. We
+        # The recipe references installers/linux/video-uniq-gui.png. We
         # generate a 256×256 solid-color placeholder at CI time so the
         # repo doesn't carry a binary asset. Replace with a real icon
         # in a follow-up when art lands.
@@ -283,8 +283,8 @@ jobs:
           sudo apt-get install -y imagemagick
           convert -size 256x256 xc:'#1e1e2e' \
             -font "DejaVu-Sans-Bold" -pointsize 96 -fill '#9fd3ff' \
-            -gravity center -annotate +0+0 "YU" \
-            installers/linux/yt-uniq-gui.png
+            -gravity center -annotate +0+0 "VU" \
+            installers/linux/video-uniq-gui.png
 
       - name: Install appimage-builder
         run: |
@@ -301,8 +301,8 @@ jobs:
 
       - name: Build AppImage
         run: |
-          YT_UNIQUIFIER_VERSION="$(python3 -c "import tomllib; print(tomllib.load(open('pyproject.toml','rb'))['project']['version'])")"
-          export YT_UNIQUIFIER_VERSION
+          VIDEO_UNIQUIFIER_VERSION="$(python3 -c "import tomllib; print(tomllib.load(open('pyproject.toml','rb'))['project']['version'])")"
+          export VIDEO_UNIQUIFIER_VERSION
           appimage-builder --recipe installers/linux/AppImageBuilder.yml \
             --skip-test
           find . -maxdepth 1 -type f \
@@ -316,16 +316,16 @@ jobs:
           "${appimage}" --appimage-extract > /dev/null
           python3 tools/bundle_sbom.py squashfs-root "${appimage}" \
             --version "${version}" --commit "$(git rev-parse HEAD)" \
-            --output yt-uniq-gui-AppImage.sbom.cdx.json
+            --output video-uniq-gui-AppImage.sbom.cdx.json
 
       - name: Upload AppImage artifact for inspection
         uses: actions/upload-artifact@v7
         with:
-          name: yt-uniq-gui-AppImage
+          name: video-uniq-gui-AppImage
           path: |
             *.AppImage
             *.AppImage.zsync
-            yt-uniq-gui-AppImage.sbom.cdx.json
+            video-uniq-gui-AppImage.sbom.cdx.json
           retention-days: 14
           if-no-files-found: error
 
@@ -368,15 +368,15 @@ jobs:
         run: |
           mkdir -p _release
           find artifacts -type f \
-            \( -name 'yt-uniq-gui-*.zip' \
-            -o -name 'yt-uniq-gui-*.tar.gz' \
-            -o -name 'yt-uniq-gui*.AppImage' \
-            -o -name 'yt-uniq-gui*.AppImage.zsync' \
-            -o -name 'yt-uniq-gui-*.sbom.cdx.json' \) \
+            \( -name 'video-uniq-gui-*.zip' \
+            -o -name 'video-uniq-gui-*.tar.gz' \
+            -o -name 'video-uniq-gui*.AppImage' \
+            -o -name 'video-uniq-gui*.AppImage.zsync' \
+            -o -name 'video-uniq-gui-*.sbom.cdx.json' \) \
             -exec cp {} _release/ \;
-          test "$(find _release -maxdepth 1 -name 'yt-uniq-gui-Linux.tar.gz' | wc -l)" -eq 1
-          test "$(find _release -maxdepth 1 -name 'yt-uniq-gui-macOS.zip' | wc -l)" -eq 1
-          test "$(find _release -maxdepth 1 -name 'yt-uniq-gui-Windows.zip' | wc -l)" -eq 1
+          test "$(find _release -maxdepth 1 -name 'video-uniq-gui-Linux.tar.gz' | wc -l)" -eq 1
+          test "$(find _release -maxdepth 1 -name 'video-uniq-gui-macOS.zip' | wc -l)" -eq 1
+          test "$(find _release -maxdepth 1 -name 'video-uniq-gui-Windows.zip' | wc -l)" -eq 1
           test "$(find _release -maxdepth 1 -name '*.AppImage' | wc -l)" -eq 1
           test "$(find _release -maxdepth 1 -name '*.sbom.cdx.json' | wc -l)" -eq 4
           ls -la _release/
@@ -415,7 +415,7 @@ jobs:
         run: |
           python -c 'import subprocess; from pathlib import Path; from tools.bundle_sbom import verify_release_inventory; verify_release_inventory(Path("_release"), subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip())'
           cd _release
-          sha256sum yt-uniq-gui-* sbom.cdx.json > SHA256SUMS
+          sha256sum video-uniq-gui-* sbom.cdx.json > SHA256SUMS
           sha256sum --check SHA256SUMS
           cat SHA256SUMS
 
@@ -460,7 +460,7 @@ jobs:
       - name: Upload assembled release candidate
         uses: actions/upload-artifact@v7
         with:
-          name: yt-uniq-release-candidate
+          name: video-uniq-release-candidate
           path: _release/*
           retention-days: 14
           if-no-files-found: error
@@ -473,7 +473,7 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/v')
         with:
           draft: true
-          name: "yt-uniquifier ${{ github.ref_name }}"
+          name: "video-uniquifier ${{ github.ref_name }}"
           generate_release_notes: true
           files: |
             _release/*

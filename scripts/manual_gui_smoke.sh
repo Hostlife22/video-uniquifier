@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Manual exploratory GUI smoke: launch yt-uniq-gui with a generated tiny
+# Manual exploratory GUI smoke: launch video-uniq-gui with a generated tiny
 # sample input so the operator can walk through docs/manual_gui_checklist.md
 # without having to source their own clip.
 #
@@ -13,8 +13,8 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$REPO_ROOT"
 
-if [[ ! -x .venv/bin/yt-uniq-gui ]]; then
-    echo "yt-uniq-gui not installed. Run: make dev" >&2
+if [[ ! -x .venv/bin/video-uniq-gui ]]; then
+    echo "video-uniq-gui not installed. Run: make dev" >&2
     exit 1
 fi
 
@@ -38,4 +38,4 @@ echo "Press Ctrl+C in this terminal to close logs when done."
 echo "=========================================================="
 echo
 
-exec .venv/bin/yt-uniq-gui
+exec .venv/bin/video-uniq-gui

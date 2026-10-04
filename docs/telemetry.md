@@ -1,6 +1,6 @@
 # Telemetry (v0.9.0 R3)
 
-`yt-uniquifier` records **zero** telemetry until you explicitly
+`video-uniquifier` records **zero** telemetry until you explicitly
 opt in. When enabled, exactly one summary event is appended to a
 local JSONL file at the end of each completed or failed encode.
 No network egress in v0.9 — uploading aggregate stats to a
@@ -60,9 +60,9 @@ tokens, run IDs, plan IDs, job IDs, or segment IDs as labels.
 
 | OS      | Path                                                                           |
 |---------|--------------------------------------------------------------------------------|
-| macOS   | `~/Library/Application Support/yt_uniquifier/telemetry/events.jsonl`           |
-| Linux   | `$XDG_DATA_HOME/yt_uniquifier/telemetry/events.jsonl` (or `~/.local/share/…`)  |
-| Windows | `%APPDATA%\yt_uniquifier\telemetry\events.jsonl`                               |
+| macOS   | `~/Library/Application Support/video_uniquifier/telemetry/events.jsonl`           |
+| Linux   | `$XDG_DATA_HOME/video_uniquifier/telemetry/events.jsonl` (or `~/.local/share/…`)  |
+| Windows | `%APPDATA%\video_uniquifier\telemetry\events.jsonl`                               |
 
 The file rotates when it reaches 1 MiB (configurable per
 `TelemetryConfig.rotate_at_bytes`); exactly one backup
@@ -70,20 +70,20 @@ The file rotates when it reaches 1 MiB (configurable per
 
 The consent marker — proof you have answered the first-run
 dialog one way or the other — lives at
-`~/.config/yt_uniquifier/telemetry-consent`. Its body is the
+`~/.config/video_uniquifier/telemetry-consent`. Its body is the
 literal string `enabled` or `disabled` so a support technician
 can tell the state without parsing JSON.
 
 ## CLI
 
 ```bash
-yt-uniq telemetry status                      # path, event count, consent state
-yt-uniq telemetry status --json
-yt-uniq telemetry export ~/share.jsonl        # copy out for sharing
-yt-uniq telemetry purge --yes                 # wipe events dir
+video-uniq telemetry status                      # path, event count, consent state
+video-uniq telemetry status --json
+video-uniq telemetry export ~/share.jsonl        # copy out for sharing
+video-uniq telemetry purge --yes                 # wipe events dir
 ```
 
-There is no `yt-uniq telemetry enable` subcommand on purpose.
+There is no `video-uniq telemetry enable` subcommand on purpose.
 Turning it on must be an explicit GUI click or a programmatic
 `RunOptions(telemetry=TelemetryConfig(enabled=True))` so a
 script can't accidentally flip the global flag.
@@ -109,8 +109,8 @@ you are never prompted again.
 ## Programmatic use
 
 ```python
-from yt_uniquifier.core.telemetry import TelemetryConfig
-from yt_uniquifier.core.orchestrator import RunOptions, run_full
+from video_uniquifier.core.telemetry import TelemetryConfig
+from video_uniquifier.core.orchestrator import RunOptions, run_full
 
 opts = RunOptions(
     work_dir=Path("work"),

@@ -1,4 +1,4 @@
-# yt-uniquifier — bounded NAS / homelab deployment template (v1.5.0).
+# video-uniquifier — bounded NAS / homelab deployment template (v1.5.0).
 #
 # Copy this file to your NAS, edit the volume paths, then:
 #   docker compose up -d
@@ -8,33 +8,33 @@
 # encrypt credentials; never publish the container directly on an untrusted LAN.
 
 services:
-  yt-uniquifier:
-    image: "yt-uniquifier:${YT_UNIQ_IMAGE_TAG:-1.5.0}"
+  video-uniquifier:
+    image: "video-uniquifier:${VIDEO_UNIQ_IMAGE_TAG:-2.0.0}"
     # Use ``build: .`` instead when iterating locally on the
     # Dockerfile. The published image lives at the tag you push to.
     # build: .
     restart: unless-stopped
     # Hard container ceilings complement the application's run/encoder
     # admission controls. Tune explicitly for the deployment host.
-    cpus: "${YT_UNIQ_CPU_LIMIT:-4.0}"
+    cpus: "${VIDEO_UNIQ_CPU_LIMIT:-4.0}"
     # Natural 1080p60 HDR/VMAF qualification peaked near 8.8 GiB RSS on
     # Intel macOS; 12 GiB avoids making the documented default self-OOM.
-    mem_limit: "${YT_UNIQ_MEMORY_LIMIT:-12g}"
-    pids_limit: ${YT_UNIQ_PIDS_LIMIT:-512}
+    mem_limit: "${VIDEO_UNIQ_MEMORY_LIMIT:-12g}"
+    pids_limit: ${VIDEO_UNIQ_PIDS_LIMIT:-512}
     ports:
       - "127.0.0.1:8080:8080"   # bind to loopback by default; reverse-
                                 # proxy via nginx/traefik for TLS + LAN
     environment:
-      YT_UNIQ_WEB_HOST: "0.0.0.0"
-      YT_UNIQ_WEB_PORT: "8080"
-      YT_UNIQ_WEB_INPUT_ROOT: "/data/input"
-      YT_UNIQ_WEB_OUTPUT_DIR: "/data/output"
-      YT_UNIQ_WEB_WORK_DIR: "/data/work"
-      YT_UNIQ_WEB_PROFILE_DIR: "/data/profiles"
-      YT_UNIQ_WEB_MAX_CONCURRENT_RUNS: "${YT_UNIQ_MAX_CONCURRENT_RUNS:-2}"
+      VIDEO_UNIQ_WEB_HOST: "0.0.0.0"
+      VIDEO_UNIQ_WEB_PORT: "8080"
+      VIDEO_UNIQ_WEB_INPUT_ROOT: "/data/input"
+      VIDEO_UNIQ_WEB_OUTPUT_DIR: "/data/output"
+      VIDEO_UNIQ_WEB_WORK_DIR: "/data/work"
+      VIDEO_UNIQ_WEB_PROFILE_DIR: "/data/profiles"
+      VIDEO_UNIQ_WEB_MAX_CONCURRENT_RUNS: "${VIDEO_UNIQ_MAX_CONCURRENT_RUNS:-2}"
       # Uncomment to enable basic auth.
-      # YT_UNIQ_WEB_USER: "${WEB_USER:-changeme}"
-      # YT_UNIQ_WEB_PASS: "${WEB_PASS:-changeme}"
+      # VIDEO_UNIQ_WEB_USER: "${WEB_USER:-changeme}"
+      # VIDEO_UNIQ_WEB_PASS: "${WEB_PASS:-changeme}"
     volumes:
       - ./input:/data/input:ro
       - ./output:/data/output

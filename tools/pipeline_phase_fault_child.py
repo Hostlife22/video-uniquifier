@@ -13,9 +13,9 @@ import os
 import time
 from pathlib import Path
 
-from yt_uniquifier.core.orchestrator import RunOptions, build_plan, run_full
-from yt_uniquifier.core.profile_loader import load_profile
-from yt_uniquifier.core.runner import RunEvent
+from video_uniquifier.core.orchestrator import RunOptions, build_plan, run_full
+from video_uniquifier.core.profile_loader import load_profile
+from video_uniquifier.core.runner import RunEvent
 
 
 def _wait_for_sigkill(ready: Path, phase: str) -> None:

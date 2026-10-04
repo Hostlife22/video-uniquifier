@@ -8,7 +8,7 @@ intermediate. Any silent break in PTS handling here would manifest
 as audio/video desync at segment boundaries in production.
 
 Strategy: run the full orchestrator on a multi-segment clip BOTH
-with fuse enabled (default) and with ``YT_UNIQ_DISABLE_FUSE=1`` and
+with fuse enabled (default) and with ``VIDEO_UNIQ_DISABLE_FUSE=1`` and
 assert that both outputs:
   - exist and are non-empty
   - have duration within 0.5 s of the source (the concat-step `-t`
@@ -27,11 +27,11 @@ from pathlib import Path
 import pytest
 
 from tests.conftest import needs_ffmpeg
-from yt_uniquifier.core.orchestrator import RunOptions, build_plan, run_full
-from yt_uniquifier.core.probe import probe
-from yt_uniquifier.core.profile_loader import load_profile
+from video_uniquifier.core.orchestrator import RunOptions, build_plan, run_full
+from video_uniquifier.core.probe import probe
+from video_uniquifier.core.profile_loader import load_profile
 
-PROFILES_DIR = Path(__file__).parents[2] / "src" / "yt_uniquifier" / "profiles"
+PROFILES_DIR = Path(__file__).parents[2] / "src" / "video_uniquifier" / "profiles"
 
 
 def _video_timeline(path: Path) -> tuple[float, int, str]:
@@ -82,7 +82,7 @@ def test_fused_path_produces_correct_output(
     """B3: default fused path must yield a valid output that matches
     source duration within the concat ``-t`` trim window.
     """
-    monkeypatch.delenv("YT_UNIQ_DISABLE_FUSE", raising=False)
+    monkeypatch.delenv("VIDEO_UNIQ_DISABLE_FUSE", raising=False)
 
     out = tmp_path / "fused.mp4"
     profile = load_profile(PROFILES_DIR / "soft.yaml")
@@ -130,11 +130,11 @@ def test_legacy_two_fork_path_still_works(
     multi_segment_clip: Path, tmp_path: Path, isolated_cache: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """B3: emergency rollback path. With ``YT_UNIQ_DISABLE_FUSE=1`` the
+    """B3: emergency rollback path. With ``VIDEO_UNIQ_DISABLE_FUSE=1`` the
     legacy two-fork ``stream_copy_extract + build_video_segment_command``
     pattern remains available and must produce equivalent output.
     """
-    monkeypatch.setenv("YT_UNIQ_DISABLE_FUSE", "1")
+    monkeypatch.setenv("VIDEO_UNIQ_DISABLE_FUSE", "1")
 
     out = tmp_path / "legacy.mp4"
     profile = load_profile(PROFILES_DIR / "soft.yaml")
@@ -168,7 +168,7 @@ def test_fused_path_skips_src_mkv_intermediate(
     files. Pre-fix every segment cost ~600 MB of peak disk for the
     stream-copy intermediate; eliminating it is the whole point.
     """
-    monkeypatch.delenv("YT_UNIQ_DISABLE_FUSE", raising=False)
+    monkeypatch.delenv("VIDEO_UNIQ_DISABLE_FUSE", raising=False)
 
     out = tmp_path / "fused.mp4"
     profile = load_profile(PROFILES_DIR / "soft.yaml")
@@ -213,7 +213,7 @@ def test_fused_and_legacy_have_matching_segment_count(
     profile = load_profile(PROFILES_DIR / "soft.yaml")
 
     # Fused run.
-    os.environ.pop("YT_UNIQ_DISABLE_FUSE", None)
+    os.environ.pop("VIDEO_UNIQ_DISABLE_FUSE", None)
     out_fused = tmp_path / "fused.mp4"
     plan_a = build_plan(
         multi_segment_clip, profile, encoder_override="libx264",
@@ -225,7 +225,7 @@ def test_fused_and_legacy_have_matching_segment_count(
     ))
 
     # Legacy run.
-    os.environ["YT_UNIQ_DISABLE_FUSE"] = "1"
+    os.environ["VIDEO_UNIQ_DISABLE_FUSE"] = "1"
     try:
         out_legacy = tmp_path / "legacy.mp4"
         plan_b = build_plan(
@@ -237,7 +237,7 @@ def test_fused_and_legacy_have_matching_segment_count(
             target_segment_sec=1.0,
         ))
     finally:
-        os.environ.pop("YT_UNIQ_DISABLE_FUSE", None)
+        os.environ.pop("VIDEO_UNIQ_DISABLE_FUSE", None)
 
     fused_state = json.loads(
         (tmp_path / "work_fused" / plan_a.plan_hash / "state.json").read_text()

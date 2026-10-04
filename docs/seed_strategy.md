@@ -35,7 +35,7 @@ seed_strategy: per_run
 
 ```bash
 for i in 1 2 3 4; do
-  yt-uniq run master.mp4 --profile cid_aware.yaml --out uniq_v$i.mp4
+  video-uniq run master.mp4 --profile cid_aware.yaml --out uniq_v$i.mp4
 done
 ```
 
@@ -57,9 +57,9 @@ seed_strategy: per_file
 ```
 
 ```bash
-yt-uniq run /movies/a.mp4 --profile p.yaml --out /out/a.mp4
+video-uniq run /movies/a.mp4 --profile p.yaml --out /out/a.mp4
 # … 6 months later …
-yt-uniq run /movies/a.mp4 --profile p.yaml --out /out/a_v2.mp4
+video-uniq run /movies/a.mp4 --profile p.yaml --out /out/a_v2.mp4
 sha256sum /out/a.mp4 /out/a_v2.mp4   # identical (modulo encoder nondeterminism)
 ```
 

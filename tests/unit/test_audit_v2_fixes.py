@@ -26,8 +26,8 @@ import pytest
 
 def test_phase1_checkpoint_reads_acquire_lock(tmp_path: Path) -> None:
     """stored_run_seed / get_loudnorm / get_main_audio acquire _lock."""
-    from yt_uniquifier.core.checkpoint import CheckpointStore
-    from yt_uniquifier.core.models import Segment
+    from video_uniquifier.core.checkpoint import CheckpointStore
+    from video_uniquifier.core.models import Segment
 
     class _StubPlan:
         plan_hash = "lock_test_001"
@@ -70,7 +70,7 @@ def test_phase1_checkpoint_reads_acquire_lock(tmp_path: Path) -> None:
 
 def test_phase1_pipeline_audio_passthrough_uses_relative_indices() -> None:
     """FFmpeg audio selectors are relative, not absolute stream indices."""
-    from yt_uniquifier.core.pipeline import FilterGraph
+    from video_uniquifier.core.pipeline import FilterGraph
 
     audio = [
         MagicMock(index=1),
@@ -93,7 +93,7 @@ def test_phase1_pipeline_audio_passthrough_uses_relative_indices() -> None:
 
 
 def test_phase1_pipeline_audio_passthrough_empty_when_single_track() -> None:
-    from yt_uniquifier.core.pipeline import FilterGraph
+    from video_uniquifier.core.pipeline import FilterGraph
 
     profile = MagicMock(audio_tracks="all")
     source = MagicMock(audio=[MagicMock(index=0)])
@@ -105,10 +105,10 @@ def test_phase1_pipeline_audio_passthrough_empty_when_single_track() -> None:
 
 
 def test_phase1_cmd_batch_empty_glob_exits_with_code_two(tmp_path: Path) -> None:
-    """`yt-uniq batch <empty-dir>` exits with code 2, not 0."""
+    """`video-uniq batch <empty-dir>` exits with code 2, not 0."""
     import typer
 
-    from yt_uniquifier.cli.cmd_batch import batch_cmd
+    from video_uniquifier.cli.cmd_batch import batch_cmd
 
     (tmp_path / "empty").mkdir()
     with pytest.raises(typer.Exit) as ei:
@@ -131,9 +131,9 @@ def test_phase1_cmd_batch_empty_glob_exits_with_code_two(tmp_path: Path) -> None
 
 def test_phase2_runner_rejects_empty_command() -> None:
     """run() rejects a BuiltCommand with no args."""
-    from yt_uniquifier.core import runner as runner_mod
-    from yt_uniquifier.core.errors import PipelineError
-    from yt_uniquifier.core.pipeline import BuiltCommand
+    from video_uniquifier.core import runner as runner_mod
+    from video_uniquifier.core.errors import PipelineError
+    from video_uniquifier.core.pipeline import BuiltCommand
 
     with pytest.raises(PipelineError, match="empty"):
         runner_mod.run(
@@ -148,7 +148,7 @@ def test_phase2_gui_state_corrupt_file_renamed_aside(
     """A corrupt state.json gets archived with .corrupt-<ts> suffix,
     not silently overwritten on next save."""
     pytest.importorskip("PyQt6")
-    from yt_uniquifier.gui import state as state_mod
+    from video_uniquifier.gui import state as state_mod
 
     monkeypatch.setattr(state_mod, "CONFIG_DIR", tmp_path)
     monkeypatch.setattr(state_mod, "STATE_PATH", tmp_path / "state.json")
@@ -164,8 +164,8 @@ def test_phase2_gui_state_corrupt_file_renamed_aside(
 def test_phase2_cmd_run_extract_out_time_returns_zero_on_garbage() -> None:
     """`_extract_out_time_us` returns 0 (not crash) on unparseable input,
     and the public contract is preserved."""
-    from yt_uniquifier.cli.cmd_run import _extract_out_time_us
-    from yt_uniquifier.core.runner import RunEvent
+    from video_uniquifier.cli.cmd_run import _extract_out_time_us
+    from video_uniquifier.core.runner import RunEvent
 
     assert _extract_out_time_us(RunEvent(kind="progress", payload={})) == 0
     ev = RunEvent(kind="progress", payload={"out_time_us": "abc"})
@@ -180,7 +180,7 @@ def test_phase3_checkpoint_flush_uses_pid_suffix(tmp_path: Path) -> None:
     """_flush writes to a pid-suffixed tmp file to avoid cross-process collisions."""
     import inspect
 
-    from yt_uniquifier.core import checkpoint as cp_mod
+    from video_uniquifier.core import checkpoint as cp_mod
 
     src = inspect.getsource(cp_mod.CheckpointStore._flush)
     assert "getpid" in src, "expected _flush to PID-suffix its tmp name"
@@ -189,7 +189,7 @@ def test_phase3_checkpoint_flush_uses_pid_suffix(tmp_path: Path) -> None:
 def test_phase3_plan_cache_entry_is_dataclass() -> None:
     """RunScreen._plan_cache uses a structured PlanCacheEntry, not a tuple."""
     pytest.importorskip("PyQt6")
-    from yt_uniquifier.gui.screens.run import PlanCacheEntry
+    from video_uniquifier.gui.screens.run import PlanCacheEntry
 
     e = PlanCacheEntry(
         input_path=Path("/tmp/in.mp4"),
@@ -204,8 +204,8 @@ def test_phase3_plan_cache_entry_is_dataclass() -> None:
 
 def test_phase4_probe_raises_on_invalid_fps() -> None:
     """A frame rate denominator of 0 raises ProbeError, not silent 0.0."""
-    from yt_uniquifier.core import probe as probe_mod
-    from yt_uniquifier.core.errors import ProbeError
+    from video_uniquifier.core import probe as probe_mod
+    from video_uniquifier.core.errors import ProbeError
 
     with pytest.raises(ProbeError, match="frame rate"):
         probe_mod._parse_fraction("30/0")
@@ -215,7 +215,7 @@ def test_phase4_cmd_calibrate_has_exit_code_docstring() -> None:
     """cmd_calibrate.calibrate_cmd documents its exit codes."""
     import inspect
 
-    from yt_uniquifier.cli import cmd_calibrate
+    from video_uniquifier.cli import cmd_calibrate
 
     doc = inspect.getdoc(cmd_calibrate.calibrate_cmd) or ""
     assert "Exit codes" in doc or "exit code" in doc.lower()

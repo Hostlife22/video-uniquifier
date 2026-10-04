@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=video-uniquifier
+GenericName=Video re-encoder
+Comment=Production-grade re-encoder with controlled micro-transforms for owned/licensed video.
+Exec=video-uniq-gui %F
+Icon=video-uniq-gui
+Terminal=false
+Categories=AudioVideo;Video;AudioVideoEditing;
+MimeType=video/mp4;video/x-matroska;video/quicktime;video/x-msvideo;video/webm;
+StartupNotify=true
+Keywords=video;ffmpeg;reencode;youtube;

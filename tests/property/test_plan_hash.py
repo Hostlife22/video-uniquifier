@@ -25,7 +25,7 @@ from pathlib import Path
 from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 
-from yt_uniquifier.core.models import (
+from video_uniquifier.core.models import (
     EncoderCandidate,
     HDRInfo,
     Profile,
@@ -33,7 +33,7 @@ from yt_uniquifier.core.models import (
     TransformConfig,
     VideoStream,
 )
-from yt_uniquifier.core.pipeline import compute_plan_hash
+from video_uniquifier.core.pipeline import compute_plan_hash
 
 # Tiny strategies — keep state-space small so hypothesis is fast.
 # Property tests are about VARIETY across small dimensions, not

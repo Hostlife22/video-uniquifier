@@ -1,6 +1,6 @@
 # RFC: raw and registered QA metrics
 
-Status: proposed — [GitHub RFC #12](https://github.com/Hostlife22/yt_uniquifier/issues/12)
+Status: proposed — [GitHub RFC #12](https://github.com/Hostlife22/video-uniquifier/issues/12)
 
 Implementation status: prepared and locally qualified on
 `feat/rfc-12-registered-qa`; this does not constitute RFC acceptance and the branch
@@ -46,7 +46,7 @@ Exact nested schema and numeric bounds will be locked in the implementation PR.
 - Audio fingerprints first find a bounded global offset, then compute ordered
   per-window Hamming on the overlapping region. Low-overlap candidates are
   rejected rather than rewarded.
-- Standalone `yt-uniq qa` continues producing raw metrics unless enough plan/profile
+- Standalone `video-uniq qa` continues producing raw metrics unless enough plan/profile
   provenance is supplied by an additive option. It must never guess transform
   parameters or seeds.
 - Verdict remains based on existing correctness/raw quality fields until an

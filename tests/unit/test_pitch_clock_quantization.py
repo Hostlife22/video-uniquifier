@@ -3,9 +3,9 @@ import re
 
 import pytest
 
-from yt_uniquifier.core.transforms import get
-from yt_uniquifier.core.transforms.audio_pitch import PitchTempoParams, cascade_atempo
-from yt_uniquifier.core.transforms.base import LabelAllocator
+from video_uniquifier.core.transforms import get
+from video_uniquifier.core.transforms.audio_pitch import PitchTempoParams, cascade_atempo
+from video_uniquifier.core.transforms.base import LabelAllocator
 
 
 @pytest.mark.parametrize("sample_rate,pitch", [(44100, 1.0004), (8000, 1.00006), (48000, 1.012345)])

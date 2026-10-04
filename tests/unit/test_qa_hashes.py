@@ -4,7 +4,7 @@ import hashlib
 import os
 from pathlib import Path
 
-from yt_uniquifier.core.qa.hashes import md5_file
+from video_uniquifier.core.qa.hashes import md5_file
 
 
 def test_md5_matches_hashlib(tmp_path: Path) -> None:

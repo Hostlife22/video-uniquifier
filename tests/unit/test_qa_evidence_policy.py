@@ -8,13 +8,13 @@ from pydantic import ValidationError
 
 from tests.unit.test_pipeline_graph import _plan, _src
 from tests.unit.test_qa_report import _FakePHash, _report
-from yt_uniquifier.core.errors import PipelineError
-from yt_uniquifier.core.media_validation import (
+from video_uniquifier.core.errors import PipelineError
+from video_uniquifier.core.media_validation import (
     DecodeEvidence,
     MediaInvariantFailure,
     MediaInvariantReport,
 )
-from yt_uniquifier.core.models import (
+from video_uniquifier.core.models import (
     QAAudioLoudness,
     QACorrectness,
     QAQualityPolicy,
@@ -23,10 +23,10 @@ from yt_uniquifier.core.models import (
     QAReport,
     TransformConfig,
 )
-from yt_uniquifier.core.qa import loudness, vmaf
-from yt_uniquifier.core.qa import report as report_mod
-from yt_uniquifier.core.runner import CancelToken
-from yt_uniquifier.core.transforms.audio_loudnorm import LoudnormMeasurement
+from video_uniquifier.core.qa import loudness, vmaf
+from video_uniquifier.core.qa import report as report_mod
+from video_uniquifier.core.runner import CancelToken
+from video_uniquifier.core.transforms.audio_loudnorm import LoudnormMeasurement
 
 
 def test_legacy_json_remains_readable() -> None:

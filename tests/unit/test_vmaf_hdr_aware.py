@@ -8,7 +8,7 @@ from typing import Any
 
 import pytest
 
-from yt_uniquifier.core.qa import vmaf
+from video_uniquifier.core.qa import vmaf
 
 
 def _stub(monkeypatch: pytest.MonkeyPatch) -> dict[str, list[str]]:

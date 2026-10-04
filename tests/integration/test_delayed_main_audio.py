@@ -10,9 +10,9 @@ from tests.integration.test_production_phase1_media_contract import (
     _decoded_mono_samples,
     _loud_event_times,
 )
-from yt_uniquifier.core.models import Profile, TransformConfig
-from yt_uniquifier.core.orchestrator import build_plan
-from yt_uniquifier.core.pipeline import (
+from video_uniquifier.core.models import Profile, TransformConfig
+from video_uniquifier.core.orchestrator import build_plan
+from video_uniquifier.core.pipeline import (
     build_main_audio_command,
     build_main_audio_command_windowed,
 )

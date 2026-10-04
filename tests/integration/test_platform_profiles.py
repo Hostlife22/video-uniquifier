@@ -23,10 +23,10 @@ from pathlib import Path
 import pytest
 
 from tests.conftest import needs_ffmpeg
-from yt_uniquifier.core.models import Profile, TransformConfig
-from yt_uniquifier.core.orchestrator import RunOptions, build_plan, run_full
-from yt_uniquifier.core.profile_loader import load_profile
-from yt_uniquifier.gui.paths import profiles_dir
+from video_uniquifier.core.models import Profile, TransformConfig
+from video_uniquifier.core.orchestrator import RunOptions, build_plan, run_full
+from video_uniquifier.core.profile_loader import load_profile
+from video_uniquifier.gui.paths import profiles_dir
 
 # Expected (W, H) per profile.  Drives the post-encode aspect-ratio assert
 # and documents what each shipped profile promises to the user.

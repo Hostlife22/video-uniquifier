@@ -1,6 +1,6 @@
 # Security Policy
 
-`yt-uniquifier` is a desktop / CLI / headless-web tool that wraps
+`video-uniquifier` is a desktop / CLI / headless-web tool that wraps
 `ffmpeg` and processes user-supplied video files. It does not, in
 its default configuration, expose a network service or process
 untrusted input from third parties — but the `[web]` extra ships a
@@ -29,19 +29,19 @@ Use one of the two channels below:
 
 1. **Preferred — GitHub Private Vulnerability Reporting.** On the
    repository page, click **Security → Report a vulnerability** (or
-   open [the direct link](https://github.com/hostlife22/Video-Deduplicator/security/advisories/new)).
+   open [the direct link](https://github.com/hostlife22/video-uniquifier/security/advisories/new)).
    This creates a private advisory the maintainer can triage
    without disclosure.
 2. **Email.** Send a report to
    **`sen.serafim.dev2gmail.com`** with subject prefix
-   `[yt-uniquifier security]`. PGP encryption is welcome but not
+   `[video-uniquifier security]`. PGP encryption is welcome but not
    required; if you want a key, request one in the first message
    and a key will be published before any sensitive material is
    exchanged.
 
 Include in your report:
 
-- The affected version(s) — output of `yt-uniq --version` is enough.
+- The affected version(s) — output of `video-uniq --version` is enough.
 - A clear description of the issue and the impact you can
   demonstrate (RCE, data exposure, denial-of-service, etc.).
 - A minimal reproducer if possible (a profile YAML, a CLI
@@ -81,16 +81,16 @@ By default:
 
 In scope:
 
-- The `yt-uniquifier` Python package (`src/yt_uniquifier/**`).
-- The shipped CLI (`yt-uniq`, `yt-uniq-gui`, `yt-uniq-web`).
+- The `video-uniquifier` Python package (`src/video_uniquifier/**`).
+- The shipped CLI (`video-uniq`, `video-uniq-gui`, `video-uniq-web`).
 - The shipped Docker image (`docker/Dockerfile`).
 - The signed installers published on GitHub Releases.
-- The shipped profile YAMLs (`src/yt_uniquifier/profiles/*.yaml`).
+- The shipped profile YAMLs (`src/video_uniquifier/profiles/*.yaml`).
 - The profile marketplace catalogue we host or bundle.
 
 Out of scope:
 
-- Third-party profiles installed via `yt-uniq profile install <URL>`
+- Third-party profiles installed via `video-uniq profile install <URL>`
   from a non-trusted source. The marketplace docs ([marketplace.md](docs/marketplace.md))
   describe the SHA-pinning and HTTPS-only guarantees we provide;
   beyond those, you are trusting the upstream author.
@@ -107,10 +107,10 @@ Out of scope:
 
 ## Past advisories
 
-There are no published advisories for `yt-uniquifier` as of v1.3.0.
+There are no published advisories for `video-uniquifier` as of v1.3.0.
 A past CVE that affected a transitive dependency was mitigated in
 v0.5.5 (A9) by pinning `Pillow>=10.3.1,<11` against CVE-2024-28219;
-no `yt-uniquifier`-specific advisory was issued because the
+no `video-uniquifier`-specific advisory was issued because the
 vulnerable code path was not reachable from our usage of `Pillow`
 via `imagehash`.
 

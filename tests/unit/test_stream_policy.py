@@ -4,9 +4,9 @@ from pathlib import Path
 
 import pytest
 
-from yt_uniquifier.core.errors import PipelineError
-from yt_uniquifier.core.models import AudioStream, SourceMeta
-from yt_uniquifier.core.stream_policy import selected_audio_relative_indices
+from video_uniquifier.core.errors import PipelineError
+from video_uniquifier.core.models import AudioStream, SourceMeta
+from video_uniquifier.core.stream_policy import selected_audio_relative_indices
 
 
 def _source() -> SourceMeta:

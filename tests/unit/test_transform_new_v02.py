@@ -4,13 +4,13 @@ from __future__ import annotations
 
 import random
 
-from yt_uniquifier.core.transforms import get
-from yt_uniquifier.core.transforms.audio_eq import AudioEqParams
-from yt_uniquifier.core.transforms.audio_pitch import PitchTempoParams
-from yt_uniquifier.core.transforms.audio_resample import AudioResampleParams
-from yt_uniquifier.core.transforms.audio_spectral_smear import SpectralSmearParams
-from yt_uniquifier.core.transforms.base import LabelAllocator, call_build
-from yt_uniquifier.core.transforms.video_geom import MirrorParams
+from video_uniquifier.core.transforms import get
+from video_uniquifier.core.transforms.audio_eq import AudioEqParams
+from video_uniquifier.core.transforms.audio_pitch import PitchTempoParams
+from video_uniquifier.core.transforms.audio_resample import AudioResampleParams
+from video_uniquifier.core.transforms.audio_spectral_smear import SpectralSmearParams
+from video_uniquifier.core.transforms.base import LabelAllocator, call_build
+from video_uniquifier.core.transforms.video_geom import MirrorParams
 
 # ---- audio.resample --------------------------------------------------------
 

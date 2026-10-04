@@ -8,9 +8,9 @@ import re
 import pytest
 from pydantic import ValidationError
 
-from yt_uniquifier.core.transforms import get
-from yt_uniquifier.core.transforms.base import LabelAllocator, call_build
-from yt_uniquifier.core.transforms.video_temporal_jitter import (
+from video_uniquifier.core.transforms import get
+from video_uniquifier.core.transforms.base import LabelAllocator, call_build
+from video_uniquifier.core.transforms.video_temporal_jitter import (
     TIME_BUCKETS_PER_SECOND,
     WINDOW_BUCKETS,
     WINDOW_FRAMES,

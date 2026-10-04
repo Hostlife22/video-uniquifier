@@ -4,18 +4,18 @@
 > sandbox (Task 23).
 
 Built-in transforms (crop+rescale, color jitter, loudnorm, pitch+tempo …) live in
-`src/yt_uniquifier/core/transforms/` and self-register via `register(TransformSpec(…))`
+`src/video_uniquifier/core/transforms/` and self-register via `register(TransformSpec(…))`
 at import time. A **plugin** is just an external Python package that does exactly
 the same thing — it ships a module that calls `register(...)`, and advertises that
-module under the `yt_uniquifier.transforms` entry-points group so yt-uniquifier
+module under the `video_uniquifier.transforms` entry-points group so video-uniquifier
 discovers it automatically.
 
 No fork is needed. No changes to `core/`. A plugin published to PyPI becomes
-visible to every yt-uniquifier install in the same virtualenv after `pip install`.
+visible to every video-uniquifier install in the same virtualenv after `pip install`.
 
 ## Manifest (v1.2.0)
 
-Every third-party plugin distribution MUST ship a `yt_uniquifier_plugin.toml`
+Every third-party plugin distribution MUST ship a `video_uniquifier_plugin.toml`
 file at the package root. The manifest declares which transform kinds the plugin
 is allowed to register; trying to register a kind the manifest didn't opt in to
 raises `PluginViolation` at load time.
@@ -43,7 +43,7 @@ includes it.  Example `pyproject.toml` snippet:
 
 ```toml
 [tool.setuptools.package-data]
-my_uniq_pingpong = ["yt_uniquifier_plugin.toml"]
+my_uniq_pingpong = ["video_uniquifier_plugin.toml"]
 ```
 
 ## Trust model (v1.2.0)
@@ -72,8 +72,8 @@ second layer in a future release.
 
 | Flag / env var | Effect |
 |---|---|
-| `--no-plugins`  /  `YT_UNIQ_NO_PLUGINS=1`               | Skip all third-party plugins. The env var is fully pre-import; the CLI flag post-filters the registry so import-time side effects have already run. |
-| `--plugins-allowlist a,b`  /  `YT_UNIQ_PLUGINS_ALLOWLIST=a,b` | Keep only plugins whose `[plugin].name` is in the comma-separated list. |
+| `--no-plugins`  /  `VIDEO_UNIQ_NO_PLUGINS=1`               | Skip all third-party plugins. The env var is fully pre-import; the CLI flag post-filters the registry so import-time side effects have already run. |
+| `--plugins-allowlist a,b`  /  `VIDEO_UNIQ_PLUGINS_ALLOWLIST=a,b` | Keep only plugins whose `[plugin].name` is in the comma-separated list. |
 | `--unsafe-plugins`                                       | Disable the audit-hook sandbox.  Use only with trusted internal plugins; do not use with PyPI installs. |
 
 Prefer the env-var form in production deployments: it takes effect before any
@@ -96,7 +96,7 @@ import, exactly like the built-ins:
 
 ```python
 from pydantic import BaseModel, Field
-from yt_uniquifier.core.transforms import FilterChain, LabelAllocator, TransformSpec, register
+from video_uniquifier.core.transforms import FilterChain, LabelAllocator, TransformSpec, register
 
 
 class PingPongParams(BaseModel, extra="forbid"):
@@ -118,17 +118,17 @@ register(TransformSpec(id="video.pingpong", kind="video", schema=PingPongParams,
 [project]
 name = "my-uniq-pingpong"
 version = "0.1.0"
-dependencies = ["yt-uniquifier", "pydantic>=2"]
+dependencies = ["video-uniquifier", "pydantic>=2"]
 
-[project.entry-points."yt_uniquifier.transforms"]
+[project.entry-points."video_uniquifier.transforms"]
 pingpong = "my_uniq_pingpong"
 ```
 
-Install in the same env as yt-uniquifier:
+Install in the same env as video-uniquifier:
 
 ```bash
 pip install -e ./my-plugin
-yt-uniq probe --list-transforms | grep pingpong
+video-uniq probe --list-transforms | grep pingpong
 # video.pingpong
 ```
 
@@ -165,8 +165,8 @@ A transform builder MUST NOT:
 | Symptom | Likely cause | Where to look |
 |---|---|---|
 | `WARNING: third-party transform plugin '<name>' failed to load` | Plugin's import raised | Run `python -c "import <module>"` and read the traceback |
-| Plugin installed but `yt-uniq probe --list-transforms` doesn't show it | Entry-point name typo, or wrong group | `python -c "from importlib.metadata import entry_points as e; print(list(e(group='yt_uniquifier.transforms')))"` |
-| `KeyError: 'video.pingpong'` on `yt-uniq run` despite install | Profile loaded before plugin import order — uninstall+reinstall in a clean venv | Check `pip show <plugin>` confirms install location matches `python -c "import sys; print(sys.path)"` |
+| Plugin installed but `video-uniq probe --list-transforms` doesn't show it | Entry-point name typo, or wrong group | `python -c "from importlib.metadata import entry_points as e; print(list(e(group='video_uniquifier.transforms')))"` |
+| `KeyError: 'video.pingpong'` on `video-uniq run` despite install | Profile loaded before plugin import order — uninstall+reinstall in a clean venv | Check `pip show <plugin>` confirms install location matches `python -c "import sys; print(sys.path)"` |
 | Resume after profile change still uses cached state | Expected — the plan hash changed, so the resume cache key is different. Either restart cleanly or revert the profile | `core/pipeline.py::compute_plan_hash` |
 
 ## Versioning

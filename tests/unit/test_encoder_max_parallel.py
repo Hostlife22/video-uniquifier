@@ -7,7 +7,7 @@ from typing import Any
 
 import pytest
 
-from yt_uniquifier.core import encoder as enc_mod
+from video_uniquifier.core import encoder as enc_mod
 
 
 def _stub_nvidia_smi(monkeypatch: pytest.MonkeyPatch, stdout: str,

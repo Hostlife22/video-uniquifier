@@ -9,11 +9,11 @@ from pathlib import Path
 
 import pytest
 
-from yt_uniquifier.core.queue.leasing import FileQueue, init_queue
+from video_uniquifier.core.queue.leasing import FileQueue, init_queue
 
 
 def _crash_between_fence_and_publish(queue_root: str, output_root: str) -> None:
-    from yt_uniquifier.core.queue import leasing as leasing_mod
+    from video_uniquifier.core.queue import leasing as leasing_mod
 
     queue = FileQueue(Path(queue_root))
     leased = queue.lease()

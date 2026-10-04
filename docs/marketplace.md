@@ -19,7 +19,7 @@ the file lands on disk.
   by the marketplace operator's offline private key over the entry's
   `sha256` field. When signature enforcement is on
   (`require_signature=True` on the `install()` API or
-  `YT_UNIQ_REQUIRE_SIGNED_PROFILES=1` in the environment), unsigned
+  `VIDEO_UNIQ_REQUIRE_SIGNED_PROFILES=1` in the environment), unsigned
   entries and entries whose signature doesn't verify against any
   bundled marketplace public key are rejected. See § Signing policy.
 * **Schema-validated.** Even after a SHA match, the YAML is run
@@ -38,13 +38,13 @@ the file lands on disk.
 ## CLI
 
 ```bash
-yt-uniq profile list-community          # cached + sorted by id
-yt-uniq profile list-community --refresh
-yt-uniq profile show cid_aware          # inspect before install
-yt-uniq profile install cid_aware       # → ~/.config/yt_uniquifier/profiles/
-yt-uniq profile install cid_aware --dest /custom/dir --overwrite
-yt-uniq profile install-dir             # print default install dir
-yt-uniq profile purge-cache             # force re-fetch on next call
+video-uniq profile list-community          # cached + sorted by id
+video-uniq profile list-community --refresh
+video-uniq profile show cid_aware          # inspect before install
+video-uniq profile install cid_aware       # → ~/.config/video_uniquifier/profiles/
+video-uniq profile install cid_aware --dest /custom/dir --overwrite
+video-uniq profile install-dir             # print default install dir
+video-uniq profile purge-cache             # force re-fetch on next call
 ```
 
 ## GUI
@@ -66,10 +66,10 @@ Installed profiles appear in the dropdown without restart.
       "description": "Conservative micro-transforms…",
       "url": "https://raw.githubusercontent.com/…/cid_aware.yaml",
       "sha256": "d4cdb9e4877387ec259524da6ef9806c…",
-      "author": "yt-uniquifier core",
+      "author": "video-uniquifier core",
       "tags": ["cid", "balanced"],
       "version": "1.0.0",
-      "min_yt_uniquifier_version": "0.9.0"
+      "min_video_uniquifier_version": "0.9.0"
     }
   ]
 }
@@ -82,20 +82,20 @@ The schema lives at `core/profile_marketplace.py::Catalog` (with
 
 | Item                 | Path                                                       |
 |----------------------|------------------------------------------------------------|
-| Bootstrap catalog    | `<wheel>/yt_uniquifier/marketplace/catalog.json`           |
-| Cached catalog       | `~/.cache/yt_uniquifier/marketplace/catalog.json`          |
-| Installed profiles   | `~/.config/yt_uniquifier/profiles/<id>.yaml` (default)     |
-| Long-term catalog    | `https://raw.githubusercontent.com/yt-uniquifier/yt-uniquifier-profiles/main/catalog.json` |
+| Bootstrap catalog    | `<wheel>/video_uniquifier/marketplace/catalog.json`           |
+| Cached catalog       | `~/.cache/video_uniquifier/marketplace/catalog.json`          |
+| Installed profiles   | `~/.config/video_uniquifier/profiles/<id>.yaml` (default)     |
+| Project catalog      | `https://raw.githubusercontent.com/Hostlife22/video-uniquifier/main/src/video_uniquifier/marketplace/catalog.json` |
 
 The bootstrap catalog ships inside the wheel so a fresh install
 without network reachability still lists a handful of starter
-profiles. When the long-term `yt-uniquifier-profiles` repo
-exists, the network fetch wins on the next refresh.
+profiles. The same catalog is hosted in the project repository; a successful
+network fetch wins on refresh.
 
 ## Contributing a profile
 
 1. Author the YAML against the schema documented in
-   [Profiles](profiles.md). Run `yt-uniq preflight <some_source>
+   [Profiles](profiles.md). Run `video-uniq preflight <some_source>
    --profile <your.yaml>` to sanity-check.
 2. Compute the SHA-256 of the final YAML:
 
@@ -103,9 +103,9 @@ exists, the network fetch wins on the next refresh.
     shasum -a 256 your_profile.yaml
     ```
 
-3. Open a PR against the `yt-uniquifier-profiles` repo (or the
-   in-tree `src/yt_uniquifier/marketplace/catalog.json`
-   bootstrap) with a new entry. Include `author`, a 1-line
+3. Open a PR against `Hostlife22/video-uniquifier` updating
+   `src/video_uniquifier/marketplace/catalog.json` with a new entry.
+   Include `author`, a 1-line
    `description`, and at least one `tag`.
 4. Mention the YAML's hosting URL — a raw GitHub URL is the
    canonical choice. The URL **must** be HTTPS.
@@ -116,7 +116,7 @@ against a reference source, and verify the SHA matches.
 ## Signing policy (v1.2.0 Task 25)
 
 Catalog entries may be signed by the marketplace operator. The bundled
-public key set lives at `src/yt_uniquifier/keys/marketplace.pub`
+public key set lives at `src/video_uniquifier/keys/marketplace.pub`
 (shipped with the wheel) — one hex-encoded Ed25519 public key per
 non-comment line, allowing multiple keys during rotation.
 
@@ -166,7 +166,7 @@ Paste the resulting 128-char hex string into the catalog entry's
    against any listed key.
 3. Re-sign every active catalog entry with the new private key.
 4. Once every entry is re-signed, drop the old public key from
-   `marketplace.pub` in the next yt-uniquifier release.
+   `marketplace.pub` in the next video-uniquifier release.
 5. Permanently destroy the old private key.
 
 ### Enforcement
@@ -175,8 +175,8 @@ Signature verification is opt-in to preserve backwards compatibility
 with the v0.9 catalog format.  Operators who want signature-only mode:
 
 * Pass `require_signature=True` to `install(...)` in code.
-* Or export `YT_UNIQ_REQUIRE_SIGNED_PROFILES=1` in the shell that
-  spawns `yt-uniq` / `yt-uniq-gui`.
+* Or export `VIDEO_UNIQ_REQUIRE_SIGNED_PROFILES=1` in the shell that
+  spawns `video-uniq` / `video-uniq-gui`.
 
 The `cryptography` package (PyCA reference) is bundled as the
 `[crypto]` extra.  Installs without the extra can still use unsigned

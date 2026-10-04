@@ -3,9 +3,9 @@ from typing import Any
 
 import pytest
 
-from yt_uniquifier.core import segmenter
-from yt_uniquifier.core.errors import PipelineError
-from yt_uniquifier.core.models import Chapter
+from video_uniquifier.core import segmenter
+from video_uniquifier.core.errors import PipelineError
+from video_uniquifier.core.models import Chapter
 
 
 def test_invalid_staged_media_never_replaces_previous_output(

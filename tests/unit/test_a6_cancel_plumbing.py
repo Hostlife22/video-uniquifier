@@ -22,14 +22,14 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from yt_uniquifier.core.calibration.loop import (
+from video_uniquifier.core.calibration.loop import (
     CalibrationTarget,
     calibrate,
 )
-from yt_uniquifier.core.encoder import detect_encoders
-from yt_uniquifier.core.errors import PipelineError
-from yt_uniquifier.core.models import Profile
-from yt_uniquifier.core.runner import CancelToken
+from video_uniquifier.core.encoder import detect_encoders
+from video_uniquifier.core.errors import PipelineError
+from video_uniquifier.core.models import Profile
+from video_uniquifier.core.runner import CancelToken
 
 # -------------------------------------------------------- calibrate
 
@@ -41,7 +41,7 @@ def test_calibrate_raises_on_pre_iteration_cancel(
     cancel_token.cancel()  # pre-fire
 
     # Stub _cut_test_clip so we don't need ffmpeg.
-    from yt_uniquifier.core.calibration import loop as loop_mod
+    from video_uniquifier.core.calibration import loop as loop_mod
     monkeypatch.setattr(
         loop_mod, "_cut_test_clip",
         lambda src, wd, sec: wd / "clip.mp4",
@@ -67,7 +67,7 @@ def test_calibrate_reraises_cancel_from_run_full(
     by user")``, the calibrate loop must NOT swallow it as "iteration
     failed" and continue — it must re-raise."""
     cancel_token = CancelToken()
-    from yt_uniquifier.core.calibration import loop as loop_mod
+    from video_uniquifier.core.calibration import loop as loop_mod
 
     monkeypatch.setattr(
         loop_mod, "_cut_test_clip",
@@ -108,7 +108,7 @@ def test_detect_encoders_raises_on_pre_call_cancel(
     cancel_token.cancel()
 
     # Force cache miss so the probe loop runs.
-    from yt_uniquifier.core import encoder as enc_mod
+    from video_uniquifier.core import encoder as enc_mod
     monkeypatch.setattr(enc_mod, "_load_cache", lambda _k, **_kw: None)
     monkeypatch.setattr(enc_mod, "_ffmpeg_version_hash", lambda: "dead")
 
@@ -120,7 +120,7 @@ def test_detect_encoders_completes_normally_without_token(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """No regression: callers that don't pass a token still work."""
-    from yt_uniquifier.core import encoder as enc_mod
+    from video_uniquifier.core import encoder as enc_mod
 
     monkeypatch.setattr(enc_mod, "_load_cache", lambda _k, **_kw: None)
     monkeypatch.setattr(enc_mod, "_save_cache", lambda _k, _r, **_kw: None)
@@ -138,7 +138,7 @@ def test_detect_encoders_completes_normally_without_token(
 # -------------------------------------------------------- build_report
 
 def test_build_report_raises_on_pre_call_cancel(tmp_path: Path) -> None:
-    from yt_uniquifier.core.qa.report import build_report
+    from video_uniquifier.core.qa.report import build_report
 
     cancel_token = CancelToken()
     cancel_token.cancel()
@@ -162,7 +162,7 @@ def test_build_report_raises_at_phash_phase_when_cancel_fires_mid_md5(
 ) -> None:
     """Cancel after md5 but before phash should raise at the phash
     boundary check, not silently continue."""
-    from yt_uniquifier.core.qa import report as report_mod
+    from video_uniquifier.core.qa import report as report_mod
     cancel_token = CancelToken()
 
     src = tmp_path / "a.mp4"

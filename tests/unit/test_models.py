@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from yt_uniquifier.core.models import (
+from video_uniquifier.core.models import (
     AudioStream,
     EncoderCandidate,
     HDRInfo,

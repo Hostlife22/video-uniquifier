@@ -39,7 +39,7 @@ def inventory(root: Path, artifact: Path, *, version: str, commit: str) -> dict[
             }
             if path.is_symlink():
                 component["properties"] = [{
-                    "name": "yt-uniquifier:symlink-target", "value": os.readlink(path),
+                    "name": "video-uniquifier:symlink-target", "value": os.readlink(path),
                 }]
             elif path.is_file():
                 component["hashes"] = [{"alg": "SHA-256", "content": sha256(path)}]
@@ -54,7 +54,7 @@ def inventory(root: Path, artifact: Path, *, version: str, commit: str) -> dict[
                             "purl": f"pkg:pypi/{quote(package.lower().replace('_', '-'))}"
                             f"@{quote(package_version)}",
                             "properties": [{
-                                "name": "yt-uniquifier:bundled-metadata", "value": relative,
+                                "name": "video-uniquifier:bundled-metadata", "value": relative,
                             }],
                         })
             else:
@@ -73,8 +73,8 @@ def inventory(root: Path, artifact: Path, *, version: str, commit: str) -> dict[
                 "hashes": [{"alg": "SHA-256", "content": sha256(artifact)}],
             },
             "properties": [
-                {"name": "yt-uniquifier:commit", "value": commit},
-                {"name": "yt-uniquifier:inventory-scope", "value": (
+                {"name": "video-uniquifier:commit", "value": commit},
+                {"name": "video-uniquifier:inventory-scope", "value": (
                     "All regular files and symlinks in actual bundle; Python packages from "
                     "shipped METADATA only. Opaque embedded/static dependencies, external "
                     "system libraries and complete license attribution NOT VERIFIED."
@@ -101,14 +101,14 @@ def main() -> None:
 
 
 def verify_release_inventory(directory: Path, commit: str) -> None:
-    documents = sorted(directory.glob("yt-uniq-gui-*.sbom.cdx.json"))
+    documents = sorted(directory.glob("video-uniq-gui-*.sbom.cdx.json"))
     if len(documents) != 4:
         raise ValueError("expected all four platform/AppImage inventories")
     for path in documents:
         document = json.loads(path.read_text(encoding="utf-8"))
         metadata = document["metadata"]
         properties = {item["name"]: item["value"] for item in metadata["properties"]}
-        if properties["yt-uniquifier:commit"] != commit:
+        if properties["video-uniquifier:commit"] != commit:
             raise ValueError("inventory source commit mismatch")
         artifact_name = metadata["component"]["name"]
         if Path(artifact_name).name != artifact_name:

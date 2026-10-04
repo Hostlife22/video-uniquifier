@@ -21,7 +21,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from yt_uniquifier.core.notifications import (
+from video_uniquifier.core.notifications import (
     NotificationConfig,
     NotificationContext,
     Provider,
@@ -194,7 +194,7 @@ def _smtp_cfg() -> SmtpConfig:
 
 def test_smtp_missing_password_logs_warning(monkeypatch) -> None:
     """No keyring entry + no env var → email disabled with a clear log."""
-    monkeypatch.delenv("YT_UNIQUIFIER_SMTP_PASSWORD", raising=False)
+    monkeypatch.delenv("VIDEO_UNIQUIFIER_SMTP_PASSWORD", raising=False)
     cfg = NotificationConfig(smtp=_smtp_cfg())
     lines, lg = _collect_logger()
     # Stub keyring import to simulate "no entry" (return None).
@@ -209,7 +209,7 @@ def test_smtp_missing_password_logs_warning(monkeypatch) -> None:
 
 
 def test_smtp_send_success_via_env_password(monkeypatch) -> None:
-    monkeypatch.setenv("YT_UNIQUIFIER_SMTP_PASSWORD", "shh")
+    monkeypatch.setenv("VIDEO_UNIQUIFIER_SMTP_PASSWORD", "shh")
     cfg = NotificationConfig(smtp=_smtp_cfg())
     lines, lg = _collect_logger()
     smtp_inst = MagicMock()
@@ -225,7 +225,7 @@ def test_smtp_send_success_via_env_password(monkeypatch) -> None:
 
 
 def test_smtp_send_failure_swallowed(monkeypatch) -> None:
-    monkeypatch.setenv("YT_UNIQUIFIER_SMTP_PASSWORD", "shh")
+    monkeypatch.setenv("VIDEO_UNIQUIFIER_SMTP_PASSWORD", "shh")
     cfg = NotificationConfig(smtp=_smtp_cfg())
     lines, lg = _collect_logger()
     with patch("smtplib.SMTP", side_effect=OSError("connection refused")):
@@ -257,7 +257,7 @@ def test_notification_config_defaults_to_both_events() -> None:
 # ---- orchestrator hook -----------------------------------------------------
 def test_orchestrator_hook_does_not_raise_on_dispatch_error(tmp_path: Path) -> None:
     """`_maybe_dispatch_notification` must swallow ALL errors."""
-    from yt_uniquifier.core.orchestrator import (
+    from video_uniquifier.core.orchestrator import (
         RunOptions,
         _maybe_dispatch_notification,
     )
@@ -289,7 +289,7 @@ def test_orchestrator_hook_does_not_raise_on_dispatch_error(tmp_path: Path) -> N
         events.append(ev)
 
     with patch(
-        "yt_uniquifier.core.notifications.dispatch",
+        "video_uniquifier.core.notifications.dispatch",
         side_effect=RuntimeError("boom"),
     ):
         # Wraps internally; must not propagate even when dispatch itself raises.

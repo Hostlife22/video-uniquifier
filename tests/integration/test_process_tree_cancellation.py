@@ -12,7 +12,7 @@ from contextlib import suppress
 
 import pytest
 
-from yt_uniquifier.core.runner import CancelToken, _run_once
+from video_uniquifier.core.runner import CancelToken, _run_once
 
 
 def _pid_is_running(pid: int) -> bool:

@@ -13,13 +13,13 @@ from pathlib import Path
 import pytest
 
 from tests.conftest import needs_ffmpeg
-from yt_uniquifier.core.encoder import detect_encoders, pick_encoder
-from yt_uniquifier.core.errors import EncoderError, PipelineError, PreflightFailure
-from yt_uniquifier.core.models import Profile
-from yt_uniquifier.core.orchestrator import RunOptions, build_plan, run_full
-from yt_uniquifier.core.probe import probe
-from yt_uniquifier.core.runner import CancelToken, RunEvent
-from yt_uniquifier.core.utils.ffmpeg_paths import ffmpeg_bin, ffprobe_bin
+from video_uniquifier.core.encoder import detect_encoders, pick_encoder
+from video_uniquifier.core.errors import EncoderError, PipelineError, PreflightFailure
+from video_uniquifier.core.models import Profile
+from video_uniquifier.core.orchestrator import RunOptions, build_plan, run_full
+from video_uniquifier.core.probe import probe
+from video_uniquifier.core.runner import CancelToken, RunEvent
+from video_uniquifier.core.utils.ffmpeg_paths import ffmpeg_bin, ffprobe_bin
 
 _HARDWARE_ENCODERS: dict[str, tuple[str, str, str]] = {
     "h264_nvenc": ("h264", "High", "avc1"),
@@ -40,7 +40,7 @@ _HARDWARE_ENCODERS: dict[str, tuple[str, str, str]] = {
 def _requested_hardware_encoders() -> frozenset[str]:
     return frozenset(
         value.strip()
-        for value in os.environ.get("YT_UNIQ_HARDWARE_ENCODERS", "").split(",")
+        for value in os.environ.get("VIDEO_UNIQ_HARDWARE_ENCODERS", "").split(",")
         if value.strip()
     )
 
@@ -365,15 +365,15 @@ def test_h264_videotoolbox_bitstream_contract(
 @needs_ffmpeg
 @pytest.mark.integration
 def test_requested_hardware_encoder_names_are_supported() -> None:
-    if "YT_UNIQ_HARDWARE_ENCODERS" not in os.environ:
-        pytest.skip("YT_UNIQ_HARDWARE_ENCODERS is not set")
+    if "VIDEO_UNIQ_HARDWARE_ENCODERS" not in os.environ:
+        pytest.skip("VIDEO_UNIQ_HARDWARE_ENCODERS is not set")
     assert _REQUESTED_HARDWARE_ENCODERS, (
-        "YT_UNIQ_HARDWARE_ENCODERS must contain at least one encoder name"
+        "VIDEO_UNIQ_HARDWARE_ENCODERS must contain at least one encoder name"
     )
 
     unknown = _REQUESTED_HARDWARE_ENCODERS.difference(_HARDWARE_ENCODERS)
     assert not unknown, (
-        "unknown YT_UNIQ_HARDWARE_ENCODERS value(s): "
+        "unknown VIDEO_UNIQ_HARDWARE_ENCODERS value(s): "
         f"{', '.join(sorted(unknown))}; supported: {', '.join(_HARDWARE_ENCODERS)}"
     )
 

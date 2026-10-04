@@ -8,12 +8,12 @@ from pathlib import Path
 import pytest
 
 from tests.conftest import needs_ffmpeg
-from yt_uniquifier.core.models import Profile
-from yt_uniquifier.core.orchestrator import RunOptions, build_plan, run_full
-from yt_uniquifier.core.pipeline import build_video_segment_command_fused
-from yt_uniquifier.core.probe import probe
-from yt_uniquifier.core.segmenter import plan_segments
-from yt_uniquifier.core.utils.ffmpeg_paths import ffmpeg_bin
+from video_uniquifier.core.models import Profile
+from video_uniquifier.core.orchestrator import RunOptions, build_plan, run_full
+from video_uniquifier.core.pipeline import build_video_segment_command_fused
+from video_uniquifier.core.probe import probe
+from video_uniquifier.core.segmenter import plan_segments
+from video_uniquifier.core.utils.ffmpeg_paths import ffmpeg_bin
 
 
 @needs_ffmpeg

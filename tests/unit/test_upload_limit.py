@@ -9,7 +9,7 @@ from typing import Any
 
 import pytest
 
-from yt_uniquifier.web.middleware.upload_limit import ContentLengthLimitMiddleware
+from video_uniquifier.web.middleware.upload_limit import ContentLengthLimitMiddleware
 
 
 def _invoke(headers: list[tuple[bytes, bytes]]) -> tuple[bool, list[dict[str, Any]]]:

@@ -16,10 +16,10 @@ from __future__ import annotations
 import pytest
 from PyQt6.QtWidgets import QApplication
 
-from yt_uniquifier.core.preflight import PreflightFinding
-from yt_uniquifier.gui.theme import tokens_for
-from yt_uniquifier.gui.widgets.kpi_pills import KpiPills
-from yt_uniquifier.gui.widgets.preflight_panel import PreflightPanel
+from video_uniquifier.core.preflight import PreflightFinding
+from video_uniquifier.gui.theme import tokens_for
+from video_uniquifier.gui.widgets.kpi_pills import KpiPills
+from video_uniquifier.gui.widgets.preflight_panel import PreflightPanel
 
 
 @pytest.fixture(scope="module")

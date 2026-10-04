@@ -8,10 +8,10 @@ from pathlib import Path
 import pytest
 
 from tests.conftest import needs_ffmpeg
-from yt_uniquifier.core.models import EncoderCandidate, Plan, Profile, TransformConfig
-from yt_uniquifier.core.pipeline import build_main_audio_command, compute_plan_hash
-from yt_uniquifier.core.probe import probe
-from yt_uniquifier.core.utils.ffmpeg_paths import ffmpeg_bin
+from video_uniquifier.core.models import EncoderCandidate, Plan, Profile, TransformConfig
+from video_uniquifier.core.pipeline import build_main_audio_command, compute_plan_hash
+from video_uniquifier.core.probe import probe
+from video_uniquifier.core.utils.ffmpeg_paths import ffmpeg_bin
 
 _LAYOUTS = [("mono", 1), ("stereo", 2), ("5.1", 6)]
 _LAYOUT_SAFE_TRANSFORMS = [

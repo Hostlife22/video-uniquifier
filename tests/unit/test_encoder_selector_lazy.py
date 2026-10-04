@@ -14,9 +14,9 @@ from unittest.mock import MagicMock
 import pytest
 from PyQt6.QtWidgets import QApplication
 
-from yt_uniquifier.gui.screens.base import ScreenBase
-from yt_uniquifier.gui.widgets import encoder_selector as encoder_selector_mod
-from yt_uniquifier.gui.widgets.encoder_selector import EncoderSelector
+from video_uniquifier.gui.screens.base import ScreenBase
+from video_uniquifier.gui.widgets import encoder_selector as encoder_selector_mod
+from video_uniquifier.gui.widgets.encoder_selector import EncoderSelector
 
 
 @pytest.fixture(scope="module")

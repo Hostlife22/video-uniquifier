@@ -7,9 +7,9 @@ import numpy as np
 import pytest
 
 from tools.media_diagnostics import compare_audio_window
-from yt_uniquifier.core.models import Profile, TransformConfig
-from yt_uniquifier.core.orchestrator import RunOptions, build_plan, run_full
-from yt_uniquifier.core.probe import probe
+from video_uniquifier.core.models import Profile, TransformConfig
+from video_uniquifier.core.orchestrator import RunOptions, build_plan, run_full
+from video_uniquifier.core.probe import probe
 
 
 @pytest.mark.integration

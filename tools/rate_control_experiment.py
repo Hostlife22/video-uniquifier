@@ -20,11 +20,11 @@ from typing import Any
 
 from tools.media_diagnostics import decoded_timeline
 from tools.natural_corpus import _capture, _load_json, _psnr, _sha256, load_manifest
-from yt_uniquifier.core.orchestrator import build_plan
-from yt_uniquifier.core.pipeline import _encoder_args_for, build_video_segment_command
-from yt_uniquifier.core.profile_loader import load_profile
-from yt_uniquifier.core.qa.ssim import compute as ssim
-from yt_uniquifier.core.qa.vmaf import compute as vmaf
+from video_uniquifier.core.orchestrator import build_plan
+from video_uniquifier.core.pipeline import _encoder_args_for, build_video_segment_command
+from video_uniquifier.core.profile_loader import load_profile
+from video_uniquifier.core.qa.ssim import compute as ssim
+from video_uniquifier.core.qa.vmaf import compute as vmaf
 
 
 def observed_bands(rows: list[dict[str, Any]]) -> dict[str, Any]:

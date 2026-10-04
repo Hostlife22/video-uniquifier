@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from yt_uniquifier.core.audio_windows import (
+from video_uniquifier.core.audio_windows import (
     CROSSFADE_SEC,
     WINDOW_SEC,
     plan_windows,

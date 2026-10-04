@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 
 from tests.conftest import needs_ffmpeg
-from yt_uniquifier.core.qa.report import build_report, render_html
+from video_uniquifier.core.qa.report import build_report, render_html
 
 
 @needs_ffmpeg

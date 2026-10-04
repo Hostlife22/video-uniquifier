@@ -9,7 +9,7 @@ from PyQt6.QtWidgets import QApplication
 @pytest.mark.smoke
 def test_main_window_launches_and_navigates() -> None:
     """Open MainWindow, traverse all 10 sidebar entries, no exceptions."""
-    from yt_uniquifier.gui.app_pyqt import SIDEBAR_ITEMS, MainWindow
+    from video_uniquifier.gui.app_pyqt import SIDEBAR_ITEMS, MainWindow
 
     app = QApplication.instance() or QApplication([])
     win = MainWindow()

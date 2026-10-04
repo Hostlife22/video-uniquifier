@@ -8,8 +8,8 @@ from unittest.mock import MagicMock
 import pytest
 from PyQt6.QtCore import QThread
 
-from yt_uniquifier.gui.workers.base import WorkerBase
-from yt_uniquifier.gui.workers.run_worker import RunWorker
+from video_uniquifier.gui.workers.base import WorkerBase
+from video_uniquifier.gui.workers.run_worker import RunWorker
 
 
 def test_workerbase_has_required_signals() -> None:
@@ -53,9 +53,9 @@ def test_run_worker_cancel_does_not_report_failed(
     as failed. This test pins the corrected behaviour: cancelled signal
     fires, failed does not, and history records status='cancelled'.
     """
-    from yt_uniquifier.core.errors import PipelineError
-    from yt_uniquifier.gui.workers import run_worker as run_worker_mod
-    from yt_uniquifier.gui.workers.run_worker import RunWorker
+    from video_uniquifier.core.errors import PipelineError
+    from video_uniquifier.gui.workers import run_worker as run_worker_mod
+    from video_uniquifier.gui.workers.run_worker import RunWorker
 
     history: list[object] = []
     state = MagicMock()

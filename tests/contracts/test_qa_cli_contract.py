@@ -3,7 +3,7 @@
 from typer.main import get_command
 
 from tests.contracts._snapshot import snapshot
-from yt_uniquifier.cli.app import app
+from video_uniquifier.cli.app import app
 
 
 def test_qa_cli_options_are_stable() -> None:

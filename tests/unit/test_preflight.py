@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from yt_uniquifier.core.models import (
+from video_uniquifier.core.models import (
     AudioStream,
     Chapter,
     EncoderCandidate,
@@ -18,8 +18,8 @@ from yt_uniquifier.core.models import (
     TransformConfig,
     VideoStream,
 )
-from yt_uniquifier.core.pipeline import compute_plan_hash
-from yt_uniquifier.core.preflight import has_fail, preflight
+from video_uniquifier.core.pipeline import compute_plan_hash
+from video_uniquifier.core.preflight import has_fail, preflight
 
 
 def _source(
@@ -82,7 +82,7 @@ def test_clean_source_passes(tmp_path: Path) -> None:
 def test_leading_chapter_gap_is_never_silently_discarded(
     tmp_path: Path, container: str, blocked: bool,
 ) -> None:
-    from yt_uniquifier.core.preflight import _check_chapter_container
+    from video_uniquifier.core.preflight import _check_chapter_container
 
     source = _source(tmp_path).model_copy(update={
         "chapters": [Chapter(start_sec=0.023, end_sec=3.0)],
@@ -96,8 +96,8 @@ def test_leading_chapter_gap_is_never_silently_discarded(
 
 
 def test_retiming_timecode_data_remains_fail_closed(tmp_path: Path) -> None:
-    from yt_uniquifier.core.auxiliary_streams import AuxiliaryStream, set_auxiliary_streams
-    from yt_uniquifier.core.preflight import _check_timeline_rate
+    from video_uniquifier.core.auxiliary_streams import AuxiliaryStream, set_auxiliary_streams
+    from video_uniquifier.core.preflight import _check_timeline_rate
 
     source = _source(tmp_path, container="mov")
     set_auxiliary_streams(source, (
@@ -111,7 +111,7 @@ def test_retiming_timecode_data_remains_fail_closed(tmp_path: Path) -> None:
 
 
 def test_burned_subtitles_must_precede_retiming_even_when_final_rate_is_one(tmp_path: Path) -> None:
-    from yt_uniquifier.core.preflight import _check_timeline_rate
+    from video_uniquifier.core.preflight import _check_timeline_rate
 
     source = _source(tmp_path)
     transforms = [
@@ -126,7 +126,7 @@ def test_burned_subtitles_must_precede_retiming_even_when_final_rate_is_one(tmp_
 def test_job_encoder_capability_failure_is_preflight_fail(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    from yt_uniquifier.core import encoder as encoder_mod
+    from video_uniquifier.core import encoder as encoder_mod
 
     src = _source(tmp_path, width=3840, height=2160)
     plan = _plan(src, [])
@@ -172,9 +172,9 @@ def test_ffmpeg_filter_works_positive() -> None:
     """
     import pytest
 
-    from yt_uniquifier.core.preflight import _ffmpeg_filter_works
+    from video_uniquifier.core.preflight import _ffmpeg_filter_works
     try:
-        from yt_uniquifier.core.utils.ffmpeg_paths import ffmpeg_bin
+        from video_uniquifier.core.utils.ffmpeg_paths import ffmpeg_bin
         ffmpeg_bin()
     except Exception:
         pytest.skip("ffmpeg not on PATH")
@@ -191,9 +191,9 @@ def test_ffmpeg_filter_works_negative() -> None:
     """
     import pytest
 
-    from yt_uniquifier.core.preflight import _ffmpeg_filter_works
+    from video_uniquifier.core.preflight import _ffmpeg_filter_works
     try:
-        from yt_uniquifier.core.utils.ffmpeg_paths import ffmpeg_bin
+        from video_uniquifier.core.utils.ffmpeg_paths import ffmpeg_bin
         ffmpeg_bin()
     except Exception:
         pytest.skip("ffmpeg not on PATH")
@@ -225,7 +225,7 @@ def test_tonemap_sdr_with_hdr_input_passes(
     """HDR source + video.tonemap_sdr is the supported path; must not fail."""
     import pytest  # noqa: F401  (annotation reference)
 
-    from yt_uniquifier.core import preflight as preflight_mod
+    from video_uniquifier.core import preflight as preflight_mod
     monkeypatch.setattr(
         preflight_mod, "_ffmpeg_filter_works",
         lambda _spec, _kind: True,
@@ -252,7 +252,7 @@ def test_tonemap_sdr_zscale_missing_fails(
     """
     import pytest  # noqa: F401
 
-    from yt_uniquifier.core import preflight as preflight_mod
+    from video_uniquifier.core import preflight as preflight_mod
     monkeypatch.setattr(
         preflight_mod, "_ffmpeg_filter_works",
         lambda _spec, _kind: False,
@@ -525,7 +525,7 @@ def test_disk_space_ok_when_plenty_free(
     src = _source(tmp_path, bit_rate=4_000_000)
     plan = _plan(src, [])
     # 60 s @ 4 Mbps × 1.3 ≈ 39 MB. 100 GB free is comfortable.
-    from yt_uniquifier.core import preflight as preflight_mod
+    from video_uniquifier.core import preflight as preflight_mod
     monkeypatch.setattr(
         preflight_mod._shutil, "disk_usage",
         lambda _p: _disk_usage_stub(free_gib=100),
@@ -549,7 +549,7 @@ def test_disk_space_error_when_full(
     # Override duration via model_copy so the estimate sails past 1 GiB.
     long_source = src.model_copy(update={"duration_sec": 3 * 3600})
     plan = _plan(long_source, [])
-    from yt_uniquifier.core import preflight as preflight_mod
+    from video_uniquifier.core import preflight as preflight_mod
     monkeypatch.setattr(
         preflight_mod._shutil, "disk_usage",
         lambda _p: _disk_usage_stub(free_gib=1.0),
@@ -570,7 +570,7 @@ def test_disk_space_warn_thin_margin(
     src = _source(tmp_path, bit_rate=50_000_000)
     long_source = src.model_copy(update={"duration_sec": 3600})
     plan = _plan(long_source, [])
-    from yt_uniquifier.core import preflight as preflight_mod
+    from video_uniquifier.core import preflight as preflight_mod
     monkeypatch.setattr(
         preflight_mod._shutil, "disk_usage",
         lambda _p: _disk_usage_stub(free_gib=35.0),
@@ -589,7 +589,7 @@ def test_disk_space_resolves_to_existing_parent(
     src = _source(tmp_path, bit_rate=4_000_000)
     plan = _plan(src, [])
     seen: dict[str, Path] = {}
-    from yt_uniquifier.core import preflight as preflight_mod
+    from video_uniquifier.core import preflight as preflight_mod
 
     def _fake(p: object) -> object:
         seen["probed"] = Path(p)

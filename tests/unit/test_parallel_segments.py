@@ -11,9 +11,9 @@ from pathlib import Path
 
 import pytest
 
-from yt_uniquifier.core import segmenter as seg_mod
-from yt_uniquifier.core.errors import PipelineError
-from yt_uniquifier.core.models import (
+from video_uniquifier.core import segmenter as seg_mod
+from video_uniquifier.core.errors import PipelineError
+from video_uniquifier.core.models import (
     EncoderCandidate,
     HDRInfo,
     Plan,
@@ -22,8 +22,8 @@ from yt_uniquifier.core.models import (
     SourceMeta,
     VideoStream,
 )
-from yt_uniquifier.core.output_reservation import RunAdmission
-from yt_uniquifier.core.runner import CancelToken, RunEvent
+from video_uniquifier.core.output_reservation import RunAdmission
+from video_uniquifier.core.runner import CancelToken, RunEvent
 
 
 def _plan(encoder_name: str, vendor: str, *, max_parallel: int = 1) -> Plan:
@@ -228,7 +228,7 @@ def test_cross_process_resource_waits_until_slot_is_released(
     snippet = textwrap.dedent(f"""
         from pathlib import Path
         from types import SimpleNamespace
-        from yt_uniquifier.core.segmenter import _acquire_cross_process_resource
+        from video_uniquifier.core.segmenter import _acquire_cross_process_resource
 
         Path({str(marker)!r}).write_text("ready", encoding="utf-8")
         plan = SimpleNamespace(encoder=SimpleNamespace(

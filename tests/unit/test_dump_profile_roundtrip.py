@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from yt_uniquifier.core.models import Profile, TransformConfig
-from yt_uniquifier.core.profile_loader import dump_profile, load_profile
+from video_uniquifier.core.models import Profile, TransformConfig
+from video_uniquifier.core.profile_loader import dump_profile, load_profile
 
 
 def test_minimal_profile_roundtrip(tmp_path: Path) -> None:

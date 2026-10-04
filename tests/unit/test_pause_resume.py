@@ -35,7 +35,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from yt_uniquifier.core.runner import CancelToken, PauseToken
+from video_uniquifier.core.runner import CancelToken, PauseToken
 
 # ---- PauseToken state machine ---------------------------------------------
 
@@ -159,19 +159,19 @@ def test_wait_while_paused_auto_cancels_at_threshold() -> None:
 # ---- process_control: API contract ----------------------------------------
 
 def test_suspend_process_tree_zero_pid_returns_zero() -> None:
-    from yt_uniquifier.core.process_control import suspend_process_tree
+    from video_uniquifier.core.process_control import suspend_process_tree
     assert suspend_process_tree(0) == 0
     assert suspend_process_tree(-7) == 0
 
 
 def test_resume_process_tree_zero_pid_returns_zero() -> None:
-    from yt_uniquifier.core.process_control import resume_process_tree
+    from video_uniquifier.core.process_control import resume_process_tree
     assert resume_process_tree(0) == 0
 
 
 def test_suspend_swallows_lookup_error_on_dead_pid() -> None:
     """Walking a tree where a child died mid-walk must not raise."""
-    from yt_uniquifier.core.process_control import _apply_posix
+    from video_uniquifier.core.process_control import _apply_posix
     if sys.platform.startswith("win"):
         pytest.skip("POSIX-only path")
     # 999999 should be safely "no such process" on any sane box.
@@ -192,7 +192,7 @@ def test_suspend_and_resume_against_real_child() -> None:
     """
     import contextlib
 
-    from yt_uniquifier.core.process_control import (
+    from video_uniquifier.core.process_control import (
         resume_process_tree,
         suspend_process_tree,
     )
@@ -242,7 +242,7 @@ def test_runner_watcher_suspends_on_pause_and_resumes() -> None:
     stdout. To stay in the unit layer, we test the watcher in isolation
     by constructing the same closure the runner builds.
     """
-    from yt_uniquifier.core import runner as _runner
+    from video_uniquifier.core import runner as _runner
     pause_token = PauseToken()
     cancel_token = CancelToken()
     fake = _make_fake_proc()
@@ -324,7 +324,7 @@ def _stub_plan(tmp_path: Path) -> object:
 
 
 def test_checkpoint_set_paused_at_writes_iso_utc(tmp_path: Path) -> None:
-    from yt_uniquifier.core.checkpoint import CheckpointStore
+    from video_uniquifier.core.checkpoint import CheckpointStore
     store = CheckpointStore(tmp_path, _stub_plan(tmp_path))
     store.init_or_resume([])
     store.set_paused_at(1_700_000_000.0)
@@ -335,7 +335,7 @@ def test_checkpoint_set_paused_at_writes_iso_utc(tmp_path: Path) -> None:
 
 
 def test_checkpoint_set_paused_at_clears_marker(tmp_path: Path) -> None:
-    from yt_uniquifier.core.checkpoint import CheckpointStore
+    from video_uniquifier.core.checkpoint import CheckpointStore
     store = CheckpointStore(tmp_path, _stub_plan(tmp_path))
     store.init_or_resume([])
     store.set_paused_at(1_700_000_000.0)
@@ -347,7 +347,7 @@ def test_checkpoint_set_paused_at_clears_marker(tmp_path: Path) -> None:
 
 def test_checkpoint_paused_at_survives_reload(tmp_path: Path) -> None:
     """A crash mid-pause must leave a visible artefact on disk."""
-    from yt_uniquifier.core.checkpoint import CheckpointStore
+    from video_uniquifier.core.checkpoint import CheckpointStore
     store = CheckpointStore(tmp_path, _stub_plan(tmp_path))
     store.init_or_resume([])
     store.set_paused_at(1_700_000_000.0)
@@ -364,8 +364,8 @@ def test_checkpoint_paused_at_survives_reload(tmp_path: Path) -> None:
 
 def test_pause_observer_persists_and_clears(tmp_path: Path) -> None:
     """The observer thread writes paused_at on pause and clears on resume."""
-    from yt_uniquifier.core.checkpoint import CheckpointStore
-    from yt_uniquifier.core.orchestrator import _start_pause_observer
+    from video_uniquifier.core.checkpoint import CheckpointStore
+    from video_uniquifier.core.orchestrator import _start_pause_observer
 
     store = CheckpointStore(tmp_path, _stub_plan(tmp_path))
     store.init_or_resume([])
@@ -398,8 +398,8 @@ def test_pause_observer_persists_and_clears(tmp_path: Path) -> None:
 
 def test_pause_observer_captures_subsecond_pause(tmp_path: Path) -> None:
     """State-change notification must not wait for the old one-second poll."""
-    from yt_uniquifier.core.checkpoint import CheckpointStore
-    from yt_uniquifier.core.orchestrator import _start_pause_observer
+    from video_uniquifier.core.checkpoint import CheckpointStore
+    from video_uniquifier.core.orchestrator import _start_pause_observer
 
     store = CheckpointStore(tmp_path, _stub_plan(tmp_path))
     store.init_or_resume([])
@@ -424,8 +424,8 @@ def test_pause_observer_captures_subsecond_pause(tmp_path: Path) -> None:
 
 def test_pause_observer_no_token_is_noop(tmp_path: Path) -> None:
     """``pause_token=None`` returns an unset Event and never spawns a thread."""
-    from yt_uniquifier.core.checkpoint import CheckpointStore
-    from yt_uniquifier.core.orchestrator import _start_pause_observer
+    from video_uniquifier.core.checkpoint import CheckpointStore
+    from video_uniquifier.core.orchestrator import _start_pause_observer
 
     store = CheckpointStore(tmp_path, _stub_plan(tmp_path))
     store.init_or_resume([])
@@ -437,8 +437,8 @@ def test_pause_observer_no_token_is_noop(tmp_path: Path) -> None:
 
 def test_pause_observer_triggers_auto_cancel_past_threshold(tmp_path: Path) -> None:
     """Past 24h the observer must fire cancel_token.cancel()."""
-    from yt_uniquifier.core.checkpoint import CheckpointStore
-    from yt_uniquifier.core.orchestrator import _start_pause_observer
+    from video_uniquifier.core.checkpoint import CheckpointStore
+    from video_uniquifier.core.orchestrator import _start_pause_observer
 
     store = CheckpointStore(tmp_path, _stub_plan(tmp_path))
     store.init_or_resume([])

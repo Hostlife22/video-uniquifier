@@ -8,8 +8,8 @@ from pathlib import Path
 
 import pytest
 
-from yt_uniquifier.core.calibration.loop import _cut_test_clip
-from yt_uniquifier.core.probe import probe
+from video_uniquifier.core.calibration.loop import _cut_test_clip
+from video_uniquifier.core.probe import probe
 
 pytestmark = [
     pytest.mark.integration,

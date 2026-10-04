@@ -12,9 +12,9 @@ from typing import Any
 
 import numpy as np
 
-from yt_uniquifier.core.probe import probe
-from yt_uniquifier.core.transforms.audio_loudnorm import measure
-from yt_uniquifier.core.utils.ffmpeg_paths import ffmpeg_bin
+from video_uniquifier.core.probe import probe
+from video_uniquifier.core.transforms.audio_loudnorm import measure
+from video_uniquifier.core.utils.ffmpeg_paths import ffmpeg_bin
 
 
 def pcm_diagnostics(path: Path, *, channels: int) -> dict[str, Any]:

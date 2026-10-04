@@ -1,7 +1,7 @@
 """A4 (v0.5.5) regression: CheckpointStore guards work_dir against
 concurrent process owners.
 
-Pre-fix two ``yt-uniq batch`` processes that accidentally shared the
+Pre-fix two ``video-uniq batch`` processes that accidentally shared the
 same ``--work-dir`` for the same plan would race on the read-modify-
 write of ``state.json``. The PID-suffixed tmp filename prevents torn
 writes but does NOT prevent last-writer-wins on the final ``state.json``
@@ -29,12 +29,12 @@ from pathlib import Path
 
 import pytest
 
-from yt_uniquifier.core.checkpoint import (
+from video_uniquifier.core.checkpoint import (
     LOCK_FILENAME,
     CheckpointStore,
     _pid_alive,
 )
-from yt_uniquifier.core.models import (
+from video_uniquifier.core.models import (
     AudioStream,
     EncoderCandidate,
     HDRInfo,
@@ -172,9 +172,9 @@ def test_concurrent_process_lock_collision(tmp_path: Path) -> None:
     child_snippet = textwrap.dedent(f"""
         import sys
         from pathlib import Path
-        from yt_uniquifier.core.checkpoint import CheckpointStore
-        from yt_uniquifier.core.errors import CheckpointError
-        from yt_uniquifier.core.models import (
+        from video_uniquifier.core.checkpoint import CheckpointStore
+        from video_uniquifier.core.errors import CheckpointError
+        from video_uniquifier.core.models import (
             AudioStream, EncoderCandidate, HDRInfo, Plan,
             Profile, SourceMeta, VideoStream,
         )
@@ -235,8 +235,8 @@ def test_atexit_cleanup_releases_lock(tmp_path: Path) -> None:
 
     snippet = textwrap.dedent(f"""
         from pathlib import Path
-        from yt_uniquifier.core.checkpoint import CheckpointStore
-        from yt_uniquifier.core.models import (
+        from video_uniquifier.core.checkpoint import CheckpointStore
+        from video_uniquifier.core.models import (
             AudioStream, EncoderCandidate, HDRInfo, Plan,
             Profile, SourceMeta, VideoStream,
         )

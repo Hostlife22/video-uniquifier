@@ -5,9 +5,9 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from yt_uniquifier.core.qa import sscd
-from yt_uniquifier.core.qa.audio_fp import align_fingerprints
-from yt_uniquifier.core.qa.sscd import align_cosine_matrix
+from video_uniquifier.core.qa import sscd
+from video_uniquifier.core.qa.audio_fp import align_fingerprints
+from video_uniquifier.core.qa.sscd import align_cosine_matrix
 
 
 def test_audio_registration_finds_fixed_offset() -> None:
@@ -105,7 +105,7 @@ def test_sscd_reference_embedding_cache_recovers_from_corruption(
     frames = [tmp_path / "one.png", tmp_path / "two.png"]
     for frame in frames:
         frame.touch()
-    monkeypatch.setenv("YT_UNIQ_QA_CACHE_DIR", str(tmp_path / "cache"))
+    monkeypatch.setenv("VIDEO_UNIQ_QA_CACHE_DIR", str(tmp_path / "cache"))
     calls = 0
 
     def embed(_model, _frames):
@@ -138,7 +138,7 @@ def test_sscd_long_form_alignment_never_exceeds_time_bound(
     class Meta:
         duration_sec = 3600.0
 
-    monkeypatch.setattr("yt_uniquifier.core.probe.probe", lambda _path: Meta())
+    monkeypatch.setattr("video_uniquifier.core.probe.probe", lambda _path: Meta())
 
     def extract(_path, directory, *, frame_count, **_kwargs):
         observed_counts.append(frame_count)

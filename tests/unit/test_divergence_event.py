@@ -16,8 +16,8 @@ from unittest.mock import patch
 
 import pytest
 
-from yt_uniquifier.core.orchestrator import RunOptions, _maybe_emit_divergence
-from yt_uniquifier.core.runner import RunEvent
+from video_uniquifier.core.orchestrator import RunOptions, _maybe_emit_divergence
+from video_uniquifier.core.runner import RunEvent
 
 
 def test_run_event_accepts_divergence_sample_kind() -> None:
@@ -83,7 +83,7 @@ def test_off_mode_emits_nothing(tmp_path: Path) -> None:
     plan = _FakePlan(tmp_path / "in.mp4")
 
     with patch(
-        "yt_uniquifier.core.qa.phash.compare_range_pair",
+        "video_uniquifier.core.qa.phash.compare_range_pair",
         return_value=0.9,
     ):
         _maybe_emit_divergence(0, tmp_path / "seg.mkv", {0: seg}, opts, plan, emit)
@@ -100,7 +100,7 @@ def test_light_mode_samples_every_4th_segment(tmp_path: Path) -> None:
     seg_by_idx = {i: _FakeSeg(i, float(i), float(i + 1)) for i in range(8)}
 
     with patch(
-        "yt_uniquifier.core.qa.phash.compare_range_pair",
+        "video_uniquifier.core.qa.phash.compare_range_pair",
         return_value=0.91,
     ):
         for idx in range(8):
@@ -123,7 +123,7 @@ def test_full_mode_samples_every_segment(tmp_path: Path) -> None:
     seg_by_idx = {i: _FakeSeg(i, float(i), float(i + 1)) for i in range(4)}
 
     with patch(
-        "yt_uniquifier.core.qa.phash.compare_range_pair",
+        "video_uniquifier.core.qa.phash.compare_range_pair",
         return_value=0.8,
     ):
         for idx in range(4):
@@ -148,7 +148,7 @@ def test_sampler_failure_does_not_raise(tmp_path: Path) -> None:
     seg_by_idx = {0: _FakeSeg(0, 0.0, 1.0)}
 
     with patch(
-        "yt_uniquifier.core.qa.phash.compare_range_pair",
+        "video_uniquifier.core.qa.phash.compare_range_pair",
         side_effect=RuntimeError("ffmpeg blew up"),
     ):
         # Must not raise. Should emit a `log` event carrying the warning.
@@ -176,7 +176,7 @@ def test_running_ema_smooths_samples(tmp_path: Path) -> None:
         return similarities.pop(0)
 
     with patch(
-        "yt_uniquifier.core.qa.phash.compare_range_pair",
+        "video_uniquifier.core.qa.phash.compare_range_pair",
         side_effect=_stub,
     ):
         for idx in range(3):
@@ -203,7 +203,7 @@ def test_zero_span_segment_skipped(tmp_path: Path) -> None:
     seg_by_idx = {0: _FakeSeg(0, 5.0, 5.0)}  # span = 0
 
     with patch(
-        "yt_uniquifier.core.qa.phash.compare_range_pair",
+        "video_uniquifier.core.qa.phash.compare_range_pair",
         return_value=0.9,
     ):
         _maybe_emit_divergence(

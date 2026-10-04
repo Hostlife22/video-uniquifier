@@ -25,9 +25,9 @@ from typing import Any
 
 import pytest
 
-from yt_uniquifier.core import pipeline, segmenter
-from yt_uniquifier.core.errors import PipelineError
-from yt_uniquifier.core.models import (
+from video_uniquifier.core import pipeline, segmenter
+from video_uniquifier.core.errors import PipelineError
+from video_uniquifier.core.models import (
     EncoderCandidate,
     Plan,
     Profile,
@@ -35,7 +35,7 @@ from yt_uniquifier.core.models import (
     SourceMeta,
     TransformConfig,
 )
-from yt_uniquifier.core.runner import CancelToken, RunEvent
+from video_uniquifier.core.runner import CancelToken, RunEvent
 
 
 def _make_plan(
@@ -131,7 +131,7 @@ def test_runtime_encode_failure_invalidates_exact_encoder_capability(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
-    from yt_uniquifier.core import encoder
+    from video_uniquifier.core import encoder
 
     plan = _make_plan(target_vmaf=None)
     invalidated: list[Plan] = []
@@ -413,7 +413,7 @@ def test_distributed_worker_source_does_not_strip_target_vmaf() -> None:
     """Worker mode delegates the same profile to run_full as local mode."""
     import inspect
 
-    from yt_uniquifier.cli import cmd_worker
+    from video_uniquifier.cli import cmd_worker
 
     prof = Profile(
         name="p",

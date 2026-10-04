@@ -7,8 +7,8 @@ from pathlib import Path
 import pytest
 from PyQt6.QtWidgets import QApplication
 
-from yt_uniquifier.gui.screens.profile_editor import ProfileEditorScreen
-from yt_uniquifier.gui.state import AppState
+from video_uniquifier.gui.screens.profile_editor import ProfileEditorScreen
+from video_uniquifier.gui.state import AppState
 
 
 @pytest.fixture(scope="module")
@@ -21,9 +21,9 @@ def app() -> QApplication:
 
 def test_profile_editor_loads_cid_aware(app: QApplication, tmp_path: Path,
                                          monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr("yt_uniquifier.gui.state.CONFIG_DIR", tmp_path)
-    monkeypatch.setattr("yt_uniquifier.gui.state.STATE_PATH", tmp_path / "s.json")
-    monkeypatch.setattr("yt_uniquifier.gui.state.HISTORY_PATH", tmp_path / "h.json")
+    monkeypatch.setattr("video_uniquifier.gui.state.CONFIG_DIR", tmp_path)
+    monkeypatch.setattr("video_uniquifier.gui.state.STATE_PATH", tmp_path / "s.json")
+    monkeypatch.setattr("video_uniquifier.gui.state.HISTORY_PATH", tmp_path / "h.json")
     state = AppState()
     editor = ProfileEditorScreen(state)
     # Select cid_aware if present.
@@ -37,9 +37,9 @@ def test_profile_editor_loads_cid_aware(app: QApplication, tmp_path: Path,
 
 def test_profile_editor_save_as_writes_yaml(app: QApplication, tmp_path: Path,
                                               monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr("yt_uniquifier.gui.state.CONFIG_DIR", tmp_path)
-    monkeypatch.setattr("yt_uniquifier.gui.state.STATE_PATH", tmp_path / "s.json")
-    monkeypatch.setattr("yt_uniquifier.gui.state.HISTORY_PATH", tmp_path / "h.json")
+    monkeypatch.setattr("video_uniquifier.gui.state.CONFIG_DIR", tmp_path)
+    monkeypatch.setattr("video_uniquifier.gui.state.STATE_PATH", tmp_path / "s.json")
+    monkeypatch.setattr("video_uniquifier.gui.state.HISTORY_PATH", tmp_path / "h.json")
     state = AppState()
     editor = ProfileEditorScreen(state)
     idx = editor.profile_combo.findText("cid_aware")
@@ -47,7 +47,7 @@ def test_profile_editor_save_as_writes_yaml(app: QApplication, tmp_path: Path,
         editor.profile_combo.setCurrentIndex(idx)
     # Simulate collecting the profile + dumping directly (skip QFileDialog).
     out = tmp_path / "my.yaml"
-    from yt_uniquifier.core.profile_loader import dump_profile, load_profile
+    from video_uniquifier.core.profile_loader import dump_profile, load_profile
     prof = editor._collect_profile()
     assert prof is not None
     dump_profile(prof, out)
@@ -60,12 +60,12 @@ def test_profile_editor_save_as_writes_yaml(app: QApplication, tmp_path: Path,
 def test_profile_editor_invalid_json_rejected(app: QApplication, tmp_path: Path,
                                                 monkeypatch: pytest.MonkeyPatch) -> None:
     """Putting invalid JSON in params cell returns None from _collect_profile."""
-    monkeypatch.setattr("yt_uniquifier.gui.state.CONFIG_DIR", tmp_path)
-    monkeypatch.setattr("yt_uniquifier.gui.state.STATE_PATH", tmp_path / "s.json")
-    monkeypatch.setattr("yt_uniquifier.gui.state.HISTORY_PATH", tmp_path / "h.json")
+    monkeypatch.setattr("video_uniquifier.gui.state.CONFIG_DIR", tmp_path)
+    monkeypatch.setattr("video_uniquifier.gui.state.STATE_PATH", tmp_path / "s.json")
+    monkeypatch.setattr("video_uniquifier.gui.state.HISTORY_PATH", tmp_path / "h.json")
     # Suppress message box.
     monkeypatch.setattr(
-        "yt_uniquifier.gui.screens.profile_editor.QMessageBox.critical",
+        "video_uniquifier.gui.screens.profile_editor.QMessageBox.critical",
         lambda *a, **kw: None,
     )
     state = AppState()

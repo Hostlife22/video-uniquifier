@@ -3,9 +3,9 @@
 ## Bounded-QA v6 rerun — source measured, encoding blocked by disk admission
 
 Source qualification on `2ada787`: six-cell CI
-[`34056405055`](https://github.com/Hostlife22/yt_uniquifier/actions/runs/34056405055)
+[`34056405055`](https://github.com/Hostlife22/video-uniquifier/actions/runs/34056405055)
 and CodeQL
-[`34056405127`](https://github.com/Hostlife22/yt_uniquifier/actions/runs/34056405127)
+[`34056405127`](https://github.com/Hostlife22/video-uniquifier/actions/runs/34056405127)
 passed. Native focused resource/cadence tests, 1,548 unit tests, lint, strict mypy,
 wheel build and 16 shipped profiles passed. An additional real measured-budget
 regression prevents reference publication after overflow. The concurrently started

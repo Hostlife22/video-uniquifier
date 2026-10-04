@@ -1,4 +1,4 @@
-# yt-uniquifier documentation site (v0.9.0 R6).
+# video-uniquifier documentation site (v0.9.0 R6).
 #
 # Build locally:
 #   pip install -e ".[docs]"
@@ -11,14 +11,14 @@
 #   gh-deploy --force` works too but requires push rights to the
 #   gh-pages branch.
 
-site_name: yt-uniquifier
+site_name: video-uniquifier
 site_description: >
   Production-grade re-encoder with controlled micro-transforms for
   owned/licensed video content. Re-upload your own work; never
   evade rights-holder detection.
-site_url: https://hostlife22.github.io/yt_uniquifier/
-repo_url: https://github.com/Hostlife22/yt_uniquifier
-repo_name: Hostlife22/yt_uniquifier
+site_url: https://hostlife22.github.io/video-uniquifier/
+repo_url: https://github.com/Hostlife22/video-uniquifier
+repo_name: Hostlife22/video-uniquifier
 edit_uri: edit/main/docs/
 
 # Strict mode promotes warnings (missing-from-nav files, broken

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from yt_uniquifier.cli.progress_view import make_batch_progress, make_run_progress
+from video_uniquifier.cli.progress_view import make_batch_progress, make_run_progress
 
 
 def test_run_progress_constructs() -> None:

@@ -6,8 +6,8 @@ attached to each `v*` GitHub Release.
 | OS      | Format             | Signed?       | Recipe                                                                |
 |---------|--------------------|---------------|-----------------------------------------------------------------------|
 | Linux   | `.AppImage`        | ✅ ready (1)  | `installers/linux/AppImageBuilder.yml`                                |
-| macOS   | `.app.zip` (ditto) | ❌ unsigned   | `pyinstaller/yt-uniq-gui.spec` (Gatekeeper warns on first launch) (2) |
-| Windows | `.zip` (Compress)  | ❌ unsigned   | `pyinstaller/yt-uniq-gui.spec` (SmartScreen warns on first launch) (2)|
+| macOS   | `.app.zip` (ditto) | ❌ unsigned   | `pyinstaller/video-uniq-gui.spec` (Gatekeeper warns on first launch) (2) |
+| Windows | `.zip` (Compress)  | ❌ unsigned   | `pyinstaller/video-uniq-gui.spec` (SmartScreen warns on first launch) (2)|
 
 (1) **AppImage does not require an X.509 code-signing cert** the way
     macOS / Windows binaries do. Integrity is verified via the
@@ -43,10 +43,10 @@ curl -sSL https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.
   | tar -xJ --strip-components=1 -C .perf_cache/ffmpeg-static
 
 # 2) PyInstaller bundle.
-python -m PyInstaller pyinstaller/yt-uniq-gui.spec --clean --noconfirm
+python -m PyInstaller pyinstaller/video-uniq-gui.spec --clean --noconfirm
 
 # 3) AppImage.
-YT_UNIQUIFIER_VERSION=1.0.0 \
+VIDEO_UNIQUIFIER_VERSION=1.0.0 \
   appimage-builder --recipe installers/linux/AppImageBuilder.yml
 ```
 
@@ -58,10 +58,10 @@ reproduce locally:
 
 ```bash
 pip install -e ".[dev,gui]" && pip install "pyinstaller>=6.6,<7"
-python -m PyInstaller pyinstaller/yt-uniq-gui.spec --clean --noconfirm
-# macOS  → dist/yt-uniq-gui.app
-# Linux  → dist/yt-uniq-gui/
-# Windows→ dist/yt-uniq-gui/yt-uniq-gui.exe
+python -m PyInstaller pyinstaller/video-uniq-gui.spec --clean --noconfirm
+# macOS  → dist/video-uniq-gui.app
+# Linux  → dist/video-uniq-gui/
+# Windows→ dist/video-uniq-gui/video-uniq-gui.exe
 ```
 
 ## Future signing work (deferred to v1.0.x)

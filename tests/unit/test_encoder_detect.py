@@ -10,9 +10,9 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from yt_uniquifier.core import encoder as enc_mod
-from yt_uniquifier.core.errors import EncoderError
-from yt_uniquifier.core.models import EncoderCandidate
+from video_uniquifier.core import encoder as enc_mod
+from video_uniquifier.core.errors import EncoderError
+from video_uniquifier.core.models import EncoderCandidate
 
 
 def _stub_run(rc_by_encoder: dict[str, int]) -> Any:
@@ -317,11 +317,11 @@ def test_plan_capability_probe_caches_exact_command(
     monkeypatch.setattr(enc_mod, "_ffmpeg_version_hash", lambda: "version-device")
     monkeypatch.setattr(enc_mod.subprocess, "run", run)
     monkeypatch.setattr(
-        "yt_uniquifier.core.pipeline.build_encoder_capability_probe",
+        "video_uniquifier.core.pipeline.build_encoder_capability_probe",
         lambda _plan: command,
     )
     monkeypatch.setattr(
-        "yt_uniquifier.core.pipeline._segment_pix_fmt", lambda _plan: "yuv420p",
+        "video_uniquifier.core.pipeline._segment_pix_fmt", lambda _plan: "yuv420p",
     )
     enc_mod._CAPABILITY_CACHE.clear()
 
@@ -351,11 +351,11 @@ def test_plan_capability_probe_does_not_cache_transient_failure(
     monkeypatch.setattr(enc_mod, "_ffmpeg_version_hash", lambda: "version-device")
     monkeypatch.setattr(enc_mod.subprocess, "run", run)
     monkeypatch.setattr(
-        "yt_uniquifier.core.pipeline.build_encoder_capability_probe",
+        "video_uniquifier.core.pipeline.build_encoder_capability_probe",
         lambda _plan: command,
     )
     monkeypatch.setattr(
-        "yt_uniquifier.core.pipeline._segment_pix_fmt", lambda _plan: "yuv420p",
+        "video_uniquifier.core.pipeline._segment_pix_fmt", lambda _plan: "yuv420p",
     )
     enc_mod._CAPABILITY_CACHE.clear()
 
@@ -382,11 +382,11 @@ def test_runtime_invalidation_forces_exact_capability_reprobe(
     monkeypatch.setattr(enc_mod, "_ffmpeg_version_hash", lambda: "version-device")
     monkeypatch.setattr(enc_mod.subprocess, "run", run)
     monkeypatch.setattr(
-        "yt_uniquifier.core.pipeline.build_encoder_capability_probe",
+        "video_uniquifier.core.pipeline.build_encoder_capability_probe",
         lambda _plan: command,
     )
     monkeypatch.setattr(
-        "yt_uniquifier.core.pipeline._segment_pix_fmt", lambda _plan: "yuv420p",
+        "video_uniquifier.core.pipeline._segment_pix_fmt", lambda _plan: "yuv420p",
     )
     enc_mod._CAPABILITY_CACHE.clear()
 

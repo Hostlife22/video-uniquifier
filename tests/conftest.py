@@ -35,7 +35,7 @@ def _isolated_resource_admission(
 ) -> None:
     """Keep host-wide encoder lock records out of the real user cache."""
     monkeypatch.setenv(
-        "YT_UNIQ_RESOURCE_LOCK_DIR",
+        "VIDEO_UNIQ_RESOURCE_LOCK_DIR",
         str(tmp_path / "resource-admission"),
     )
 
@@ -81,7 +81,7 @@ def tiny_clip(tmp_path_factory: pytest.TempPathFactory) -> Path:
 def isolated_cache(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     """Redirect encoder cache to a temp path for the test's lifetime."""
     cache = tmp_path / "encoders.json"
-    monkeypatch.setattr("yt_uniquifier.core.encoder.CACHE_PATH", cache)
+    monkeypatch.setattr("video_uniquifier.core.encoder.CACHE_PATH", cache)
     return cache
 
 
@@ -92,9 +92,9 @@ def _isolated_gui_state(
 ) -> None:
     """Redirect GUI ``CONFIG_DIR`` / ``STATE_PATH`` / ``HISTORY_PATH`` to a
     per-test temp directory so a test can never read or pollute the real
-    ``~/Library/Preferences/yt-uniquifier`` / ``%APPDATA%`` location.
+    ``~/Library/Preferences/video-uniquifier`` / ``%APPDATA%`` location.
 
-    v0.7.0 R8: the v0.5.x layout used ``~/.config/yt_uniquifier``, which
+    v0.7.0 R8: the v0.5.x layout used ``~/.config/video_uniquifier``, which
     was already shared. v0.5.5 + E3 moved this to ``QStandardPaths``,
     which made every CI host's home a write target. Without this
     fixture two failure modes are possible:
@@ -108,7 +108,7 @@ def _isolated_gui_state(
     pay for the import.
     """
     try:
-        from yt_uniquifier.gui import state as state_mod
+        from video_uniquifier.gui import state as state_mod
     except ImportError:
         return  # GUI extras not installed — nothing to isolate
 

@@ -16,7 +16,7 @@ import pytest
 
 # These tests use the helper directly without spinning up QApplication —
 # the helpers are pure-Python and side-effect free except for filesystem.
-from yt_uniquifier.gui.state import _migrate_from_legacy
+from video_uniquifier.gui.state import _migrate_from_legacy
 
 
 def _make_legacy(home: object, *, state: dict | None = None, history: list | None = None):
@@ -33,7 +33,7 @@ def _make_legacy(home: object, *, state: dict | None = None, history: list | Non
 @pytest.fixture()
 def fake_home(tmp_path, monkeypatch):
     """Redirect Path.home() so the migration helper looks at our tmp dir."""
-    monkeypatch.setattr("yt_uniquifier.gui.state.Path.home", lambda: tmp_path)
+    monkeypatch.setattr("video_uniquifier.gui.state.Path.home", lambda: tmp_path)
     return tmp_path
 
 
@@ -44,7 +44,7 @@ def test_migrate_copies_files_when_new_dir_empty(fake_home, tmp_path):
         state={"theme": "light", "recents": ["/a.mp4"]},
         history=[{"timestamp": "t"}],
     )
-    new_dir = tmp_path / "new_loc" / "yt_uniquifier"
+    new_dir = tmp_path / "new_loc" / "video_uniquifier"
 
     _migrate_from_legacy(new_dir)
 
@@ -59,7 +59,7 @@ def test_migrate_copies_files_when_new_dir_empty(fake_home, tmp_path):
 def test_migrate_skips_when_new_dir_has_data(fake_home, tmp_path):
     """Existing new-dir data must not be overwritten by legacy copy."""
     _make_legacy(fake_home, state={"theme": "light"})
-    new_dir = tmp_path / "new_loc" / "yt_uniquifier"
+    new_dir = tmp_path / "new_loc" / "video_uniquifier"
     new_dir.mkdir(parents=True)
     (new_dir / "state.json").write_text(json.dumps({"theme": "dark"}))
 
@@ -71,7 +71,7 @@ def test_migrate_skips_when_new_dir_has_data(fake_home, tmp_path):
 
 def test_migrate_noop_when_legacy_absent(fake_home, tmp_path):
     """Clean install (no legacy) → migration is a quiet no-op."""
-    new_dir = tmp_path / "new_loc" / "yt_uniquifier"
+    new_dir = tmp_path / "new_loc" / "video_uniquifier"
     _migrate_from_legacy(new_dir)
     # new_dir may or may not be created — the contract is just "no crash, no data invented"
     assert not (new_dir / "state.json").exists()
@@ -84,3 +84,46 @@ def test_migrate_noop_when_new_equals_legacy(fake_home, tmp_path):
     # Still readable, not deleted, not duplicated
     assert (legacy / "state.json").exists()
     assert json.loads((legacy / "state.json").read_text())["theme"] == "light"
+
+
+def test_rename_migrates_sibling_config_directory(fake_home, tmp_path):
+    """Native macOS/XDG config locations retain settings after the rename."""
+    base = tmp_path / "native_config"
+    legacy = base / "yt_uniquifier"
+    legacy.mkdir(parents=True)
+    (legacy / "state.json").write_text(json.dumps({"theme": "light"}))
+    (legacy / "history.json").write_text(json.dumps([{"timestamp": "saved"}]))
+    target = base / "video_uniquifier"
+
+    _migrate_from_legacy(target)
+
+    assert json.loads((target / "state.json").read_text())["theme"] == "light"
+    assert json.loads((target / "history.json").read_text())[0]["timestamp"] == "saved"
+    assert (legacy / "history.json").exists()
+
+
+def test_rename_migrates_old_qt_application_directory(fake_home, tmp_path):
+    """Qt application-specific directories change along with the executable."""
+    base = tmp_path / "native_config"
+    legacy = base / "yt-uniq-gui" / "yt_uniquifier"
+    legacy.mkdir(parents=True)
+    (legacy / "state.json").write_text(json.dumps({"theme": "light"}))
+    target = base / "video-uniq-gui" / "video_uniquifier"
+
+    _migrate_from_legacy(target)
+
+    assert json.loads((target / "state.json").read_text())["theme"] == "light"
+
+
+def test_rename_preserves_existing_native_config(fake_home, tmp_path):
+    base = tmp_path / "native_config"
+    legacy = base / "yt_uniquifier"
+    legacy.mkdir(parents=True)
+    (legacy / "state.json").write_text(json.dumps({"theme": "light"}))
+    target = base / "video_uniquifier"
+    target.mkdir()
+    (target / "state.json").write_text(json.dumps({"theme": "dark"}))
+
+    _migrate_from_legacy(target)
+
+    assert json.loads((target / "state.json").read_text())["theme"] == "dark"

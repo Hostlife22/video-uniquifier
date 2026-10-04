@@ -33,6 +33,8 @@ output
 work
 out
 site
+.video_uniq_work
+.video_uniq_calib
 .yt_uniq_work
 .yt_uniq_calib
 .gui_sweep_work

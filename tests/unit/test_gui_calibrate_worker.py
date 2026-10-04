@@ -5,13 +5,13 @@ from __future__ import annotations
 from pathlib import Path
 from unittest.mock import patch
 
-from yt_uniquifier.core.calibration.loop import (
+from video_uniquifier.core.calibration.loop import (
     CalibratedResult,
     CalibrationStep,
     CalibrationTarget,
 )
-from yt_uniquifier.core.models import Profile, TransformConfig
-from yt_uniquifier.gui.workers.calibrate_worker import CalibrateWorker
+from video_uniquifier.core.models import Profile, TransformConfig
+from video_uniquifier.gui.workers.calibrate_worker import CalibrateWorker
 
 
 def _profile() -> Profile:
@@ -42,7 +42,7 @@ def test_calibrate_worker_emits_step_per_iteration(tmp_path: Path) -> None:
         )
 
     with patch(
-        "yt_uniquifier.gui.workers.calibrate_worker._calibrate",
+        "video_uniquifier.gui.workers.calibrate_worker._calibrate",
         side_effect=fake_calibrate,
     ):
         worker = CalibrateWorker(tmp_path / "in.mp4", profile, target)
@@ -67,7 +67,7 @@ def test_calibrate_worker_finished_payload(tmp_path: Path) -> None:
     payload: list[object] = []
     completed: list[object] = []
     with patch(
-        "yt_uniquifier.gui.workers.calibrate_worker._calibrate",
+        "video_uniquifier.gui.workers.calibrate_worker._calibrate",
         side_effect=fake_calibrate,
     ):
         worker = CalibrateWorker(tmp_path / "in.mp4", profile, target)
@@ -85,7 +85,7 @@ def test_calibrate_worker_finished_payload(tmp_path: Path) -> None:
 def test_calibrate_worker_failed_on_exception(tmp_path: Path) -> None:
     target = CalibrationTarget()
     with patch(
-        "yt_uniquifier.gui.workers.calibrate_worker._calibrate",
+        "video_uniquifier.gui.workers.calibrate_worker._calibrate",
         side_effect=RuntimeError("boom"),
     ):
         worker = CalibrateWorker(tmp_path / "in.mp4", _profile(), target)

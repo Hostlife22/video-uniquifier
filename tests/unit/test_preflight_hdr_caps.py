@@ -6,8 +6,8 @@ from pathlib import Path
 
 import pytest
 
-from yt_uniquifier.core import preflight as preflight_mod
-from yt_uniquifier.core.models import (
+from video_uniquifier.core import preflight as preflight_mod
+from video_uniquifier.core.models import (
     AudioStream,
     EncoderCandidate,
     HDRInfo,
@@ -17,8 +17,8 @@ from yt_uniquifier.core.models import (
     TransformConfig,
     VideoStream,
 )
-from yt_uniquifier.core.pipeline import compute_plan_hash
-from yt_uniquifier.core.preflight import has_fail, preflight
+from video_uniquifier.core.pipeline import compute_plan_hash
+from video_uniquifier.core.preflight import has_fail, preflight
 
 
 def _hdr_source(tmp_path: Path) -> SourceMeta:

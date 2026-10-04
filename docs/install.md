@@ -3,6 +3,10 @@
 Полный гайд: от чистой системы до работающего CLI / GUI / собранного
 desktop-бинарника.
 
+Имена пакета, команд и файлов ниже относятся к **v2.0.0**. До публикации нового
+релиза используй установку из исходников или локальную сборку; исторические
+релизы сохраняют прежние имена файлов.
+
 > Команды показаны для macOS / Linux. На Windows используй PowerShell:
 > `python -m venv .venv` → `.venv\Scripts\activate` → дальше всё то же
 > самое.
@@ -10,14 +14,14 @@ desktop-бинарника.
 ## 0. Готовые сборки (рекомендуется для большинства)
 
 Начиная с **v1.0.0**, каждый релиз на
-[GitHub Releases](https://github.com/hostlife22/Video-Deduplicator/releases)
+[GitHub Releases](https://github.com/hostlife22/video-uniquifier/releases)
 несёт три desktop-бинарника + `SHA256SUMS` для проверки:
 
 | Файл                                | OS              | Подпись                | Что внутри                                             |
 |-------------------------------------|-----------------|------------------------|--------------------------------------------------------|
-| `yt-uniq-gui-*.AppImage`            | Linux (x86_64)  | ✅ self-contained       | PyInstaller бандл + **bundled static ffmpeg/ffprobe**  |
-| `yt-uniq-gui-macOS.zip` (`.app`)    | macOS 12+, Apple Silicon (arm64) | ⚠️ ad-hoc только (v1.1.0+) — см. ниже | `.app` бандл; ffmpeg = system (brew install ffmpeg)    |
-| `yt-uniq-gui-Windows.zip` (`.exe`)  | Windows 10/11   | ❌ unsigned (см. ниже)  | PyInstaller бандл; ffmpeg = system (`choco install`)   |
+| `video-uniq-gui-*.AppImage`            | Linux (x86_64)  | ✅ self-contained       | PyInstaller бандл + **bundled static ffmpeg/ffprobe**  |
+| `video-uniq-gui-macOS.zip` (`.app`)    | macOS 12+, Apple Silicon (arm64) | ⚠️ ad-hoc только (v1.1.0+) — см. ниже | `.app` бандл; ffmpeg = system (brew install ffmpeg)    |
+| `video-uniq-gui-Windows.zip` (`.exe`)  | Windows 10/11   | ❌ unsigned (см. ниже)  | PyInstaller бандл; ffmpeg = system (`choco install`)   |
 | `SHA256SUMS`                        | все             | —                       | стандартный `sha256sum -c`-формат                       |
 
 ### Установка по платформам
@@ -32,15 +36,15 @@ release-архив пока не заявляется.
 
 ```bash
 # 1) Скачать
-curl -LO https://github.com/hostlife22/Video-Deduplicator/releases/download/v1.0.0/yt-uniq-gui-1.0.0-x86_64.AppImage
-curl -LO https://github.com/hostlife22/Video-Deduplicator/releases/download/v1.0.0/SHA256SUMS
+curl -LO https://github.com/hostlife22/video-uniquifier/releases/download/v2.0.0/video-uniq-gui-2.0.0-x86_64.AppImage
+curl -LO https://github.com/hostlife22/video-uniquifier/releases/download/v2.0.0/SHA256SUMS
 
 # 2) Проверить целостность (заменяет codesign)
 sha256sum -c SHA256SUMS --ignore-missing
 
 # 3) Сделать исполняемым и запустить
-chmod +x yt-uniq-gui-*.AppImage
-./yt-uniq-gui-*.AppImage
+chmod +x video-uniq-gui-*.AppImage
+./video-uniq-gui-*.AppImage
 ```
 
 AppImage **самодостаточен** — Python, PyQt6 и ffmpeg/ffprobe внутри.
@@ -57,20 +61,20 @@ can’t be opened» при апгрейдах OS больше нет. Первы
 
 ```bash
 # 1) Скачать + проверить
-curl -LO https://github.com/hostlife22/Video-Deduplicator/releases/download/v1.1.0/yt-uniq-gui-macOS.zip
-curl -LO https://github.com/hostlife22/Video-Deduplicator/releases/download/v1.1.0/SHA256SUMS
+curl -LO https://github.com/hostlife22/video-uniquifier/releases/download/v2.0.0/video-uniq-gui-macOS.zip
+curl -LO https://github.com/hostlife22/video-uniquifier/releases/download/v2.0.0/SHA256SUMS
 shasum -a 256 -c SHA256SUMS --ignore-missing
 
 # 2) Распаковать
-unzip yt-uniq-gui-macOS.zip
-mv yt-uniq-gui.app /Applications/
+unzip video-uniq-gui-macOS.zip
+mv video-uniq-gui.app /Applications/
 
 # 3) Первый запуск — Gatekeeper покажет
-#    "yt-uniq-gui cannot be opened because the developer cannot be verified".
+#    "video-uniq-gui cannot be opened because the developer cannot be verified".
 #    Это ожидаемо: ad-hoc подпись ≠ Developer ID.
 #
 #    Bypass (один раз):
-#       Right-click /Applications/yt-uniq-gui.app → Open
+#       Right-click /Applications/video-uniq-gui.app → Open
 #       → Open Anyway → ввести админ-пароль.
 #
 #    После этого Gatekeeper запоминает решение, и обычный двойной
@@ -78,7 +82,7 @@ mv yt-uniq-gui.app /Applications/
 #    до того, как они купили Apple Developer Program.
 #
 # 4) Альтернатива — снять карантин-флаг вручную:
-xattr -d com.apple.quarantine /Applications/yt-uniq-gui.app
+xattr -d com.apple.quarantine /Applications/video-uniq-gui.app
 #    (так делают brew cask formulas; работает без диалога вообще).
 #
 # ffmpeg должен быть в PATH:
@@ -87,7 +91,7 @@ brew install ffmpeg chromaprint
 
 **Если spctl кричит «code object is not signed at all»** — значит
 скачался pre-v1.1.0 бандл; обновись до последней release или примени
-`codesign --deep --force --sign - /Applications/yt-uniq-gui.app`
+`codesign --deep --force --sign - /Applications/video-uniq-gui.app`
 вручную, чтобы получить ту же подпись, которую CI ставит.
 
 **Windows (unsigned `.exe`):**
@@ -100,14 +104,14 @@ warning, дальше тишина.
 
 ```powershell
 # 1) Скачать + проверить (PowerShell 5+)
-Invoke-WebRequest -Uri "https://github.com/hostlife22/Video-Deduplicator/releases/download/v1.1.0/yt-uniq-gui-Windows.zip" -OutFile yt-uniq-gui-Windows.zip
-Invoke-WebRequest -Uri "https://github.com/hostlife22/Video-Deduplicator/releases/download/v1.1.0/SHA256SUMS" -OutFile SHA256SUMS
-Get-FileHash yt-uniq-gui-Windows.zip -Algorithm SHA256
+Invoke-WebRequest -Uri "https://github.com/hostlife22/video-uniquifier/releases/download/v2.0.0/video-uniq-gui-Windows.zip" -OutFile video-uniq-gui-Windows.zip
+Invoke-WebRequest -Uri "https://github.com/hostlife22/video-uniquifier/releases/download/v2.0.0/SHA256SUMS" -OutFile SHA256SUMS
+Get-FileHash video-uniq-gui-Windows.zip -Algorithm SHA256
 # Сверить с строкой в SHA256SUMS. Любой mismatch = повреждён или
 # подменён → НЕ распаковывать.
 
 # 2) Распаковать
-Expand-Archive yt-uniq-gui-Windows.zip -DestinationPath .
+Expand-Archive video-uniq-gui-Windows.zip -DestinationPath .
 
 # 3) Первый запуск. Есть два пути.
 #
@@ -118,10 +122,10 @@ Expand-Archive yt-uniq-gui-Windows.zip -DestinationPath .
 #       больше не спрашивает.
 #
 #    Path B — снять Mark-Of-The-Web сразу через PowerShell:
-Unblock-File .\yt-uniq-gui\yt-uniq-gui.exe
+Unblock-File .\video-uniq-gui\video-uniq-gui.exe
 #       Или, если разархивирована вся папка:
-Get-ChildItem -Path .\yt-uniq-gui -Recurse | Unblock-File
-.\yt-uniq-gui\yt-uniq-gui.exe
+Get-ChildItem -Path .\video-uniq-gui -Recurse | Unblock-File
+.\video-uniq-gui\video-uniq-gui.exe
 #       После Unblock-File SmartScreen-диалог не появится вовсе.
 
 # ffmpeg должен быть в PATH:
@@ -167,10 +171,10 @@ sudo apt install cosign       # Debian/Ubuntu 24.04+
 
 # Проверить любой артефакт (пример — AppImage):
 cosign verify-blob \
-  --bundle yt-uniq-gui-1.1.0-x86_64.AppImage.cosign.bundle \
-  --certificate-identity-regexp 'https://github\.com/Hostlife22/Video-Deduplicator/' \
+  --bundle video-uniq-gui-1.1.0-x86_64.AppImage.cosign.bundle \
+  --certificate-identity-regexp 'https://github\.com/Hostlife22/video-uniquifier/' \
   --certificate-oidc-issuer 'https://token.actions.githubusercontent.com' \
-  yt-uniq-gui-1.1.0-x86_64.AppImage
+  video-uniq-gui-1.1.0-x86_64.AppImage
 # → Verified OK
 
 # SBOM в CycloneDX 1.5 JSON:
@@ -181,7 +185,7 @@ grype sbom:sbom.cdx.json
 
 Если cosign verification фейлит — значит артефакт подменён по
 дороге (CDN, mirror, MITM); качайте напрямую с
-`https://github.com/Hostlife22/Video-Deduplicator/releases`.
+`https://github.com/Hostlife22/video-uniquifier/releases`.
 
 ### Когда выбирать source-install вместо бинарника?
 
@@ -225,13 +229,13 @@ brew install chromaprint     # для fpcalc (audio FP)
 
 ```bash
 brew install ffmpeg-full
-export YT_UNIQ_FFMPEG="$(brew --prefix ffmpeg-full)/bin/ffmpeg"
-export YT_UNIQ_FFPROBE="$(brew --prefix ffmpeg-full)/bin/ffprobe"
+export VIDEO_UNIQ_FFMPEG="$(brew --prefix ffmpeg-full)/bin/ffmpeg"
+export VIDEO_UNIQ_FFPROBE="$(brew --prefix ffmpeg-full)/bin/ffprobe"
 ```
 
 FFmpeg subprocesses have a 600-second no-output watchdog by default. Set
-`YT_UNIQ_STALL_TIMEOUT_SEC=0` to disable it or another number of seconds to tune
-it. `YT_UNIQ_WALL_TIMEOUT_SEC` is disabled by default and can impose a hard
+`VIDEO_UNIQ_STALL_TIMEOUT_SEC=0` to disable it or another number of seconds to tune
+it. `VIDEO_UNIQ_WALL_TIMEOUT_SEC` is disabled by default and can impose a hard
 per-process wall limit when required by an unattended deployment.
 
 **Ubuntu / Debian:**
@@ -260,8 +264,8 @@ fpcalc -version 2>/dev/null || echo "fpcalc отсутствует — audio FP 
 ## 2. Клонирование репозитория
 
 ```bash
-git clone https://github.com/Hostlife22/yt_uniquifier.git
-cd yt_uniquifier
+git clone https://github.com/Hostlife22/video-uniquifier.git
+cd video-uniquifier
 ```
 
 ---
@@ -281,7 +285,7 @@ source .venv/bin/activate          # macOS / Linux
 | Команда | Что ставит | Для кого |
 |---|---|---|
 | `pip install -e .` | CLI + core | минимум, только командная строка |
-| `pip install -e ".[gui]"` | + PyQt6 + WebEngine | для `yt-uniq-gui` |
+| `pip install -e ".[gui]"` | + PyQt6 + WebEngine | для `video-uniq-gui` |
 | `pip install -e ".[qa]"` | + chromaprint Python bindings | если нужен audio FP через pyacoustid |
 | `pip install -e ".[dev]"` | + pytest + ruff + mypy + pytest-qt | разработка / запуск тестов |
 | `pip install -e ".[dev,gui]"` | всё включено | **рекомендуется** |
@@ -299,14 +303,14 @@ viewer в GUI. Если хочешь сэкономить место — пос�
 ### Проверка установки
 
 ```bash
-yt-uniq --help                     # CLI работает
-yt-uniq probe --encoders           # детектит твои ffmpeg encoders
-python -c "from yt_uniquifier.gui.app_pyqt import main; print('GUI ready')"
+video-uniq --help                     # CLI работает
+video-uniq probe --encoders           # детектит твои ffmpeg encoders
+python -c "from video_uniquifier.gui.app_pyqt import main; print('GUI ready')"
 ```
 
 Auto-selection использует quality-first software encoder. Для проверенного
-hardware throughput задайте `YT_UNIQ_ENCODER_POLICY=speed`; для практичного AV1
-long-form CPU encode — `YT_UNIQ_ENCODER_POLICY=balanced`. Явный `--encoder`
+hardware throughput задайте `VIDEO_UNIQ_ENCODER_POLICY=speed`; для практичного AV1
+long-form CPU encode — `VIDEO_UNIQ_ENCODER_POLICY=balanced`. Явный `--encoder`
 строгий: недоступный encoder завершает preflight/run ошибкой, а не подменяется.
 
 ---
@@ -317,15 +321,15 @@ long-form CPU encode — `YT_UNIQ_ENCODER_POLICY=balanced`. Явный `--encode
 
 ```bash
 # 1. Узнать что в файле
-yt-uniq probe /path/to/master.mp4 | jq '.video[0]'
+video-uniq probe /path/to/master.mp4 | jq '.video[0]'
 
 # 2. Валидация source vs YouTube targets + HDR/HEVC sanity
-yt-uniq preflight /path/to/master.mp4 \
-  --profile src/yt_uniquifier/profiles/cid_aware.yaml
+video-uniq preflight /path/to/master.mp4 \
+  --profile src/video_uniquifier/profiles/cid_aware.yaml
 
 # 3. Запустить uniquification
-yt-uniq run /path/to/master.mp4 \
-  --profile src/yt_uniquifier/profiles/cid_aware.yaml \
+video-uniq run /path/to/master.mp4 \
+  --profile src/video_uniquifier/profiles/cid_aware.yaml \
   --out /tmp/uniq.mp4 \
   --encoder libx264
 # Прогресс-бар покажет процесс. На 2h 1080p источнике — 30-60 мин.
@@ -336,15 +340,15 @@ xdg-open /tmp/uniq.mp4.qa.html      # Linux
 start /tmp/uniq.mp4.qa.html         # Windows
 ```
 
-Полный CLI reference — [README §CLI reference](https://github.com/Hostlife22/yt_uniquifier#cli-reference)
-или `yt-uniq <команда> --help` для любой подкоманды.
+Полный CLI reference — [README §CLI reference](https://github.com/Hostlife22/video-uniquifier#cli-reference)
+или `video-uniq <команда> --help` для любой подкоманды.
 
 ---
 
 ## 5. Первый запуск — GUI
 
 ```bash
-yt-uniq-gui
+video-uniq-gui
 ```
 
 Откроется окно с sidebar навигацией на 10 экранов:
@@ -394,7 +398,7 @@ Lint + type-check:
 
 ```bash
 ruff check .
-mypy src/yt_uniquifier
+mypy src/video_uniquifier
 ```
 
 Должно быть зелёное: 467 passed, 1 skipped, ruff/mypy clean.
@@ -407,14 +411,14 @@ mypy src/yt_uniquifier
 
 ```bash
 pip install pyinstaller
-pyinstaller pyinstaller/yt-uniq-gui.spec --clean --noconfirm
+pyinstaller pyinstaller/video-uniq-gui.spec --clean --noconfirm
 ```
 
 | OS | Результат | Запуск |
 |---|---|---|
-| **macOS** | `dist/yt-uniq-gui.app` (~250 MB) | `open dist/yt-uniq-gui.app` |
-| **Windows** | `dist/yt-uniq-gui/yt-uniq-gui.exe` | double-click |
-| **Linux** | `dist/yt-uniq-gui/yt-uniq-gui` | `./dist/yt-uniq-gui/yt-uniq-gui` |
+| **macOS** | `dist/video-uniq-gui.app` (~250 MB) | `open dist/video-uniq-gui.app` |
+| **Windows** | `dist/video-uniq-gui/video-uniq-gui.exe` | double-click |
+| **Linux** | `dist/video-uniq-gui/video-uniq-gui` | `./dist/video-uniq-gui/video-uniq-gui` |
 
 **Первый запуск unsigned binary:**
 
@@ -422,14 +426,14 @@ pyinstaller pyinstaller/yt-uniq-gui.spec --clean --noconfirm
   click "Open" в диалоге. После одного раза система запомнит.
 - **Windows SmartScreen** покажет warning. Click "More info" → "Run anyway".
 - **Linux** — обычно сразу запускается; на некоторых дистрибутивах нужно
-  `chmod +x dist/yt-uniq-gui/yt-uniq-gui` перед первым запуском.
+  `chmod +x dist/video-uniq-gui/video-uniq-gui` перед первым запуском.
 
 **Альтернатива PyInstaller** — `pipx` (работает на всех платформах
 одинаково):
 
 ```bash
-pipx install 'yt-uniquifier[gui]'
-yt-uniq-gui                # доступна из любой shell без активации venv
+pipx install "video-uniquifier[gui] @ git+https://github.com/Hostlife22/video-uniquifier.git@v2.0.0"
+video-uniq-gui                # доступна из любой shell без активации venv
 ```
 
 ---
@@ -479,20 +483,20 @@ sudo apt install libxcb-cursor0 libxcb-icccm4 libxcb-image0 \
 ### Wayland (Linux): drag-drop не работает в GUI
 
 Известная Qt + Wayland проблема. Используй "Browse…" кнопку вместо
-drag-drop, или запусти под XWayland: `QT_QPA_PLATFORM=xcb yt-uniq-gui`.
+drag-drop, или запусти под XWayland: `QT_QPA_PLATFORM=xcb video-uniq-gui`.
 
 ### Cache / state corruption
 
 Удали кеши и попробуй снова:
 ```bash
-rm -rf ~/.cache/yt_uniquifier/
-rm -rf ~/.config/yt_uniquifier/
+rm -rf ~/.cache/video_uniquifier/
+rm -rf ~/.config/video_uniquifier/
 ```
 
 ### Encoder detection slow at first launch (~3-5 s)
 
 Нормально — детектируем каждый из ~10 кандидатов через real test-run.
-Результат кешируется в `~/.cache/yt_uniquifier/encoders.json`. В UI:
+Результат кешируется в `~/.cache/video_uniquifier/encoders.json`. В UI:
 **Settings → Reset encoder cache** если что-то пошло не так и нужна
 перепроверка.
 
@@ -502,13 +506,13 @@ rm -rf ~/.config/yt_uniquifier/
 
 ```bash
 # Обновить до последнего main
-cd yt_uniquifier
+cd video-uniquifier
 git pull
 pip install -e ".[dev,gui]" --upgrade
 
 # Полное удаление
-pip uninstall yt-uniquifier
-rm -rf .venv ~/.cache/yt_uniquifier ~/.config/yt_uniquifier
+pip uninstall video-uniquifier
+rm -rf .venv ~/.cache/video_uniquifier ~/.config/video_uniquifier
 # и удалить директорию проекта если она тебе не нужна
 ```
 
@@ -520,7 +524,7 @@ CLI, GUI, web и queue worker по умолчанию координируют e
 disk budget через:
 
 ```bash
-YT_UNIQ_RESOURCE_LOCK_DIR="$HOME/.cache/yt_uniquifier/resource-admission"
+VIDEO_UNIQ_RESOURCE_LOCK_DIR="$HOME/.cache/video_uniquifier/resource-admission"
 ```
 
 Для нескольких containers или service processes укажи один абсолютный writable path
@@ -539,7 +543,7 @@ mixed `CUDA_VISIBLE_DEVICES` пока `NOT VERIFIED`.
 С `make` (рекомендуется на macOS/Linux):
 
 ```bash
-git clone https://github.com/Hostlife22/yt_uniquifier.git && cd yt_uniquifier
+git clone https://github.com/Hostlife22/video-uniquifier.git && cd video-uniquifier
 make dev                  # создаёт .venv + ставит [dev,gui] extras
 make gui                  # запуск desktop UI
 ```
@@ -547,9 +551,9 @@ make gui                  # запуск desktop UI
 Без `make` (Windows или системы без GNU make):
 
 ```bash
-git clone https://github.com/Hostlife22/yt_uniquifier.git && cd yt_uniquifier
+git clone https://github.com/Hostlife22/video-uniquifier.git && cd video-uniquifier
 python3.12 -m venv .venv && source .venv/bin/activate && pip install -e ".[dev,gui]"
-yt-uniq-gui
+video-uniq-gui
 ```
 
 ## Make-таргеты
@@ -574,8 +578,8 @@ make test-integration  # integration (нужен ffmpeg)
 make check             # lint + typecheck + test (всё сразу)
 
 # run
-make gui               # yt-uniq-gui
-make cli               # yt-uniq --help
+make gui               # video-uniq-gui
+make cli               # video-uniq --help
 make probe-encoders    # список доступных ffmpeg encoders
 
 # packaging

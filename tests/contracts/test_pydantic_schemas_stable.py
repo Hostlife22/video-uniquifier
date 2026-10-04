@@ -6,7 +6,7 @@ once — which is actually what we want, because we ship a JSON
 schema as part of the contract surface.
 
 The models tested here are the ones re-exported from
-``yt_uniquifier.core``. To intentionally evolve any of them,
+``video_uniquifier.core``. To intentionally evolve any of them,
 follow the workflow in ``tests/contracts/__init__.py``.
 """
 
@@ -15,7 +15,7 @@ from __future__ import annotations
 import pytest
 
 from tests.contracts._snapshot import snapshot
-from yt_uniquifier.core import (
+from video_uniquifier.core import (
     AudioStream,
     Chapter,
     EncoderCandidate,

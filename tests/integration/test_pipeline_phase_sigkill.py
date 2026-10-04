@@ -16,7 +16,7 @@ from tests.conftest import needs_ffmpeg
 
 REPO = Path(__file__).resolve().parents[2]
 FAULT_CHILD = REPO / "tools" / "pipeline_phase_fault_child.py"
-SOFT_PROFILE = REPO / "src" / "yt_uniquifier" / "profiles" / "soft.yaml"
+SOFT_PROFILE = REPO / "src" / "video_uniquifier" / "profiles" / "soft.yaml"
 PHASES = (
     "after_probe",
     "after_plan",
@@ -144,7 +144,7 @@ def test_sigkill_and_resume_at_every_media_phase(
 
     subprocess.run(
         [
-            sys.executable, "-m", "yt_uniquifier", "run", str(phase_clip),
+            sys.executable, "-m", "video_uniquifier", "run", str(phase_clip),
             "--profile", str(fixed_profile),
             "--out", str(output),
             "--work-dir", str(work),

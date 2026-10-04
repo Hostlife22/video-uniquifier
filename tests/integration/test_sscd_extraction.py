@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 
 from tests.conftest import needs_ffmpeg
-from yt_uniquifier.core.qa.sscd import _extract_frames
+from video_uniquifier.core.qa.sscd import _extract_frames
 
 
 @needs_ffmpeg

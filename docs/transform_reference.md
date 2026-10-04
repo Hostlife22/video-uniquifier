@@ -69,5 +69,5 @@ quality-sensitive edge across the requested domains.
 | Plugin | both enabled specs where either declares `incompatible_with` | Fail once per unordered pair |
 
 Warnings are intentionally not auto-corrected: changing transform order or disabling
-an effect changes the requested derivative. Run `yt-uniq preflight` and review the
+an effect changes the requested derivative. Run `video-uniq preflight` and review the
 generated FFmpeg graph before a long encode.

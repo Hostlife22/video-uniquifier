@@ -5,7 +5,7 @@ Reads tools/validation_log.csv (produced by manual workflow from
 docs/validation_harness.md) and prints a report telling you whether the
 predictors we ship in `qa.json` actually predict real YouTube CID matches.
 
-Pure stdlib (no scipy/pandas) so this tool runs anywhere yt-uniquifier
+Pure stdlib (no scipy/pandas) so this tool runs anywhere video-uniquifier
 is installed. Manual rank-based Spearman implementation.
 
 Usage:

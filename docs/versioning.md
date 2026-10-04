@@ -1,11 +1,13 @@
 # Versioning and Compatibility
 
-Starting with **v1.0.0** (2026-06-14), `yt-uniquifier` follows
+The project follows
 [Semantic Versioning 2.0.0](https://semver.org/) for every contract
 listed in [API Contracts](api-contracts.md). The public API is
-**stable**: code that imports `yt_uniquifier.core` or invokes
-`yt-uniq` from a shell script can pin `yt-uniquifier~=1.0` and
-expect non-breaking upgrades within the 1.x line.
+**stable**: code that imports `video_uniquifier.core` or invokes
+`video-uniq` from a shell script can pin `video-uniquifier~=2.0` and
+expect non-breaking upgrades within the 2.x line. Version 2.0.0 introduces
+the new package, import, command and environment names; update integrations
+when migrating from the previous major version.
 
 ## What counts as a "breaking change"
 
@@ -17,8 +19,8 @@ to a `stable`-labelled contract:
 | `core.Plan`, `core.Profile`, `core.SourceMeta`, `core.EncoderCandidate` | Removing a field; renaming a field; tightening a type (e.g. `int | None` → `int`); changing default semantics |
 | `core.RunEvent.kind` | Removing a `kind` literal; changing the payload schema of an existing `kind` |
 | `core.RunOptions`, `core.RunSummary` | Removing a field; renaming; tightening a type |
-| Plugin entry-point group `yt_uniquifier.transforms` | Changing the protocol that registered transforms must satisfy |
-| CLI: `yt-uniq <subcommand>` | Removing a subcommand; removing or renaming a flag; changing the exit-code contract |
+| Plugin entry-point group `video_uniquifier.transforms` | Changing the protocol that registered transforms must satisfy |
+| CLI: `video-uniq <subcommand>` | Removing a subcommand; removing or renaming a flag; changing the exit-code contract |
 | YAML profile schema | Removing a top-level key; renaming a transform id; tightening `extra=forbid` to reject previously-accepted shapes |
 | Python API entry points: `build_plan`, `run_full`, `compute_plan_hash` | Changing the call signature in a non-additive way |
 | `Plan` JSON serialisation | A field that round-tripped in N.Y.Z no longer round-trips in (N+1).0.0 |
@@ -47,7 +49,7 @@ Every model field and CLI flag carries one of three labels in
   remove it with a `DeprecationWarning`. Use at your own risk; pin
   to exact patch versions if you depend on experimental surface.
 - **`internal`** — not covered. Anything in `_*` modules,
-  `yt_uniquifier.core._internal`, or marked internal in
+  `video_uniquifier.core._internal`, or marked internal in
   [API Contracts](api-contracts.md). May change in any release.
 
 A piece of API surface that has **no label** in
@@ -61,7 +63,7 @@ a `stable` contract must:
 
 1. **Open an RFC first.** Create a GitHub Discussion under category
    "RFCs" using the
-   [RFC issue template](https://github.com/hostlife22/Video-Deduplicator/issues/new?template=rfc.yml).
+   [RFC issue template](https://github.com/hostlife22/video-uniquifier/issues/new?template=rfc.yml).
    Title format: `RFC: <short summary>`.
 2. **State the four required sections** in the template:
    - **Problem.** What current behavior is wrong, missing, or
@@ -99,12 +101,12 @@ maintainer-authored RFCs may use a shortened 3-day comment window.
 
 Security fixes for the active line are released as PATCH versions
 within 30 calendar days of a confirmed CRITICAL or HIGH disclosure.
-See [SECURITY.md](https://github.com/hostlife22/Video-Deduplicator/blob/main/SECURITY.md)
+See [SECURITY.md](https://github.com/hostlife22/video-uniquifier/blob/main/SECURITY.md)
 for the disclosure policy.
 
 ## Python version policy
 
-`yt-uniquifier` supports the two newest stable Python releases. As
+`video-uniquifier` supports the two newest stable Python releases. As
 of v1.0.0 that means **Python 3.11 and 3.12**. When Python 3.13
 becomes the second-newest release, support for 3.11 will be dropped
 in the **next MINOR**, accompanied by a `DeprecationWarning` for one
@@ -113,7 +115,7 @@ packagers; an RFC is required but uses the 3-day shortened window.
 
 ## Profile YAML versioning
 
-The shipped profiles (`src/yt_uniquifier/profiles/*.yaml`) follow a
+The shipped profiles (`src/video_uniquifier/profiles/*.yaml`) follow a
 parallel `profile_schema_version` field. Bumping that field counts
 as a MAJOR change for the YAML schema even within a MINOR Python
 release — i.e. a 1.x install will refuse to load a profile written
@@ -121,12 +123,12 @@ for the 2.x schema and vice versa. This protects users who share
 profiles via [the marketplace](marketplace.md) from silent
 misinterpretation.
 
-## How to depend on yt-uniquifier safely
+## How to depend on video-uniquifier safely
 
 | Use case | Recommended pin |
 |---|---|
-| Application that calls `yt-uniq` from a shell script | `yt-uniquifier~=1.0` (MINOR-stable) |
-| Library that imports `yt_uniquifier.core` and uses `stable` surface only | `yt-uniquifier~=1.0` |
-| Library that uses any `experimental` surface | `yt-uniquifier==1.3.*` (PATCH-stable) |
-| Reproducible research artifact / paper | exact pin, e.g. `yt-uniquifier==1.3.0` |
+| Application that calls `video-uniq` from a shell script | `video-uniquifier~=2.0` (MINOR-stable) |
+| Library that imports `video_uniquifier.core` and uses `stable` surface only | `video-uniquifier~=2.0` |
+| Library that uses any `experimental` surface | `video-uniquifier==2.0.*` (PATCH-stable) |
+| Reproducible research artifact / paper | exact pin, e.g. `video-uniquifier==2.0.0` |
 | Editable install for development | `pip install -e ".[dev,gui]"` from a checkout |

@@ -8,8 +8,8 @@ from pathlib import Path
 import pytest
 from PIL import Image
 
-from yt_uniquifier.core.qa import corpus as corpus_mod
-from yt_uniquifier.core.qa.corpus import Corpus, CorpusEntry
+from video_uniquifier.core.qa import corpus as corpus_mod
+from video_uniquifier.core.qa.corpus import Corpus, CorpusEntry
 
 
 def _solid(color: tuple[int, int, int]) -> Image.Image:

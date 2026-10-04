@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import pytest
 
-from yt_uniquifier.core.transforms import get
-from yt_uniquifier.core.transforms.base import LabelAllocator, call_build
-from yt_uniquifier.core.transforms.video_tonemap import TonemapSDRParams
+from video_uniquifier.core.transforms import get
+from video_uniquifier.core.transforms.base import LabelAllocator, call_build
+from video_uniquifier.core.transforms.video_tonemap import TonemapSDRParams
 
 
 @pytest.mark.parametrize("alg", ["hable", "reinhard", "mobius", "aces"])

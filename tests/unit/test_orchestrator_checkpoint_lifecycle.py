@@ -7,9 +7,9 @@ from typing import NoReturn
 
 import pytest
 
-from yt_uniquifier.core import orchestrator
-from yt_uniquifier.core.errors import CheckpointError, PipelineError
-from yt_uniquifier.core.models import (
+from video_uniquifier.core import orchestrator
+from video_uniquifier.core.errors import CheckpointError, PipelineError
+from video_uniquifier.core.models import (
     AudioStream,
     EncoderCandidate,
     HDRInfo,
@@ -19,7 +19,7 @@ from yt_uniquifier.core.models import (
     SourceMeta,
     VideoStream,
 )
-from yt_uniquifier.core.runner import RunEvent
+from video_uniquifier.core.runner import RunEvent
 
 
 def _plan(tmp_path: Path) -> Plan:

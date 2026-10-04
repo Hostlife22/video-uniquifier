@@ -7,14 +7,14 @@ from pathlib import Path
 import pytest
 
 from tests.conftest import needs_ffmpeg
-from yt_uniquifier.core.encoder import detect_encoders, pick_encoder
-from yt_uniquifier.core.models import Plan
-from yt_uniquifier.core.pipeline import FilterGraph, compute_plan_hash
-from yt_uniquifier.core.probe import probe
-from yt_uniquifier.core.profile_loader import load_profile
-from yt_uniquifier.core.runner import run
+from video_uniquifier.core.encoder import detect_encoders, pick_encoder
+from video_uniquifier.core.models import Plan
+from video_uniquifier.core.pipeline import FilterGraph, compute_plan_hash
+from video_uniquifier.core.probe import probe
+from video_uniquifier.core.profile_loader import load_profile
+from video_uniquifier.core.runner import run
 
-PROFILES_DIR = Path(__file__).parents[2] / "src" / "yt_uniquifier" / "profiles"
+PROFILES_DIR = Path(__file__).parents[2] / "src" / "video_uniquifier" / "profiles"
 
 
 @needs_ffmpeg

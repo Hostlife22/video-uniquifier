@@ -2,7 +2,7 @@
 
 Skipped automatically when libsvtav1 is not available in the local
 ffmpeg build (older Linux distros, custom builds).  When present, the
-test runs ``yt-uniq``-equivalent orchestration through ``run_full`` on
+test runs ``video-uniq``-equivalent orchestration through ``run_full`` on
 a 5-second clip with the ``youtube_av1`` profile and asserts:
 
   * the AV1 output exists and is non-empty
@@ -25,13 +25,13 @@ from pathlib import Path
 import pytest
 
 from tests.conftest import needs_ffmpeg
-from yt_uniquifier.core.encoder import detect_encoders
-from yt_uniquifier.core.models import Profile
-from yt_uniquifier.core.orchestrator import RunOptions, build_plan, run_full
-from yt_uniquifier.core.probe import probe
-from yt_uniquifier.core.profile_loader import load_profile
+from video_uniquifier.core.encoder import detect_encoders
+from video_uniquifier.core.models import Profile
+from video_uniquifier.core.orchestrator import RunOptions, build_plan, run_full
+from video_uniquifier.core.probe import probe
+from video_uniquifier.core.profile_loader import load_profile
 
-PROFILES_DIR = Path(__file__).parents[2] / "src" / "yt_uniquifier" / "profiles"
+PROFILES_DIR = Path(__file__).parents[2] / "src" / "video_uniquifier" / "profiles"
 
 
 def _has_encoder(name: str) -> bool:

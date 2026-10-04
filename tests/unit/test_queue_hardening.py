@@ -25,7 +25,7 @@ from pathlib import Path
 
 import pytest
 
-from yt_uniquifier.core.queue.leasing import (
+from video_uniquifier.core.queue.leasing import (
     FileQueue,
     _safe_host_name,
     init_queue,

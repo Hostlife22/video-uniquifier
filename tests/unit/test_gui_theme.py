@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from yt_uniquifier.gui.theme import DARK_TOKENS, LIGHT_TOKENS, qss_for
+from video_uniquifier.gui.theme import DARK_TOKENS, LIGHT_TOKENS, qss_for
 
 
 def test_qss_dark_contains_dark_bg() -> None:

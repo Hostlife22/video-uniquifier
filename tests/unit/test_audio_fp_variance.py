@@ -6,7 +6,7 @@ import base64
 from pathlib import Path
 from unittest.mock import patch
 
-from yt_uniquifier.core.qa.audio_fp import (
+from video_uniquifier.core.qa.audio_fp import (
     compare_hamming_per_window,
 )
 
@@ -25,8 +25,8 @@ def test_uniform_audio_zero_variance(tmp_path: Path) -> None:
     out_p = tmp_path / "b.wav"
     out_p.touch()
     fp = _make_fp(list(range(100)))
-    with patch("yt_uniquifier.core.qa.audio_fp.fpcalc_available", return_value=True), patch(
-        "yt_uniquifier.core.qa.audio_fp._run_fpcalc",
+    with patch("video_uniquifier.core.qa.audio_fp.fpcalc_available", return_value=True), patch(
+        "video_uniquifier.core.qa.audio_fp._run_fpcalc",
         side_effect=[{"fingerprint": fp}, {"fingerprint": fp}],
     ):
         result = compare_hamming_per_window(in_p, out_p, n_windows=5)
@@ -54,8 +54,8 @@ def test_divergent_audio_has_nonzero_variance(tmp_path: Path) -> None:
         output_ints.extend([xor_val] * n_per_window)
     in_fp = _make_fp(input_ints)
     out_fp = _make_fp(output_ints)
-    with patch("yt_uniquifier.core.qa.audio_fp.fpcalc_available", return_value=True), patch(
-        "yt_uniquifier.core.qa.audio_fp._run_fpcalc",
+    with patch("video_uniquifier.core.qa.audio_fp.fpcalc_available", return_value=True), patch(
+        "video_uniquifier.core.qa.audio_fp._run_fpcalc",
         side_effect=[{"fingerprint": in_fp}, {"fingerprint": out_fp}],
     ):
         result = compare_hamming_per_window(in_p, out_p, n_windows=n_windows)
@@ -68,7 +68,7 @@ def test_unavailable_when_fpcalc_missing(tmp_path: Path) -> None:
     in_p.touch()
     out_p = tmp_path / "b.wav"
     out_p.touch()
-    with patch("yt_uniquifier.core.qa.audio_fp.fpcalc_available", return_value=False):
+    with patch("video_uniquifier.core.qa.audio_fp.fpcalc_available", return_value=False):
         result = compare_hamming_per_window(in_p, out_p)
     assert result.available is False
     assert result.variance_between_windows is None
@@ -82,8 +82,8 @@ def test_too_few_frames_for_windowing(tmp_path: Path) -> None:
     out_p = tmp_path / "b.wav"
     out_p.touch()
     short_fp = _make_fp([0, 1, 2])  # only 3 frames
-    with patch("yt_uniquifier.core.qa.audio_fp.fpcalc_available", return_value=True), patch(
-        "yt_uniquifier.core.qa.audio_fp._run_fpcalc",
+    with patch("video_uniquifier.core.qa.audio_fp.fpcalc_available", return_value=True), patch(
+        "video_uniquifier.core.qa.audio_fp._run_fpcalc",
         side_effect=[{"fingerprint": short_fp}, {"fingerprint": short_fp}],
     ):
         result = compare_hamming_per_window(in_p, out_p, n_windows=5)

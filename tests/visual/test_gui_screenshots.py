@@ -17,7 +17,7 @@ import pytest
 from PyQt6.QtCore import QSize
 from PyQt6.QtWidgets import QApplication
 
-from yt_uniquifier.gui.widgets.chart_widget import HAS_QTCHARTS
+from video_uniquifier.gui.widgets.chart_widget import HAS_QTCHARTS
 
 pytestmark = pytest.mark.visual
 
@@ -41,7 +41,7 @@ SCREENS = {
 
 @pytest.fixture(scope="module")
 def main_window():
-    from yt_uniquifier.gui.app_pyqt import MainWindow
+    from video_uniquifier.gui.app_pyqt import MainWindow
 
     app = QApplication.instance() or QApplication([])
     win = MainWindow()

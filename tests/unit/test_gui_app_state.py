@@ -6,16 +6,16 @@ from pathlib import Path
 
 import pytest
 
-from yt_uniquifier.gui.state import HISTORY_CAP, RECENTS_CAP, AppState, HistoryEntry
+from video_uniquifier.gui.state import HISTORY_CAP, RECENTS_CAP, AppState, HistoryEntry
 
 
 @pytest.fixture
 def isolated_state(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> AppState:
     """AppState whose persistence paths are inside tmp_path."""
-    monkeypatch.setattr("yt_uniquifier.gui.state.CONFIG_DIR", tmp_path)
-    monkeypatch.setattr("yt_uniquifier.gui.state.STATE_PATH", tmp_path / "state.json")
+    monkeypatch.setattr("video_uniquifier.gui.state.CONFIG_DIR", tmp_path)
+    monkeypatch.setattr("video_uniquifier.gui.state.STATE_PATH", tmp_path / "state.json")
     monkeypatch.setattr(
-        "yt_uniquifier.gui.state.HISTORY_PATH", tmp_path / "history.json",
+        "video_uniquifier.gui.state.HISTORY_PATH", tmp_path / "history.json",
     )
     return AppState()
 
@@ -55,10 +55,10 @@ def test_recents_cap(isolated_state: AppState) -> None:
 def test_history_persistence_roundtrip(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    monkeypatch.setattr("yt_uniquifier.gui.state.CONFIG_DIR", tmp_path)
-    monkeypatch.setattr("yt_uniquifier.gui.state.STATE_PATH", tmp_path / "state.json")
+    monkeypatch.setattr("video_uniquifier.gui.state.CONFIG_DIR", tmp_path)
+    monkeypatch.setattr("video_uniquifier.gui.state.STATE_PATH", tmp_path / "state.json")
     monkeypatch.setattr(
-        "yt_uniquifier.gui.state.HISTORY_PATH", tmp_path / "history.json",
+        "video_uniquifier.gui.state.HISTORY_PATH", tmp_path / "history.json",
     )
     s1 = AppState()
     entry = HistoryEntry(

@@ -1,6 +1,6 @@
 # API Contracts
 
-This page is the authoritative reference for `yt-uniquifier`'s
+This page is the authoritative reference for `video-uniquifier`'s
 **public, stable API surface** under the SemVer commitment in
 [Versioning](versioning.md). Every entry below is enforced by a
 snapshot test under `tests/contracts/`; a contract drift fails CI
@@ -11,21 +11,31 @@ with a pointer to `tools/regen_contract_goldens.py`.
 - **`stable`** — covered by the SemVer commitment. MAJOR bump
   required to remove or break; MINOR may add fields.
 - **`experimental`** — covered, but MAY be removed in a MINOR with
-  a `DeprecationWarning`. Pin `==1.3.*` if you depend on it.
+  a `DeprecationWarning`. Pin `==2.0.*` if you depend on it.
 - **`internal`** — not covered. Default for anything not listed.
 
 ## How to import
 
-The supported entry point is the `yt_uniquifier.core` barrel:
+Version 2.0.0 renames the distribution to `video-uniquifier`, Python imports to
+`video_uniquifier`, and executables to `video-uniq`, `video-uniq-gui` and
+`video-uniq-web`. Update plugin entry points to `video_uniquifier.transforms`
+and environment prefixes to `VIDEO_UNIQ_*`, `VIDEO_UNIQUIFIER_*` and `VU_*`.
+Old import/command aliases are removed. GUI settings/history migrate by copying
+the previous data directory when no new state exists; previous caches remain
+separate and are rebuilt. Historical benchmarks/releases keep their original
+artifact names. The owner-authorized naming decision is recorded in
+`specs/29-project-rename-rfc.md` in the repository.
+
+The supported entry point is the `video_uniquifier.core` barrel:
 
 ```python
-from yt_uniquifier.core import (
+from video_uniquifier.core import (
     Plan, Profile, RunOptions, RunSummary, RunEvent,
     build_plan, run_full, compute_plan_hash,
 )
 ```
 
-Importing from submodules (`from yt_uniquifier.core.orchestrator
+Importing from submodules (`from video_uniquifier.core.orchestrator
 import ...`) still works but is **not** covered by SemVer — those
 paths may be reorganised internally between MINOR releases.
 
@@ -46,7 +56,7 @@ Every model below has its full JSON schema locked by
 | `Chapter` | `core/models.py` | `frozen=True`. |
 | `SourceMeta` | `core/models.py` | `frozen=True`. Stable serialized A/V/subtitle/chapter probe result. Auxiliary attachment/data/cover-art topology is intentionally private/internal so this corrective change does not alter the v1 schema. |
 | `EncoderCandidate` | `core/models.py` | `frozen=True`. `max_parallel ∈ [1, 64]`; includes AV1 software vendors `svtav1` and `libaom`. |
-| `TransformConfig` | `core/models.py` | `extra="forbid"`. `params: dict[str, object]` — the parameter dict is shape-checked at the transform's own `*Params` model, not here. `video.fit_aspect.allow_upscale` is an additive boolean and defaults to `false`; shipped fixed-canvas profiles opt in explicitly ([RFC #11](https://github.com/Hostlife22/yt_uniquifier/issues/11)). |
+| `TransformConfig` | `core/models.py` | `extra="forbid"`. `params: dict[str, object]` — the parameter dict is shape-checked at the transform's own `*Params` model, not here. `video.fit_aspect.allow_upscale` is an additive boolean and defaults to `false`; shipped fixed-canvas profiles opt in explicitly ([RFC #11](https://github.com/Hostlife22/video-uniquifier/issues/11)). |
 | `SegmentationConfig` | `core/models.py` | `extra="forbid"`. v0.8.0 added `mode="scene"` opt-in. |
 | `Profile` | `core/models.py` | `extra="forbid"`. The user-facing YAML schema; v1.3 adds `skip_watermark_check`. |
 | `Plan` | `core/models.py` | `frozen=True`. Carries `plan_hash` (resume key) + `run_seed` (NOT part of the hash). |
@@ -123,13 +133,13 @@ Adding a profile is MINOR; removing one is MAJOR (RFC).
 
 ### Public Python surface (`stable`)
 
-`yt_uniquifier.__all__` and `yt_uniquifier.core.__all__` are locked
+`video_uniquifier.__all__` and `video_uniquifier.core.__all__` are locked
 by `tests/contracts/test_public_surface_stable.py`. Adding a name
 is MINOR; removing one is MAJOR.
 
 ### CLI subcommands (`stable`)
 
-Every `yt-uniq` subcommand is part of the contract. Adding a
+Every `video-uniq` subcommand is part of the contract. Adding a
 subcommand or flag is MINOR; removing or renaming is MAJOR.
 
 | Subcommand | Source |
@@ -151,18 +161,18 @@ subcommand or flag is MINOR; removing or renaming is MAJOR.
 
 ### Plugin entry-point group (`stable`)
 
-`yt_uniquifier.transforms` (v0.8.0 R1) is the discovery point for
+`video_uniquifier.transforms` (v0.8.0 R1) is the discovery point for
 third-party transforms. The protocol that registered objects must
 satisfy is `core.transforms.base.TransformSpec` — fields locked by
 the pydantic schema test above.
 
 ## Surfaces marked `experimental`
 
-Pin `yt-uniquifier==1.3.*` if you depend on any of these.
+Pin `video-uniquifier==2.0.*` if you depend on any of these.
 
 | Surface | Reason |
 |---|---|
-| `[web]` HTTP API (`src/yt_uniquifier/web/routes/*`) | v0.9 R4 ships as v1; routes may grow before promotion. |
+| `[web]` HTTP API (`src/video_uniquifier/web/routes/*`) | v0.9 R4 ships as v1; routes may grow before promotion. |
 | `RunEvent` payload key set (the dict itself is stable; individual keys are not) | Additive growth between MINOR releases is expected. |
 | `core.telemetry.TelemetryConfig` | v0.9 R3 ships consent UX; future MINORs may add fields. |
 | `core.notifications.NotificationConfig` | Provider auto-detect may evolve. |
@@ -189,11 +199,11 @@ promotion to `stable` or `experimental`.
 | `test_shipped_profiles_stable.py` | Each YAML's `model_dump(mode="json")` + the set of shipped profile names | `tests/fixtures/contracts/profiles/` + `shipped_profiles.json` |
 | `test_runevent_kinds_stable.py` | `EventKind` literal members + `RunEvent` dataclass shape | `tests/fixtures/contracts/runevent_*.json` |
 | `test_runoptions_dataclass_stable.py` | `RunOptions`, `RunSummary`, `RunResult` field shapes | `tests/fixtures/contracts/dataclasses/` |
-| `test_public_surface_stable.py` | `yt_uniquifier.__all__` and `yt_uniquifier.core.__all__` | `tests/fixtures/contracts/public_surface/` |
+| `test_public_surface_stable.py` | `video_uniquifier.__all__` and `video_uniquifier.core.__all__` | `tests/fixtures/contracts/public_surface/` |
 
 ## See also
 
 - [Versioning & compatibility](versioning.md) — the SemVer
   commitment and the RFC process.
-- [`SECURITY.md`](https://github.com/hostlife22/Video-Deduplicator/blob/main/SECURITY.md) — disclosure policy.
-- [`CHANGELOG.md`](https://github.com/hostlife22/Video-Deduplicator/blob/main/CHANGELOG.md) — every accepted contract change is recorded here.
+- [`SECURITY.md`](https://github.com/hostlife22/video-uniquifier/blob/main/SECURITY.md) — disclosure policy.
+- [`CHANGELOG.md`](https://github.com/hostlife22/video-uniquifier/blob/main/CHANGELOG.md) — every accepted contract change is recorded here.

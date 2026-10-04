@@ -23,7 +23,7 @@ def test_keyframe_cache_key_uses_stat_not_md5(tmp_path: Path) -> None:
     regardless of file size. As a side effect, ``md5_file`` is no
     longer imported by segmenter.py.
     """
-    from yt_uniquifier.core import segmenter as seg_mod
+    from video_uniquifier.core import segmenter as seg_mod
 
     src = tmp_path / "huge.mp4"
     src.write_bytes(b"x" * 1024)
@@ -50,7 +50,7 @@ def test_keyframe_cache_key_uses_stat_not_md5(tmp_path: Path) -> None:
 def test_keyframe_cache_key_is_path_independent(tmp_path: Path) -> None:
     """B1 side benefit: moving the file across mounts (or renaming it
     without touching mtime) hits the same cache entry."""
-    from yt_uniquifier.core import segmenter as seg_mod
+    from video_uniquifier.core import segmenter as seg_mod
 
     a = tmp_path / "a.mp4"
     a.write_bytes(b"identical_content")
@@ -74,8 +74,8 @@ def test_loudnorm_measure_command_preserves_native_audio_for_accuracy(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Pass 1 must not alter channels/rate before EBU R128 measurement."""
-    import yt_uniquifier.core.transforms.audio_loudnorm as ln_mod
-    from yt_uniquifier.core.transforms.audio_loudnorm import (
+    import video_uniquifier.core.transforms.audio_loudnorm as ln_mod
+    from video_uniquifier.core.transforms.audio_loudnorm import (
         LoudnormParams,
         measure,
     )
@@ -123,7 +123,7 @@ def test_loudnorm_measure_command_preserves_native_audio_for_accuracy(
     (3600.0, 1.0, 1),      # pathologically low fps clamped to >=1
 ])
 def test_auto_vmaf_subsample(duration: float, fps: float, expected: int) -> None:
-    from yt_uniquifier.core.qa.vmaf import auto_subsample_for_duration
+    from video_uniquifier.core.qa.vmaf import auto_subsample_for_duration
     assert auto_subsample_for_duration(duration, fps=fps) == expected
 
 
@@ -138,7 +138,7 @@ def test_detect_encoders_runs_probes_in_parallel(
     Each fake _probe_one sleeps 100 ms. Serial would take ~1 s; parallel
     should finish well under 300 ms.
     """
-    from yt_uniquifier.core import encoder as enc_mod
+    from video_uniquifier.core import encoder as enc_mod
 
     monkeypatch.setattr(enc_mod, "_load_cache", lambda _k, **_kw: None)
     monkeypatch.setattr(enc_mod, "_save_cache", lambda _k, _r, **_kw: None)
@@ -178,7 +178,7 @@ def test_nvenc_max_parallel_sums_across_gpus(
     Pre-fix only the first line was parsed. Two consumer cards with
     8 GB free each would report cap=3 (one card), not cap=6 (both).
     """
-    from yt_uniquifier.core import encoder as enc_mod
+    from video_uniquifier.core import encoder as enc_mod
 
     fake_proc = MagicMock(
         returncode=0,
@@ -198,7 +198,7 @@ def test_nvenc_max_parallel_pro_plus_consumer(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Mixed-card host: one A6000 (pro, cap 8) + one 3090 (consumer, cap 3) = 11."""
-    from yt_uniquifier.core import encoder as enc_mod
+    from video_uniquifier.core import encoder as enc_mod
 
     fake_proc = MagicMock(
         returncode=0,
@@ -218,7 +218,7 @@ def test_nvenc_max_parallel_low_vram_clamps(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """A card with <500 MB free still yields 1 session (not 0)."""
-    from yt_uniquifier.core import encoder as enc_mod
+    from video_uniquifier.core import encoder as enc_mod
 
     fake_proc = MagicMock(returncode=0, stdout="200, NVIDIA GeForce GTX 1050\n")
     monkeypatch.setattr(
@@ -232,7 +232,7 @@ def test_nvenc_max_parallel_falls_back_when_smi_missing(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """No nvidia-smi → vendor-default (3)."""
-    from yt_uniquifier.core import encoder as enc_mod
+    from video_uniquifier.core import encoder as enc_mod
 
     def raise_(*_a: Any, **_kw: Any) -> Any:
         raise FileNotFoundError("nvidia-smi")

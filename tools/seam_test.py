@@ -6,7 +6,7 @@ which mostly measured motion. This version compares decoded source and output at
 the same timeline location, resets local timestamps, and performs a bounded
 frame-offset search before comparing a seam window with an in-segment control.
 
-Run after ``yt-uniq run --keep-segments`` so ``state.json`` is available.
+Run after ``video-uniq run --keep-segments`` so ``state.json`` is available.
 """
 
 from __future__ import annotations
@@ -20,7 +20,7 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
-from yt_uniquifier.core.utils.ffmpeg_paths import ffmpeg_bin, ffprobe_bin
+from video_uniquifier.core.utils.ffmpeg_paths import ffmpeg_bin, ffprobe_bin
 
 _ALL_RE = re.compile(r"All:([0-9.]+)")
 
@@ -143,11 +143,11 @@ def _seam_windows(
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("output", type=Path, help="Final output from a yt-uniq run.")
+    parser.add_argument("output", type=Path, help="Final output from a video-uniq run.")
     parser.add_argument("--source", required=True, type=Path, help="Original source file.")
     parser.add_argument(
         "--work-dir", required=True, type=Path,
-        help="The .yt_uniq_work/<plan_hash> directory used for the run.",
+        help="The .video_uniq_work/<plan_hash> directory used for the run.",
     )
     parser.add_argument("--frames", type=int, default=8, help="Frames per comparison window.")
     parser.add_argument(

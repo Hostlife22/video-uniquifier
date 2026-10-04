@@ -6,8 +6,8 @@ from pathlib import Path
 
 import pytest
 
-from yt_uniquifier.core import pipeline as pipeline_mod
-from yt_uniquifier.core.models import (
+from video_uniquifier.core import pipeline as pipeline_mod
+from video_uniquifier.core.models import (
     AudioStream,
     EncoderCandidate,
     HDRInfo,
@@ -17,7 +17,7 @@ from yt_uniquifier.core.models import (
     TransformConfig,
     VideoStream,
 )
-from yt_uniquifier.core.pipeline import FilterGraph, compute_plan_hash
+from video_uniquifier.core.pipeline import FilterGraph, compute_plan_hash
 
 
 @pytest.fixture(autouse=True)

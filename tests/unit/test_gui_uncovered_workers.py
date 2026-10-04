@@ -17,7 +17,7 @@ from unittest.mock import MagicMock, patch
 
 
 def test_probe_worker_failed_on_missing_file(tmp_path: Path) -> None:
-    from yt_uniquifier.gui.workers.probe_worker import ProbeWorker
+    from video_uniquifier.gui.workers.probe_worker import ProbeWorker
 
     worker = ProbeWorker(tmp_path / "does-not-exist.mp4")
     failed: list[str] = []
@@ -27,8 +27,8 @@ def test_probe_worker_failed_on_missing_file(tmp_path: Path) -> None:
 
 
 def test_probe_worker_emits_probed_on_success() -> None:
-    from yt_uniquifier.core.models import SourceMeta
-    from yt_uniquifier.gui.workers.probe_worker import ProbeWorker
+    from video_uniquifier.core.models import SourceMeta
+    from video_uniquifier.gui.workers.probe_worker import ProbeWorker
 
     fake = SourceMeta(
         path=Path("/x.mp4"),
@@ -38,7 +38,7 @@ def test_probe_worker_emits_probed_on_success() -> None:
         video=[], audio=[],
     )
     with patch(
-        "yt_uniquifier.gui.workers.probe_worker.probe", return_value=fake,
+        "video_uniquifier.gui.workers.probe_worker.probe", return_value=fake,
     ):
         worker = ProbeWorker(Path("/x.mp4"))
         received: list[SourceMeta] = []
@@ -51,7 +51,7 @@ def test_probe_worker_emits_probed_on_success() -> None:
 
 
 def test_preflight_worker_failed_on_bad_profile(tmp_path: Path) -> None:
-    from yt_uniquifier.gui.workers.preflight_worker import PreflightWorker
+    from video_uniquifier.gui.workers.preflight_worker import PreflightWorker
 
     worker = PreflightWorker(
         tmp_path / "missing.mp4",
@@ -69,7 +69,7 @@ def test_preflight_worker_failed_on_bad_profile(tmp_path: Path) -> None:
 
 def test_corpus_list_worker_listed_calls_corpus(tmp_path: Path) -> None:
     """CorpusListWorker delegates to the Corpus object passed in __init__."""
-    from yt_uniquifier.gui.workers.corpus_list_worker import CorpusListWorker
+    from video_uniquifier.gui.workers.corpus_list_worker import CorpusListWorker
 
     corpus = MagicMock()
     corpus.list_all = MagicMock(return_value=[])
@@ -81,7 +81,7 @@ def test_corpus_list_worker_listed_calls_corpus(tmp_path: Path) -> None:
 
 
 def test_corpus_list_worker_failed_on_exception() -> None:
-    from yt_uniquifier.gui.workers.corpus_list_worker import CorpusListWorker
+    from video_uniquifier.gui.workers.corpus_list_worker import CorpusListWorker
 
     corpus = MagicMock()
     corpus.list_all = MagicMock(side_effect=RuntimeError("boom"))
@@ -97,10 +97,10 @@ def test_corpus_list_worker_failed_on_exception() -> None:
 
 def test_queue_io_worker_init_op(tmp_path: Path) -> None:
     """`init` op creates a queue at the root."""
-    from yt_uniquifier.gui.workers.queue_io_worker import QueueIoWorker
+    from video_uniquifier.gui.workers.queue_io_worker import QueueIoWorker
 
     with patch(
-        "yt_uniquifier.gui.workers.queue_io_worker.init_queue",
+        "video_uniquifier.gui.workers.queue_io_worker.init_queue",
     ) as init_mock:
         worker = QueueIoWorker(tmp_path, "init")
         done: list[tuple[int, str]] = []
@@ -111,10 +111,10 @@ def test_queue_io_worker_init_op(tmp_path: Path) -> None:
 
 
 def test_queue_io_worker_failed_on_exception(tmp_path: Path) -> None:
-    from yt_uniquifier.gui.workers.queue_io_worker import QueueIoWorker
+    from video_uniquifier.gui.workers.queue_io_worker import QueueIoWorker
 
     with patch(
-        "yt_uniquifier.gui.workers.queue_io_worker.init_queue",
+        "video_uniquifier.gui.workers.queue_io_worker.init_queue",
         side_effect=OSError("permission"),
     ):
         worker = QueueIoWorker(tmp_path, "init")
@@ -128,13 +128,13 @@ def test_queue_io_worker_failed_on_exception(tmp_path: Path) -> None:
 
 
 def test_encoder_detect_worker_emits_detected() -> None:
-    from yt_uniquifier.gui.workers.encoder_detect_worker import (
+    from video_uniquifier.gui.workers.encoder_detect_worker import (
         EncoderDetectWorker,
     )
 
     fake_cands = [{"name": "libx264", "vendor": "cpu"}]
     with patch(
-        "yt_uniquifier.gui.workers.encoder_detect_worker.detect_encoders",
+        "video_uniquifier.gui.workers.encoder_detect_worker.detect_encoders",
         return_value=fake_cands,
     ):
         worker = EncoderDetectWorker()
@@ -145,12 +145,12 @@ def test_encoder_detect_worker_emits_detected() -> None:
 
 
 def test_encoder_detect_worker_failed_on_exception() -> None:
-    from yt_uniquifier.gui.workers.encoder_detect_worker import (
+    from video_uniquifier.gui.workers.encoder_detect_worker import (
         EncoderDetectWorker,
     )
 
     with patch(
-        "yt_uniquifier.gui.workers.encoder_detect_worker.detect_encoders",
+        "video_uniquifier.gui.workers.encoder_detect_worker.detect_encoders",
         side_effect=RuntimeError("ffmpeg missing"),
     ):
         worker = EncoderDetectWorker()
@@ -165,7 +165,7 @@ def test_encoder_detect_worker_failed_on_exception() -> None:
 
 def test_correlate_worker_emits_correlated(tmp_path: Path) -> None:
     """CorrelateWorker runs a subprocess against the given script + csv."""
-    from yt_uniquifier.gui.workers.correlate_worker import CorrelateWorker
+    from video_uniquifier.gui.workers.correlate_worker import CorrelateWorker
 
     script = tmp_path / "correlate.py"
     # ASCII-only — the worker spawns this script as a real subprocess
@@ -184,7 +184,7 @@ def test_correlate_worker_emits_correlated(tmp_path: Path) -> None:
     fake_result.stdout = "phash↔CID correlation: 0.42"
     fake_result.stderr = ""
     with patch(
-        "yt_uniquifier.gui.workers.correlate_worker.subprocess.run",
+        "video_uniquifier.gui.workers.correlate_worker.subprocess.run",
         return_value=fake_result,
     ):
         worker = CorrelateWorker(script, csv)
@@ -195,7 +195,7 @@ def test_correlate_worker_emits_correlated(tmp_path: Path) -> None:
 
 
 def test_correlate_worker_failed_on_subprocess_error(tmp_path: Path) -> None:
-    from yt_uniquifier.gui.workers.correlate_worker import CorrelateWorker
+    from video_uniquifier.gui.workers.correlate_worker import CorrelateWorker
 
     script = tmp_path / "correlate.py"
     script.write_text("import sys; sys.exit(2)")
@@ -204,7 +204,7 @@ def test_correlate_worker_failed_on_subprocess_error(tmp_path: Path) -> None:
 
     import subprocess as _sp
     with patch(
-        "yt_uniquifier.gui.workers.correlate_worker.subprocess.run",
+        "video_uniquifier.gui.workers.correlate_worker.subprocess.run",
         side_effect=_sp.CalledProcessError(
             returncode=2, cmd=[], output="", stderr="script error",
         ),

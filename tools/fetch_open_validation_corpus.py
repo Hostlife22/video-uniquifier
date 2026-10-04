@@ -88,7 +88,7 @@ def _download(source: dict[str, Any], destination: Path) -> None:
     for offset in (initial_offset, 0):
         if offset == 0 and partial.exists():
             partial.unlink()
-        headers = {"User-Agent": "yt-uniquifier-open-corpus/1.5"}
+        headers = {"User-Agent": "video-uniquifier-open-corpus/1.5"}
         if offset:
             headers["Range"] = f"bytes={offset}-"
         request = urllib.request.Request(source["url"], headers=headers)

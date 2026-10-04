@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import pytest
 
-from yt_uniquifier.core.errors import PipelineError
-from yt_uniquifier.core.models import EncoderCandidate
-from yt_uniquifier.core.sanitizer import needs_sanitization, reject_for_hdr_or_hevc
+from video_uniquifier.core.errors import PipelineError
+from video_uniquifier.core.models import EncoderCandidate
+from video_uniquifier.core.sanitizer import needs_sanitization, reject_for_hdr_or_hevc
 
 
 def _enc(name: str, vendor: str, codec: str = "h264") -> EncoderCandidate:
@@ -73,8 +73,8 @@ def test_no_reject_for_sdr_h264() -> None:
 from pathlib import Path  # noqa: E402
 from typing import Any  # noqa: E402
 
-from yt_uniquifier.core import sanitizer  # noqa: E402
-from yt_uniquifier.core.runner import CancelToken, RunResult  # noqa: E402
+from video_uniquifier.core import sanitizer  # noqa: E402
+from video_uniquifier.core.runner import CancelToken, RunResult  # noqa: E402
 
 
 def test_sanitize_bitstream_missing_input(tmp_path: Path) -> None:

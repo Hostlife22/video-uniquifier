@@ -1,6 +1,6 @@
 # RFC: explicit no-upscale geometry policy
 
-Status: proposed — [GitHub RFC #11](https://github.com/Hostlife22/yt_uniquifier/issues/11)
+Status: proposed — [GitHub RFC #11](https://github.com/Hostlife22/video-uniquifier/issues/11)
 
 SemVer classification: MINOR, with an explicit compatibility migration.
 

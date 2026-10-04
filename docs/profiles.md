@@ -1,7 +1,7 @@
 # Profiles
 
 A profile is a YAML file declaring which transforms apply and at what intensity.
-Profiles live under `src/yt_uniquifier/profiles/` and can be loaded by path.
+Profiles live under `src/video_uniquifier/profiles/` and can be loaded by path.
 
 ## YAML schema
 
@@ -53,7 +53,7 @@ axis. For example, `0.06` removes at most 6% of width in total across left+right
   then snapped DOWN to the nearest keyframe to preserve the stream-copy
   invariant. Falls back to a single segment if no scene cuts survive
   the snap. Requires the `[scene]` extra
-  (`pip install 'yt-uniquifier[scene]'`).
+  (`pip install 'video-uniquifier[scene]'`).
 
 ### Per-segment VMAF target-quality (v0.8.0 R5)
 
@@ -120,7 +120,7 @@ or platform preference is assumed. Profiles target `av1` —
 `pick_encoder()` defaults to the `quality` policy: `libaom-av1`, then
 `libsvtav1`, then a verified hardware encoder. `balanced` prefers SVT-AV1 and
 `speed` prefers verified NVENC/QSV/VideoToolbox/AMF; configure them with
-`YT_UNIQ_ENCODER_POLICY`. `av1_vulkan` is not advertised because the existing
+`VIDEO_UNIQ_ENCODER_POLICY`. `av1_vulkan` is not advertised because the existing
 CPU-frame filter graph has no validated Vulkan `hwupload` path. The CRF scale is
 0..63 with default 30; quality and speed are not numerically equivalent to an
 x264 CRF and require a content-specific control benchmark.
@@ -168,11 +168,11 @@ encode time.
 1. Copy `soft.yaml` or `medium.yaml` to `my_profile.yaml`. Start from the
    smallest transform set that meets the authorized derivative's editorial need.
 2. Toggle `enabled` and tune `params`.
-3. Run with `yt-uniq run --profile my_profile.yaml …`.
+3. Run with `video-uniq run --profile my_profile.yaml …`.
 4. Inspect `<output>.qa.html`. Correctness must pass before interpreting quality
    or internal similarity diagnostics. Do not apply a VMAF threshold until the
    source/output pair has valid temporal and spatial registration.
-5. For automatic intensity tuning, use `yt-uniq calibrate` — see
+5. For automatic intensity tuning, use `video-uniq calibrate` — see
    [calibrate.md](./calibrate.md).
 
 ## Notes
@@ -245,7 +245,7 @@ transforms:
 when a rubberband-enabled profile runs on a source `>60 s` or
 `>1080p` so the wall-cost is surfaced before the encode starts. The
 WARN is informational — encode still proceeds. Implemented in
-`src/yt_uniquifier/core/preflight.py::_check_rubberband_perf`.
+`src/video_uniquifier/core/preflight.py::_check_rubberband_perf`.
 
 _(Measured 2026-05-31 on `evermeet.cx` ffmpeg 8.1.1 + librubberband
 on an 8-core Mac. Re-measure annually or after an ffmpeg major bump.)_

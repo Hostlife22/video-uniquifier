@@ -13,7 +13,7 @@ from pathlib import Path
 import pytest
 from PIL import Image
 
-from yt_uniquifier.core.qa import cid_predict
+from video_uniquifier.core.qa import cid_predict
 
 
 class _FakeHash:

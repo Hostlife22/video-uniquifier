@@ -6,9 +6,9 @@ from pathlib import Path
 from time import monotonic, sleep
 from unittest.mock import Mock, patch
 
-from yt_uniquifier.core.models import Profile, TransformConfig
-from yt_uniquifier.gui.workers.queue_status_worker import QueueStatusWorker
-from yt_uniquifier.gui.workers.queue_worker import QueueWorker
+from video_uniquifier.core.models import Profile, TransformConfig
+from video_uniquifier.gui.workers.queue_status_worker import QueueStatusWorker
+from video_uniquifier.gui.workers.queue_worker import QueueWorker
 
 
 def _profile() -> Profile:
@@ -26,7 +26,7 @@ def test_status_worker_failed_when_queue_not_initialised(tmp_path: Path) -> None
 
 def test_status_worker_emits_stats_then_cancels(tmp_path: Path) -> None:
     """One stats emission, then we cancel — worker exits."""
-    from yt_uniquifier.core.queue.leasing import init_queue
+    from video_uniquifier.core.queue.leasing import init_queue
     init_queue(tmp_path)
     worker = QueueStatusWorker(tmp_path, poll_sec=0.1)
     received: list[dict] = []
@@ -43,7 +43,7 @@ def test_status_worker_emits_stats_then_cancels(tmp_path: Path) -> None:
 
 def test_queue_worker_empty_stops_when_flag(tmp_path: Path) -> None:
     """Empty queue + stop_after_empty=True → finished_ok with queue_empty."""
-    from yt_uniquifier.core.queue.leasing import init_queue
+    from video_uniquifier.core.queue.leasing import init_queue
     init_queue(tmp_path)
     worker = QueueWorker(
         tmp_path, _profile(), tmp_path / "out",
@@ -57,7 +57,7 @@ def test_queue_worker_empty_stops_when_flag(tmp_path: Path) -> None:
 
 def test_queue_worker_processes_one_file(tmp_path: Path) -> None:
     """Add 1 file, mock run_full, ensure lease+release flow."""
-    from yt_uniquifier.core.queue.leasing import FileQueue, init_queue
+    from video_uniquifier.core.queue.leasing import FileQueue, init_queue
     init_queue(tmp_path)
     q = FileQueue(tmp_path)
     src = tmp_path / "src.mp4"
@@ -72,11 +72,11 @@ def test_queue_worker_processes_one_file(tmp_path: Path) -> None:
 
     with (
         patch(
-            "yt_uniquifier.gui.workers.queue_worker.build_plan",
+            "video_uniquifier.gui.workers.queue_worker.build_plan",
             return_value=fake_plan,
         ),
         patch(
-            "yt_uniquifier.gui.workers.queue_worker.run_full",
+            "video_uniquifier.gui.workers.queue_worker.run_full",
             side_effect=lambda _plan, opts, **_kwargs: opts.output.write_bytes(b"output"),
         ),
     ):
@@ -93,7 +93,7 @@ def test_queue_worker_processes_one_file(tmp_path: Path) -> None:
 
 
 def test_queue_worker_heartbeats_during_encode(tmp_path: Path) -> None:
-    from yt_uniquifier.core.queue.leasing import FileQueue, init_queue
+    from video_uniquifier.core.queue.leasing import FileQueue, init_queue
 
     init_queue(tmp_path)
     q = FileQueue(tmp_path)
@@ -119,11 +119,11 @@ def test_queue_worker_heartbeats_during_encode(tmp_path: Path) -> None:
 
     with (
         patch(
-            "yt_uniquifier.gui.workers.queue_worker.build_plan",
+            "video_uniquifier.gui.workers.queue_worker.build_plan",
             return_value=fake_plan,
         ),
         patch(
-            "yt_uniquifier.gui.workers.queue_worker.run_full",
+            "video_uniquifier.gui.workers.queue_worker.run_full",
             side_effect=delayed_run,
         ),
     ):
@@ -172,10 +172,10 @@ def test_queue_worker_periodically_reconciles_even_when_reaper_moves_nothing(
 
     with (
         patch(
-            "yt_uniquifier.gui.workers.queue_worker.FileQueue",
+            "video_uniquifier.gui.workers.queue_worker.FileQueue",
             return_value=fake_queue,
         ),
-        patch("yt_uniquifier.gui.workers.queue_worker.sleep", return_value=None),
+        patch("video_uniquifier.gui.workers.queue_worker.sleep", return_value=None),
     ):
         worker.run()
 

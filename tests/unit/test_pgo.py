@@ -20,7 +20,7 @@ from pathlib import Path
 
 import pytest
 
-from yt_uniquifier.core import pgo
+from video_uniquifier.core import pgo
 
 
 def test_bucket_1080p() -> None:

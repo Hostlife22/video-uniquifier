@@ -2,7 +2,7 @@
 
 Walks every screen + widget and asserts that every interactive Qt
 widget has a non-empty `accessibleName()`. The class list comes from
-`yt_uniquifier.gui.a11y.INTERACTIVE_WIDGET_CLASSES` so the contract
+`video_uniquifier.gui.a11y.INTERACTIVE_WIDGET_CLASSES` so the contract
 is centralized — expanding it is a deliberate change.
 
 Failures from this test are the screen-reader equivalent of a missing
@@ -16,10 +16,10 @@ import pytest
 from PyQt6.QtCore import QThread
 from PyQt6.QtWidgets import QApplication, QWidget
 
-from yt_uniquifier.gui.a11y import INTERACTIVE_WIDGET_CLASSES
-from yt_uniquifier.gui.app_pyqt import SIDEBAR_ITEMS, _build_screen
-from yt_uniquifier.gui.state import AppState
-from yt_uniquifier.gui.widgets.encoder_selector import EncoderSelector
+from video_uniquifier.gui.a11y import INTERACTIVE_WIDGET_CLASSES
+from video_uniquifier.gui.app_pyqt import SIDEBAR_ITEMS, _build_screen
+from video_uniquifier.gui.state import AppState
+from video_uniquifier.gui.widgets.encoder_selector import EncoderSelector
 
 
 def _stop_background_workers(screen: QWidget) -> None:
@@ -140,7 +140,7 @@ def test_interactive_class_list_is_non_empty() -> None:
 def test_mark_requires_non_empty_name(app: QApplication) -> None:
     from PyQt6.QtWidgets import QPushButton
 
-    from yt_uniquifier.gui.a11y import mark
+    from video_uniquifier.gui.a11y import mark
 
     btn = QPushButton("ok")
     with pytest.raises(ValueError, match="non-empty name"):

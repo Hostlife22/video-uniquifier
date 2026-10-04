@@ -5,9 +5,9 @@ import subprocess
 import numpy as np
 import pytest
 
-from yt_uniquifier.core.transforms import get
-from yt_uniquifier.core.transforms.audio_pitch import PitchTempoParams
-from yt_uniquifier.core.transforms.base import LabelAllocator
+from video_uniquifier.core.transforms import get
+from video_uniquifier.core.transforms.audio_pitch import PitchTempoParams
+from video_uniquifier.core.transforms.base import LabelAllocator
 
 
 @pytest.mark.integration

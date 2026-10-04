@@ -61,7 +61,7 @@ def test_release_binding_rejects_replaced_archive_or_wrong_commit(tmp_path: Path
         artifact = tmp_path / f"{platform}.zip"
         artifact.write_bytes(b"archive")
         document = inventory(root, artifact, version="1.6.0", commit="abc")
-        (tmp_path / f"yt-uniq-gui-{platform}.sbom.cdx.json").write_text(json.dumps(document))
+        (tmp_path / f"video-uniq-gui-{platform}.sbom.cdx.json").write_text(json.dumps(document))
     verify_release_inventory(tmp_path, "abc")
     with pytest.raises(ValueError, match="commit"):
         verify_release_inventory(tmp_path, "different")

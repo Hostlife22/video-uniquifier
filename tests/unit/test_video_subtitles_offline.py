@@ -16,9 +16,9 @@ from __future__ import annotations
 import pytest
 from pydantic import ValidationError
 
-from yt_uniquifier.core.transforms import get
-from yt_uniquifier.core.transforms.base import LabelAllocator
-from yt_uniquifier.core.transforms.video_subtitles import (
+from video_uniquifier.core.transforms import get
+from video_uniquifier.core.transforms.base import LabelAllocator
+from video_uniquifier.core.transforms.video_subtitles import (
     SubtitleBurnParams,
     _escape_subtitle_path,
 )

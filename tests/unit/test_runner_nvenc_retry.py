@@ -7,10 +7,10 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from yt_uniquifier.core import runner as runner_mod
-from yt_uniquifier.core.errors import PipelineError
-from yt_uniquifier.core.pipeline import BuiltCommand
-from yt_uniquifier.core.runner import _is_nvenc_oom, run
+from video_uniquifier.core import runner as runner_mod
+from video_uniquifier.core.errors import PipelineError
+from video_uniquifier.core.pipeline import BuiltCommand
+from video_uniquifier.core.runner import _is_nvenc_oom, run
 
 
 class _FakeStream:

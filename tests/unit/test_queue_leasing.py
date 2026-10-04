@@ -10,8 +10,8 @@ from pathlib import Path
 
 import pytest
 
-from yt_uniquifier.core.errors import YtUniquifierError
-from yt_uniquifier.core.queue.leasing import (
+from video_uniquifier.core.errors import VideoUniquifierError
+from video_uniquifier.core.queue.leasing import (
     FileQueue,
     QueueError,
     init_queue,
@@ -36,13 +36,13 @@ def test_init_verifies_atomic_rename(tmp_path: Path) -> None:
 def test_init_raises_when_rename_unsupported(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    from yt_uniquifier.core.queue import leasing as leasing_mod
+    from video_uniquifier.core.queue import leasing as leasing_mod
 
     def fake_rename(*_a: object, **_kw: object) -> None:
         raise OSError("Operation not supported")
 
     monkeypatch.setattr(leasing_mod.os, "rename", fake_rename)
-    with pytest.raises((QueueError, YtUniquifierError), match="atomic"):
+    with pytest.raises((QueueError, VideoUniquifierError), match="atomic"):
         init_queue(tmp_path / "q")
 
 
@@ -104,7 +104,7 @@ def test_implicit_worker_identity_is_unique_per_instance(
     # GitHub's macOS arm64 runner can report a hostname longer than the queue's
     # 64-character component policy. The PID+nonce must survive truncation.
     monkeypatch.setattr(
-        "yt_uniquifier.core.queue.leasing.socket.gethostname",
+        "video_uniquifier.core.queue.leasing.socket.gethostname",
         lambda: "cloud-runner-" + "a" * 100,
     )
     init_queue(tmp_path / "q")
@@ -243,7 +243,7 @@ def test_commit_output_recovers_hard_crash_after_fence(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """A crash after the token fence must not strand a completed output."""
-    from yt_uniquifier.core.queue import leasing as leasing_mod
+    from video_uniquifier.core.queue import leasing as leasing_mod
 
     class SimulatedPowerLoss(BaseException):
         pass
@@ -301,7 +301,7 @@ def test_commit_output_retains_journal_when_publish_and_rollback_fail(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    from yt_uniquifier.core.queue import leasing as leasing_mod
+    from video_uniquifier.core.queue import leasing as leasing_mod
 
     init_queue(tmp_path / "q")
     _seed_pending(tmp_path / "q", ["a.mp4"])
@@ -351,7 +351,7 @@ def test_commit_output_recovers_after_publish_before_fence_finalization(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    from yt_uniquifier.core.queue import leasing as leasing_mod
+    from video_uniquifier.core.queue import leasing as leasing_mod
 
     init_queue(tmp_path / "q")
     _seed_pending(tmp_path / "q", ["a.mp4"])
@@ -438,7 +438,7 @@ def test_commit_journal_fsync_failure_keeps_lease_and_cleans_partial_files(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    from yt_uniquifier.core.queue import leasing as leasing_mod
+    from video_uniquifier.core.queue import leasing as leasing_mod
 
     init_queue(tmp_path / "q")
     _seed_pending(tmp_path / "q", ["a.mp4"])

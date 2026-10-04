@@ -2,7 +2,7 @@ from pathlib import PurePosixPath, PureWindowsPath
 
 import pytest
 
-from yt_uniquifier.core import redaction
+from video_uniquifier.core import redaction
 
 
 @pytest.mark.parametrize("home, value", [

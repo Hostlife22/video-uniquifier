@@ -20,20 +20,20 @@ from tests.conftest import needs_ffmpeg
 
 def _frontend(root_text: str, kind: str, ready: Any, start: Any, results: Any) -> None:
     root = Path(root_text)
-    os.environ["YT_UNIQ_RESOURCE_LOCK_DIR"] = str(root / "registry")
+    os.environ["VIDEO_UNIQ_RESOURCE_LOCK_DIR"] = str(root / "registry")
     source, profile = root / "source.mp4", root / "profile.yaml"
     try:
         from typer.testing import CliRunner
 
-        from yt_uniquifier.cli.app import app
-        from yt_uniquifier.core import encoder
-        from yt_uniquifier.core.queue.leasing import FileQueue, init_queue
+        from video_uniquifier.cli.app import app
+        from video_uniquifier.core import encoder
+        from video_uniquifier.core.queue.leasing import FileQueue, init_queue
 
         encoder.CACHE_PATH = root / f"{kind}-encoders.json"
         if kind == "web":
             from fastapi.testclient import TestClient
 
-            from yt_uniquifier.web.app import WebConfig, build_app
+            from video_uniquifier.web.app import WebConfig, build_app
         ready.put(kind)
         if not start.wait(30):
             raise TimeoutError("frontend start barrier")

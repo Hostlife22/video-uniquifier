@@ -47,11 +47,11 @@ import pytest
 from PyQt6.QtCore import Qt, QThread
 from PyQt6.QtWidgets import QApplication, QPushButton, QWidget
 
-from yt_uniquifier.gui.a11y import INTERACTIVE_WIDGET_CLASSES
-from yt_uniquifier.gui.app_pyqt import SIDEBAR_ITEMS, _build_screen
-from yt_uniquifier.gui.state import AppState
-from yt_uniquifier.gui.theme import qss_for
-from yt_uniquifier.gui.widgets.encoder_selector import EncoderSelector
+from video_uniquifier.gui.a11y import INTERACTIVE_WIDGET_CLASSES
+from video_uniquifier.gui.app_pyqt import SIDEBAR_ITEMS, _build_screen
+from video_uniquifier.gui.state import AppState
+from video_uniquifier.gui.theme import qss_for
+from video_uniquifier.gui.widgets.encoder_selector import EncoderSelector
 
 # Minimum touch / click target size in CSS-px for desktop Qt. 44×44 is
 # the WCAG 2.5.5 AAA threshold for touch; for desktop we relax per the

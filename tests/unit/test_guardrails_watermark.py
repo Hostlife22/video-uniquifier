@@ -17,10 +17,10 @@ from pathlib import Path
 
 import pytest
 
-from yt_uniquifier.core import preflight as pf
-from yt_uniquifier.core.guardrails import watermark as wm
-from yt_uniquifier.core.guardrails.watermark import WatermarkFinding
-from yt_uniquifier.core.models import (
+from video_uniquifier.core import preflight as pf
+from video_uniquifier.core.guardrails import watermark as wm
+from video_uniquifier.core.guardrails.watermark import WatermarkFinding
+from video_uniquifier.core.models import (
     EncoderCandidate,
     HDRInfo,
     Plan,
@@ -28,7 +28,7 @@ from yt_uniquifier.core.models import (
     SourceMeta,
     VideoStream,
 )
-from yt_uniquifier.core.pipeline import compute_plan_hash
+from video_uniquifier.core.pipeline import compute_plan_hash
 
 
 def _src(tmp_path: Path) -> SourceMeta:
@@ -108,7 +108,7 @@ def test_preflight_emits_unavailable_when_detector_skipped(
     # detect_watermark returning None means OpenCV is missing or another
     # graceful-skip path fired.
     monkeypatch.setattr(
-        "yt_uniquifier.core.guardrails.watermark.detect_watermark",
+        "video_uniquifier.core.guardrails.watermark.detect_watermark",
         lambda _src, **_kwargs: None,
     )
     findings = pf._check_input_watermark(src, plan)
@@ -122,7 +122,7 @@ def test_preflight_emits_fail_on_detection(
     src = _src(tmp_path)
     plan = _plan(src)
     monkeypatch.setattr(
-        "yt_uniquifier.core.guardrails.watermark.detect_watermark",
+        "video_uniquifier.core.guardrails.watermark.detect_watermark",
         lambda _src, **_kwargs: WatermarkFinding(
             detected=True, confidence=0.78,
             sampled_frames=5, matched_frames=2,
@@ -143,7 +143,7 @@ def test_preflight_no_finding_when_detector_finds_nothing(
     src = _src(tmp_path)
     plan = _plan(src)
     monkeypatch.setattr(
-        "yt_uniquifier.core.guardrails.watermark.detect_watermark",
+        "video_uniquifier.core.guardrails.watermark.detect_watermark",
         lambda _src, **_kwargs: WatermarkFinding(
             detected=False, confidence=0.20,
             sampled_frames=5, matched_frames=0,

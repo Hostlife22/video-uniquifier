@@ -36,7 +36,7 @@ def test_sscd_self_similarity_is_near_one(tiny_clip: Path, tmp_path: Path) -> No
     Uses the real downloaded model (cached after first call). On a fresh
     cache this test pays ~80 MB of network + ~5-10 s of CPU embedding.
     """
-    from yt_uniquifier.core.qa.sscd import compute_sscd
+    from video_uniquifier.core.qa.sscd import compute_sscd
 
     # Reuse the fixture clip as both source and output.
     res = compute_sscd(tiny_clip, tiny_clip, frame_count=8)
@@ -62,7 +62,7 @@ def test_sscd_two_unrelated_clips_score_lower(
     asserting "low" precisely, just "not 1.0"."""
     import subprocess
 
-    from yt_uniquifier.core.qa.sscd import compute_sscd
+    from video_uniquifier.core.qa.sscd import compute_sscd
 
     other = tmp_path / "other.mp4"
     subprocess.run(

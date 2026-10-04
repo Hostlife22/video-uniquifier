@@ -5,9 +5,9 @@ from pathlib import Path
 import pytest
 
 from tests.unit.test_pipeline_graph import _plan, _src
-from yt_uniquifier.core import media_validation
-from yt_uniquifier.core.errors import PipelineError
-from yt_uniquifier.core.models import AudioStream, Chapter, SourceMeta, TransformConfig
+from video_uniquifier.core import media_validation
+from video_uniquifier.core.errors import PipelineError
+from video_uniquifier.core.models import AudioStream, Chapter, SourceMeta, TransformConfig
 
 
 def test_media_contract_detects_missing_audio_and_chapters(

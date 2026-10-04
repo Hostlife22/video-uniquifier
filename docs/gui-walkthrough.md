@@ -7,8 +7,8 @@ reference (event signals, worker wiring, packaging) lives in
 ## Launching
 
 ```bash
-pip install yt-uniquifier[gui]
-yt-uniq-gui
+pip install video-uniquifier[gui]
+video-uniq-gui
 ```
 
 The first launch shows a one-time **Local telemetry** dialog

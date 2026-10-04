@@ -1,6 +1,6 @@
 # Experimental calibration workflow
 
-`yt-uniq calibrate` searches the intensity of an existing profile for processing
+`video-uniq calibrate` searches the intensity of an existing profile for processing
 owned or licensed media. It compares the source with an authorized derivative using
 local engineering diagnostics. It does not predict YouTube Content ID or any other
 external rights-management system.
@@ -12,8 +12,8 @@ profile on the full source and inspect the final QA report before publication.
 ## Quick start
 
 ```bash
-yt-uniq calibrate /path/to/master.mp4 \
-  --base src/yt_uniquifier/profiles/medium.yaml \
+video-uniq calibrate /path/to/master.mp4 \
+  --base src/video_uniquifier/profiles/medium.yaml \
   --out /path/to/tuned.yaml \
   --target 0.2 \
   --min-quality 88.0 \
@@ -21,7 +21,7 @@ yt-uniq calibrate /path/to/master.mp4 \
   --clip-sec 60.0 \
   --metric chromaprint
 
-yt-uniq run /path/to/master.mp4 \
+video-uniq run /path/to/master.mp4 \
   --profile /path/to/tuned.yaml \
   --out /path/to/derivative.mp4
 ```
@@ -85,7 +85,7 @@ calibrations even if both use the numeric threshold `88`.
 | `--clip-sec` | 60.0 | Total time distributed over start/middle/end windows |
 | `--metric` | chromaprint | `chromaprint` or `sscd` local diagnostic |
 | `--encoder` | auto | Pin when the production encode will use a specific encoder |
-| `--work-dir` | `.yt_uniq_calib` | Probe, candidate, work, and scored-trial cache directory |
+| `--work-dir` | `.video_uniq_calib` | Probe, candidate, work, and scored-trial cache directory |
 
 ## Reading the result
 
@@ -106,8 +106,8 @@ fresh measurement with otherwise identical inputs.
 ```python
 from pathlib import Path
 
-from yt_uniquifier.core.calibration.loop import CalibrationTarget, calibrate
-from yt_uniquifier.core.profile_loader import dump_profile, load_profile
+from video_uniquifier.core.calibration.loop import CalibrationTarget, calibrate
+from video_uniquifier.core.profile_loader import dump_profile, load_profile
 
 base = load_profile(Path("profiles/medium.yaml"))
 result = calibrate(

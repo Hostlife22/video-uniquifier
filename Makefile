@@ -1,4 +1,4 @@
-# yt-uniquifier — shortcuts for common dev / install / build tasks.
+# video-uniquifier — shortcuts for common dev / install / build tasks.
 #
 # Usage:
 #   make              show this help
@@ -16,8 +16,8 @@ PY          := $(VENV)/bin/python
 RUFF        := $(VENV)/bin/ruff
 MYPY        := $(VENV)/bin/mypy
 PYTEST      := $(VENV)/bin/pytest
-YT_UNIQ     := $(VENV)/bin/yt-uniq
-YT_UNIQ_GUI := $(VENV)/bin/yt-uniq-gui
+VIDEO_UNIQ     := $(VENV)/bin/video-uniq
+VIDEO_UNIQ_GUI := $(VENV)/bin/video-uniq-gui
 QT_OFFSCREEN := QT_QPA_PLATFORM=offscreen
 CORPUS_MANIFEST ?= validation-corpus/manifest.local.yaml
 CORPUS_RESULTS ?= validation-corpus/results/production
@@ -27,7 +27,7 @@ CORPUS_RESULTS ?= validation-corpus/results/production
 
 .PHONY: help
 help:   ## Show this help.
-	@echo "yt-uniquifier — make targets:"
+	@echo "video-uniquifier — make targets:"
 	@echo
 	@grep -hE '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
 		| awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2}'
@@ -88,7 +88,7 @@ lint-fix:  ## Auto-fix ruff issues where possible.
 
 .PHONY: typecheck
 typecheck:  ## Run mypy --strict on src/.
-	$(MYPY) src/yt_uniquifier
+	$(MYPY) src/video_uniquifier
 
 .PHONY: test
 test:  ## Run full pytest suite (~2–20 min by extras/hardware; includes real FFmpeg).
@@ -120,16 +120,16 @@ check: lint typecheck test  ## All quality gates: ruff + mypy + full pytest.
 
 # ---- run -------------------------------------------------------------
 .PHONY: gui
-gui:  ## Launch yt-uniq-gui (desktop app).
-	$(YT_UNIQ_GUI)
+gui:  ## Launch video-uniq-gui (desktop app).
+	$(VIDEO_UNIQ_GUI)
 
 .PHONY: cli
-cli:  ## Show yt-uniq CLI help.
-	$(YT_UNIQ) --help
+cli:  ## Show video-uniq CLI help.
+	$(VIDEO_UNIQ) --help
 
 .PHONY: probe-encoders
 probe-encoders:  ## List ffmpeg encoders detected on this machine.
-	$(YT_UNIQ) probe --encoders
+	$(VIDEO_UNIQ) probe --encoders
 
 .PHONY: production-benchmark
 production-benchmark:  ## Run licensed corpus current/proposed benchmark + reports.
@@ -138,9 +138,9 @@ production-benchmark:  ## Run licensed corpus current/proposed benchmark + repor
 
 # ---- packaging -------------------------------------------------------
 .PHONY: build
-build: venv  ## Build desktop binary via PyInstaller (dist/yt-uniq-gui.app on macOS).
+build: venv  ## Build desktop binary via PyInstaller (dist/video-uniq-gui.app on macOS).
 	$(PIP) install --quiet pyinstaller
-	$(PY) -m PyInstaller pyinstaller/yt-uniq-gui.spec --clean --noconfirm
+	$(PY) -m PyInstaller pyinstaller/video-uniq-gui.spec --clean --noconfirm
 
 .PHONY: build-wheel
 build-wheel: venv  ## Build pip-installable wheel into dist/.
@@ -150,9 +150,9 @@ build-wheel: venv  ## Build pip-installable wheel into dist/.
 # ---- maintenance -----------------------------------------------------
 .PHONY: reset-cache
 reset-cache:  ## Remove encoder + keyframe + work caches (force re-detect).
-	rm -rf ~/.cache/yt_uniquifier/encoders.json
-	rm -rf ~/.cache/yt_uniquifier/keyframes
-	@echo "Cleared ~/.cache/yt_uniquifier/{encoders.json,keyframes}"
+	rm -rf ~/.cache/video_uniquifier/encoders.json
+	rm -rf ~/.cache/video_uniquifier/keyframes
+	@echo "Cleared ~/.cache/video_uniquifier/{encoders.json,keyframes}"
 
 .PHONY: clean
 clean:  ## Remove generated builds, docs site, test caches and coverage reports.

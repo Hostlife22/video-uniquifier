@@ -8,8 +8,8 @@ from pathlib import Path
 import pytest
 from PyQt6.QtWidgets import QApplication, QTableWidgetItem
 
-from yt_uniquifier.gui.screens.validation import ValidationScreen
-from yt_uniquifier.gui.state import AppState
+from video_uniquifier.gui.screens.validation import ValidationScreen
+from video_uniquifier.gui.state import AppState
 
 
 @pytest.fixture(scope="module")
@@ -22,9 +22,9 @@ def app() -> QApplication:
 
 def test_validation_step_navigation(app: QApplication, tmp_path: Path,
                                      monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr("yt_uniquifier.gui.state.CONFIG_DIR", tmp_path)
-    monkeypatch.setattr("yt_uniquifier.gui.state.STATE_PATH", tmp_path / "s.json")
-    monkeypatch.setattr("yt_uniquifier.gui.state.HISTORY_PATH", tmp_path / "h.json")
+    monkeypatch.setattr("video_uniquifier.gui.state.CONFIG_DIR", tmp_path)
+    monkeypatch.setattr("video_uniquifier.gui.state.STATE_PATH", tmp_path / "s.json")
+    monkeypatch.setattr("video_uniquifier.gui.state.HISTORY_PATH", tmp_path / "h.json")
     state = AppState()
     screen = ValidationScreen(state)
 
@@ -49,9 +49,9 @@ def test_gen_btn_reenabled_after_finished(
     cleared so the Generate button is enabled for the next click. The
     previous implementation kept gen_worker set forever, permanently
     disabling the button after the first run."""
-    monkeypatch.setattr("yt_uniquifier.gui.state.CONFIG_DIR", tmp_path)
-    monkeypatch.setattr("yt_uniquifier.gui.state.STATE_PATH", tmp_path / "s.json")
-    monkeypatch.setattr("yt_uniquifier.gui.state.HISTORY_PATH", tmp_path / "h.json")
+    monkeypatch.setattr("video_uniquifier.gui.state.CONFIG_DIR", tmp_path)
+    monkeypatch.setattr("video_uniquifier.gui.state.STATE_PATH", tmp_path / "s.json")
+    monkeypatch.setattr("video_uniquifier.gui.state.HISTORY_PATH", tmp_path / "h.json")
     state = AppState()
     screen = ValidationScreen(state)
 
@@ -81,15 +81,15 @@ def test_gen_btn_reenabled_after_finished(
 
 def test_validation_save_csv_appends_row(app: QApplication, tmp_path: Path,
                                           monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr("yt_uniquifier.gui.state.CONFIG_DIR", tmp_path)
-    monkeypatch.setattr("yt_uniquifier.gui.state.STATE_PATH", tmp_path / "s.json")
-    monkeypatch.setattr("yt_uniquifier.gui.state.HISTORY_PATH", tmp_path / "h.json")
+    monkeypatch.setattr("video_uniquifier.gui.state.CONFIG_DIR", tmp_path)
+    monkeypatch.setattr("video_uniquifier.gui.state.STATE_PATH", tmp_path / "s.json")
+    monkeypatch.setattr("video_uniquifier.gui.state.HISTORY_PATH", tmp_path / "h.json")
     # Redirect DEFAULT_CSV to a temp file.
     csv_path = tmp_path / "validation_log.csv"
-    monkeypatch.setattr("yt_uniquifier.gui.screens.validation.DEFAULT_CSV", csv_path)
+    monkeypatch.setattr("video_uniquifier.gui.screens.validation.DEFAULT_CSV", csv_path)
     # Silence QMessageBox.information.
     monkeypatch.setattr(
-        "yt_uniquifier.gui.screens.validation.QMessageBox.information",
+        "video_uniquifier.gui.screens.validation.QMessageBox.information",
         lambda *a, **kw: None,
     )
 

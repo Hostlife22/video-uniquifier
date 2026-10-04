@@ -25,10 +25,10 @@ import sys
 
 import pytest
 
-from yt_uniquifier.core.errors import PipelineError
-from yt_uniquifier.core.transforms.audio_compand import CompandParams
-from yt_uniquifier.core.transforms.audio_eq import AudioEqParams
-from yt_uniquifier.core.transforms.base import ensure_params, ensure_rng
+from video_uniquifier.core.errors import PipelineError
+from video_uniquifier.core.transforms.audio_compand import CompandParams
+from video_uniquifier.core.transforms.audio_eq import AudioEqParams
+from video_uniquifier.core.transforms.base import ensure_params, ensure_rng
 
 
 def test_ensure_params_returns_narrowed_value() -> None:
@@ -67,10 +67,10 @@ def test_helpers_survive_python_O_O_O() -> None:
     """
     snippet = (
         "import random\n"
-        "from yt_uniquifier.core.errors import PipelineError\n"
-        "from yt_uniquifier.core.transforms.audio_eq import AudioEqParams\n"
-        "from yt_uniquifier.core.transforms.audio_compand import CompandParams\n"
-        "from yt_uniquifier.core.transforms.base import ensure_params, ensure_rng\n"
+        "from video_uniquifier.core.errors import PipelineError\n"
+        "from video_uniquifier.core.transforms.audio_eq import AudioEqParams\n"
+        "from video_uniquifier.core.transforms.audio_compand import CompandParams\n"
+        "from video_uniquifier.core.transforms.base import ensure_params, ensure_rng\n"
         "\n"
         "try:\n"
         "    ensure_params(AudioEqParams(), CompandParams)\n"

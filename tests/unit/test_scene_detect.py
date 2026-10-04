@@ -12,8 +12,8 @@ from pathlib import Path
 
 import pytest
 
-from yt_uniquifier.core.errors import PipelineError
-from yt_uniquifier.core.scene_detect import (
+from video_uniquifier.core.errors import PipelineError
+from video_uniquifier.core.scene_detect import (
     detect_scene_boundaries,
     snap_to_keyframes,
 )
@@ -92,7 +92,7 @@ def test_detect_raises_pipeline_error_when_dep_missing(
 ) -> None:
     """The lazy import must surface as a PipelineError with the install
     hint, NOT a bare ImportError. Bare ImportError reads as
-    "yt-uniquifier is broken" rather than "this profile needs an extra"."""
+    "video-uniquifier is broken" rather than "this profile needs an extra"."""
     # Force the lazy ``from scenedetect import …`` line to fail.
     import builtins
 
@@ -106,7 +106,7 @@ def test_detect_raises_pipeline_error_when_dep_missing(
     monkeypatch.setattr(builtins, "__import__", fake_import)
     src = tmp_path / "movie.mp4"
     src.touch()
-    with pytest.raises(PipelineError, match="install yt-uniquifier\\[scene\\]"):
+    with pytest.raises(PipelineError, match="install video-uniquifier\\[scene\\]"):
         detect_scene_boundaries(src)
 
 
@@ -127,8 +127,8 @@ def test_plan_segments_scene_mode_uses_snapped_boundaries(
     """End-to-end planner: scene mode pulls boundaries from the
     scene-detect adapter, snaps them, and emits Segments that the
     rest of the pipeline can stream-copy from."""
-    from yt_uniquifier.core import scene_detect, segmenter
-    from yt_uniquifier.core.models import (
+    from video_uniquifier.core import scene_detect, segmenter
+    from video_uniquifier.core.models import (
         EncoderCandidate,
         Plan,
         Profile,
@@ -179,8 +179,8 @@ def test_plan_segments_scene_mode_no_cuts_returns_single_segment(
 ) -> None:
     """A clip with no detected cuts (or all collapsed) falls back to one
     whole-source segment — matches keyframe-mode short-input behaviour."""
-    from yt_uniquifier.core import scene_detect, segmenter
-    from yt_uniquifier.core.models import (
+    from video_uniquifier.core import scene_detect, segmenter
+    from video_uniquifier.core.models import (
         EncoderCandidate,
         Plan,
         Profile,
@@ -214,8 +214,8 @@ def test_scene_mode_bounds_static_long_source_by_target(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
     """No scene cuts must not turn a feature-length run into one huge segment."""
-    from yt_uniquifier.core import scene_detect, segmenter
-    from yt_uniquifier.core.models import (
+    from video_uniquifier.core import scene_detect, segmenter
+    from video_uniquifier.core.models import (
         EncoderCandidate,
         Plan,
         Profile,
@@ -259,8 +259,8 @@ def test_scene_mode_splits_long_gap_after_last_scene(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
     """A sparse early scene cut must not leave an unbounded final segment."""
-    from yt_uniquifier.core import scene_detect, segmenter
-    from yt_uniquifier.core.models import (
+    from video_uniquifier.core import scene_detect, segmenter
+    from video_uniquifier.core.models import (
         EncoderCandidate,
         Plan,
         Profile,
@@ -300,8 +300,8 @@ def test_scene_mode_splits_long_gap_after_last_scene(
 def test_scene_mode_drops_tiny_leading_and_trailing_segments(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
-    from yt_uniquifier.core import scene_detect, segmenter
-    from yt_uniquifier.core.models import (
+    from video_uniquifier.core import scene_detect, segmenter
+    from video_uniquifier.core.models import (
         EncoderCandidate,
         Plan,
         Profile,
@@ -345,8 +345,8 @@ def test_plan_segments_keyframe_mode_unchanged_by_segmentation_default(
     """Profiles without an explicit ``segmentation`` block must keep
     using keyframe mode. Regression guard for the default value of
     ``Profile.segmentation``."""
-    from yt_uniquifier.core import segmenter
-    from yt_uniquifier.core.models import (
+    from video_uniquifier.core import segmenter
+    from video_uniquifier.core.models import (
         EncoderCandidate,
         Plan,
         Profile,

@@ -9,10 +9,10 @@ import pytest
 from typer.testing import CliRunner
 
 from tests.conftest import needs_ffmpeg
-from yt_uniquifier.cli.app import app
-from yt_uniquifier.core.queue.leasing import FileQueue, init_queue
+from video_uniquifier.cli.app import app
+from video_uniquifier.core.queue.leasing import FileQueue, init_queue
 
-PROFILES_DIR = Path(__file__).parents[2] / "src" / "yt_uniquifier" / "profiles"
+PROFILES_DIR = Path(__file__).parents[2] / "src" / "video_uniquifier" / "profiles"
 
 
 @needs_ffmpeg

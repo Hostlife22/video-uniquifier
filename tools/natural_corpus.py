@@ -21,12 +21,12 @@ from typing import Any
 import yaml
 from pydantic import ValidationError
 
-from yt_uniquifier.core.models import QAReport
-from yt_uniquifier.core.probe import probe
-from yt_uniquifier.core.profile_loader import load_profile
-from yt_uniquifier.core.qa.report import verdict
-from yt_uniquifier.core.runner import _terminate
-from yt_uniquifier.core.transforms.audio_loudnorm import measure
+from video_uniquifier.core.models import QAReport
+from video_uniquifier.core.probe import probe
+from video_uniquifier.core.profile_loader import load_profile
+from video_uniquifier.core.qa.report import verdict
+from video_uniquifier.core.runner import _terminate
+from video_uniquifier.core.transforms.audio_loudnorm import measure
 
 REPO = Path(__file__).resolve().parents[1]
 ALLOWED_MEDIA_SUFFIXES = {".mkv", ".mov", ".mp4", ".mxf", ".webm", ".ogv"}
@@ -614,7 +614,7 @@ def run_manifest(
             qa_rc: int | None = None
             if benchmark_rc == 0:
                 qa_command = [
-                    str(REPO / ".venv" / "bin" / "yt-uniq"),
+                    str(REPO / ".venv" / "bin" / "video-uniq"),
                     "qa",
                     str(case.source),
                     str(output),

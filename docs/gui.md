@@ -1,15 +1,15 @@
 # GUI guide
 
-`yt-uniq-gui` is the desktop UI for yt-uniquifier. It mirrors the CLI
-1:1 — anything you can do from `yt-uniq <cmd>` you can do here, plus
+`video-uniq-gui` is the desktop UI for video-uniquifier. It mirrors the CLI
+1:1 — anything you can do from `video-uniq <cmd>` you can do here, plus
 some extras (Profile Editor, run History, embedded QA viewer, Validation
 wizard).
 
 ## Install + launch
 
 ```bash
-pip install 'yt-uniquifier[gui]'
-yt-uniq-gui
+pip install 'video-uniquifier[gui]'
+video-uniq-gui
 ```
 
 `PyQt6-WebEngine` (~150 MB) enables the embedded QA Viewer. If absent
@@ -86,7 +86,7 @@ with the row number.
 ### 6. History
 
 Last 100 runs (capped, persisted to
-`~/.config/yt_uniquifier/history.json`). Per-row "Open output" + "QA"
+`~/.config/video_uniquifier/history.json`). Per-row "Open output" + "QA"
 buttons. Filter box matches across source / profile / encoder /
 status. "Clear all" wipes the file.
 
@@ -129,7 +129,7 @@ loop.
 - **Default profile** — pre-selected on the Run / Batch / Calibrate
   screens.
 - **Maintenance** — Reset encoder cache (deletes
-  `~/.cache/yt_uniquifier/encoders.json`), Open log dir, Open config dir.
+  `~/.cache/video_uniquifier/encoders.json`), Open log dir, Open config dir.
 
 ## Keyboard shortcuts
 
@@ -174,14 +174,14 @@ SMTP creds without running a full encode.
 
 Resolved via `QStandardPaths.AppConfigLocation` + `CacheLocation` (v0.7.0
 R1 / E3) so paths follow each OS's convention. A migration helper copies
-any legacy `~/.config/yt_uniquifier/` content on first launch.
+previous application settings/history on first launch, keeping the originals.
 
 | Path (typical) | OS conv. | What |
 |---|---|---|
-| `<CONFIG_DIR>/state.json`            | macOS `~/Library/Preferences/yt-uniquifier`, Linux `~/.config/yt-uniquifier`, Windows `%APPDATA%\yt-uniquifier` | Theme, recents, default profile/encoder, notifications config |
+| `<CONFIG_DIR>/state.json`            | macOS `~/Library/Preferences/video-uniquifier`, Linux `~/.config/video-uniquifier`, Windows `%APPDATA%\video-uniquifier` | Theme, recents, default profile/encoder, notifications config |
 | `<CONFIG_DIR>/history.json`          | same as above | Run history (≤100 entries) |
 | `<CONFIG_DIR>/crash.log`             | same as above | Global excepthook trace log (100 KiB rotation, v0.7.0 R2 / E6) |
-| `<CACHE_DIR>/encoders.json`          | macOS `~/Library/Caches/yt-uniquifier`, Linux `~/.cache/yt-uniquifier`, Windows `%LOCALAPPDATA%\yt-uniquifier\Cache` | Encoder detection cache (resettable from Settings) |
+| `<CACHE_DIR>/encoders.json`          | macOS `~/Library/Caches/video-uniquifier`, Linux `~/.cache/video-uniquifier`, Windows `%LOCALAPPDATA%\video-uniquifier\Cache` | Encoder detection cache (resettable from Settings) |
 | `<CACHE_DIR>/work/<plan_hash>/`      | same as above | Run work_dir (segments, state.json, resume marker) |
 | `<CACHE_DIR>/keyframes/`             | same as above | Keyframe scan cache (30-day TTL) |
 | `<CACHE_DIR>/corpus/index.json`      | same as above | Corpus fingerprint index |
@@ -190,17 +190,17 @@ any legacy `~/.config/yt_uniquifier/` content on first launch.
 
 ## Packaging
 
-A starter `pyinstaller/yt-uniq-gui.spec` is shipped. On macOS:
+A starter `pyinstaller/video-uniq-gui.spec` is shipped. On macOS:
 
 ```bash
 pip install pyinstaller
-pyinstaller pyinstaller/yt-uniq-gui.spec --clean --noconfirm
-open dist/yt-uniq-gui.app    # unsigned: right-click → Open first time
+pyinstaller pyinstaller/video-uniq-gui.spec --clean --noconfirm
+open dist/video-uniq-gui.app    # unsigned: right-click → Open first time
 ```
 
 On Windows / Linux PyInstaller can also produce a one-file
 distribution. If PyInstaller fails on your platform, the fallback is
-always `pipx install 'yt-uniquifier[gui]'` which works everywhere.
+always `pipx install 'video-uniquifier[gui]'` which works everywhere.
 
 ## Troubleshooting
 
@@ -210,7 +210,7 @@ PyQt6's binary wheel works.
 
 **Q: QA Viewer shows a label instead of the embedded report.**
 A: Either `PyQt6-WebEngine` isn't installed (`pip install
-'yt-uniquifier[gui]'`) or you're running headless (offscreen Qt forces
+'video-uniquifier[gui]'`) or you're running headless (offscreen Qt forces
 the label fallback because the embedded browser crashes there).
 
 **Q: Encoders look wrong / unavailable.**

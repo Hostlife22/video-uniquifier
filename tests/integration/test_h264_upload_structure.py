@@ -11,8 +11,8 @@ from pathlib import Path
 import pytest
 
 from tests.conftest import needs_ffmpeg
-from yt_uniquifier.core.models import Profile
-from yt_uniquifier.core.orchestrator import RunOptions, build_plan, run_full
+from video_uniquifier.core.models import Profile
+from video_uniquifier.core.orchestrator import RunOptions, build_plan, run_full
 
 
 @needs_ffmpeg

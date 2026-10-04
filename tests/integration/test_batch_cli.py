@@ -1,4 +1,4 @@
-"""Integration test for `yt-uniq batch`."""
+"""Integration test for `video-uniq batch`."""
 
 from __future__ import annotations
 
@@ -9,9 +9,9 @@ import pytest
 from typer.testing import CliRunner
 
 from tests.conftest import needs_ffmpeg
-from yt_uniquifier.cli.app import app
+from video_uniquifier.cli.app import app
 
-PROFILES_DIR = Path(__file__).parents[2] / "src" / "yt_uniquifier" / "profiles"
+PROFILES_DIR = Path(__file__).parents[2] / "src" / "video_uniquifier" / "profiles"
 
 
 @needs_ffmpeg

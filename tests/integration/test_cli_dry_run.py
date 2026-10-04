@@ -1,11 +1,11 @@
-"""v1.1.0 Task 20: ``yt-uniq run --dry-run`` prints the plan summary
+"""v1.1.0 Task 20: ``video-uniq run --dry-run`` prints the plan summary
 without spawning ffmpeg.
 
 We use ``tiny_clip`` (a sub-second testsrc2 source) so the test runs
 quickly while still going through probe + preflight + segment plan
 + filter_complex build — exactly the dry-run code path. The
 ``typer.testing.CliRunner`` invokes the typer app in-process, so we
-don't depend on ``yt-uniq`` being on PATH.
+don't depend on ``video-uniq`` being on PATH.
 """
 
 from __future__ import annotations
@@ -16,9 +16,9 @@ import pytest
 from typer.testing import CliRunner
 
 from tests.conftest import needs_ffmpeg
-from yt_uniquifier.cli.app import app
+from video_uniquifier.cli.app import app
 
-PROFILES_DIR = Path(__file__).parents[2] / "src" / "yt_uniquifier" / "profiles"
+PROFILES_DIR = Path(__file__).parents[2] / "src" / "video_uniquifier" / "profiles"
 
 
 @needs_ffmpeg

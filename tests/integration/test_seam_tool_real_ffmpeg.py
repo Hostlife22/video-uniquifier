@@ -11,7 +11,7 @@ import pytest
 
 from tests.conftest import needs_ffmpeg
 from tools import seam_test
-from yt_uniquifier.core.utils.ffmpeg_paths import ffmpeg_bin
+from video_uniquifier.core.utils.ffmpeg_paths import ffmpeg_bin
 
 
 @needs_ffmpeg

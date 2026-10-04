@@ -21,8 +21,8 @@ from __future__ import annotations
 import pytest
 from pydantic import ValidationError
 
-from yt_uniquifier.core.transforms import all_ids, get
-from yt_uniquifier.core.transforms.audio_loudnorm import LoudnormMeasurement
+from video_uniquifier.core.transforms import all_ids, get
+from video_uniquifier.core.transforms.audio_loudnorm import LoudnormMeasurement
 
 
 @pytest.mark.parametrize("transform_id", sorted(all_ids()))

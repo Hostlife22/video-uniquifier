@@ -17,8 +17,8 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from yt_uniquifier.gui.workers import correlate_worker as correlate_mod
-from yt_uniquifier.gui.workers.correlate_worker import CorrelateWorker
+from video_uniquifier.gui.workers import correlate_worker as correlate_mod
+from video_uniquifier.gui.workers.correlate_worker import CorrelateWorker
 
 
 class _FakePopen:
@@ -168,13 +168,13 @@ def test_validation_screen_on_correlate_does_not_block_gui(
     froze the UI thread for up to 60 seconds."""
     from PyQt6.QtWidgets import QApplication
 
-    from yt_uniquifier.gui.screens import validation as validation_mod
-    from yt_uniquifier.gui.screens.validation import ValidationScreen
-    from yt_uniquifier.gui.state import AppState
+    from video_uniquifier.gui.screens import validation as validation_mod
+    from video_uniquifier.gui.screens.validation import ValidationScreen
+    from video_uniquifier.gui.state import AppState
 
-    monkeypatch.setattr("yt_uniquifier.gui.state.CONFIG_DIR", tmp_path)
-    monkeypatch.setattr("yt_uniquifier.gui.state.STATE_PATH", tmp_path / "s.json")
-    monkeypatch.setattr("yt_uniquifier.gui.state.HISTORY_PATH", tmp_path / "h.json")
+    monkeypatch.setattr("video_uniquifier.gui.state.CONFIG_DIR", tmp_path)
+    monkeypatch.setattr("video_uniquifier.gui.state.STATE_PATH", tmp_path / "s.json")
+    monkeypatch.setattr("video_uniquifier.gui.state.HISTORY_PATH", tmp_path / "h.json")
 
     # Make CORRELATE_TOOL and DEFAULT_CSV "exist" so _on_correlate
     # gets past its pre-flight checks.

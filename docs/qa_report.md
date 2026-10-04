@@ -1,6 +1,6 @@
 # QA report
 
-Every `yt-uniq run` (unless `--no-qa`) emits two artefacts next to the
+Every `video-uniq run` (unless `--no-qa`) emits two artefacts next to the
 output file:
 
 ```
@@ -9,7 +9,7 @@ output.mp4.qa.json    # machine-readable
 output.mp4.qa.html    # human-readable, with heatmaps + verdict banner
 ```
 
-`yt-uniq qa <input> <output>` produces the same pair for an existing
+`video-uniq qa <input> <output>` produces the same pair for an existing
 input/output pair without re-encoding.
 
 ## What's measured
@@ -20,7 +20,7 @@ metric backends degrade gracefully, but a missing/corrupt media stream is a
 correctness failure and produces `INVALID`, never a normal metric verdict.
 
 > **New since v0.8.0**: optional SSCD semantic-similarity scores
-> (`yt-uniq qa --sscd`,
+> (`video-uniq qa --sscd`,
 > requires `[ml]` extra) and target-VMAF bounded-retry events for
 > profiles that opt into `target_vmaf`. See the SSCD + target-VMAF
 > subsections below.
@@ -43,7 +43,7 @@ to EOF with FFmpeg `-xerror -err_detect explode`, so a corrupt unsampled tail be
 Independently of report generation, `run_full` performs that complete decode as a
 mandatory final publication gate for CLI, GUI, web and distributed workers. This also
 applies to `--no-qa`. Automatic post-run reports reuse the successful gate instead of
-decoding the same output twice; standalone `yt-uniq qa` performs its own decode.
+decoding the same output twice; standalone `video-uniq qa` performs its own decode.
 
 ### Visual similarity
 
@@ -73,7 +73,7 @@ fingerprinting; `notes[]` records that stratified coverage was used.
 > *sets*. Chromaprint deliberately flips bits across the entire 32-bit
 > code on small acoustic changes (≈1 dB loudnorm shift alone) so two
 > 32-bit codes are exact-equal only when the audio is byte-identical.
-> In practice **this field reads 0.0 for every yt-uniq output**, even
+> In practice **this field reads 0.0 for every video-uniq output**, even
 > on the softest profile — the audio is perfectly recognisable, the
 > codes simply don't survive bit-exact match. Don't read it as "audio
 > destroyed". The metric that reflects perceived similarity is
@@ -130,19 +130,19 @@ are proposed in `specs/28-qa-correctness-loudness-rfc.md`, not yet accepted or
 implemented. Existing report/CLI contracts remain unchanged.
 
 Reference generation is cancellable and guarded by both free space and
-`YT_UNIQ_REGISTERED_REFERENCE_MAX_BYTES` (40 GiB by default). If the conservative
+`VIDEO_UNIQ_REGISTERED_REFERENCE_MAX_BYTES` (40 GiB by default). If the conservative
 FFV1 estimate exceeds that budget, registered video metrics become unavailable with
 an explicit `notes[]` entry; raw QA continues. Provision more temporary space and set
 the variable deliberately for long-form runs. SSCD reference embeddings are cached
-under `YT_UNIQ_QA_CACHE_DIR` or the per-user QA cache using source content, canonical
+under `VIDEO_UNIQ_QA_CACHE_DIR` or the per-user QA cache using source content, canonical
 profile, plan/seed, FFmpeg/tool/model version, sampling grid and encoded-reference
 digest; corrupt entries are rebuilt atomically.
 
 ### SSCD semantic similarity (v0.8.0 R4, opt-in)
 
-Populated only when `yt-uniq qa --sscd` is passed. Requires the `[ml]` extra (torch +
+Populated only when `video-uniq qa --sscd` is passed. Requires the `[ml]` extra (torch +
 transformers). The first run downloads ~200 MB of model weights to
-`~/.cache/yt_uniquifier/models/`; subsequent runs use the cache.
+`~/.cache/video_uniquifier/models/`; subsequent runs use the cache.
 Full background in [`docs/sscd.md`](./sscd.md).
 
 | Field | Source | Range | Meaning |
@@ -186,7 +186,7 @@ Use the loop only on a registered encode-quality path.
 | `cid_predict_self` | weighted (visual + audio) Jaccard over 4-second chunks | 0..1; internal self-similarity heuristic (legacy field name) |
 | `weakest_chunk_sec` | argmax over `chunk_similarities[].combined` | (start_sec, end_sec) of the chunk most similar to source |
 | `chunk_similarities[]` | per 4-sec chunk: `{start_sec, end_sec, visual, audio, combined}` | drives the HTML heatmap |
-| `corpus_matches[]` | comparison against `yt-uniq corpus` entries | `{id, path, visual, audio, combined}` for files above threshold |
+| `corpus_matches[]` | comparison against `video-uniq corpus` entries | `{id, path, visual, audio, combined}` for files above threshold |
 
 `cid_predict_self` is neither a probability nor a predictor of YouTube Content ID.
 It is a project-specific convex combination useful for regression comparisons and
@@ -212,7 +212,7 @@ The overall output status is `INVALID` on a correctness failure, otherwise
 green/yellow/red follows quality evidence only. Similarity never compensates for bad
 quality and never turns a correct, high-quality output into a failure. The existing
 `QAReport` JSON schema remains additive-compatible; legacy `notes[]` remain present,
-and v1.6.0 adds structured evidence under [RFC #21](https://github.com/Hostlife22/yt_uniquifier/issues/21).
+and v1.6.0 adds structured evidence under [RFC #21](https://github.com/Hostlife22/video-uniquifier/issues/21).
 
 ## Explicit evidence and optional gates (v1.6.0)
 
@@ -241,7 +241,7 @@ and v1.6.0 adds structured evidence under [RFC #21](https://github.com/Hostlife2
 Example only — these are operator-selected thresholds, not production defaults:
 
 ```bash
-yt-uniq qa source.mkv output.mp4 --plan-json plan.json --quality-domain registered \
+video-uniq qa source.mkv output.mp4 --plan-json plan.json --quality-domain registered \
   --min-vmaf 90 --min-ssim 0.98 --loudness
 ```
 
@@ -294,7 +294,7 @@ diagnostic patterns:
 ## Standalone QA (no encode)
 
 ```bash
-yt-uniq qa /path/to/master.mp4 /path/to/candidate.mp4 --vs-corpus
+video-uniq qa /path/to/master.mp4 /path/to/candidate.mp4 --vs-corpus
 # writes candidate.mp4.qa.json + candidate.mp4.qa.html
 ```
 
@@ -310,7 +310,7 @@ Path("completed-plan.json").write_text(summary.plan.model_dump_json(indent=2))
 ```
 
 ```bash
-yt-uniq qa master.mp4 candidate.mp4 \
+video-uniq qa master.mp4 candidate.mp4 \
   --plan-json completed-plan.json \
   --registration-segment-sec 600
 ```
@@ -322,7 +322,7 @@ Without `--plan-json`, all registered fields remain null and raw metrics are unc
 For batch workflows where you don't need VMAF (slow):
 
 ```bash
-yt-uniq run … --fast-qa
+video-uniq run … --fast-qa
 # - skips VMAF (the slowest stage)
 # - halves the phash sample count
 ```
@@ -347,5 +347,5 @@ worst = max(c["combined"] for c in qa["chunk_similarities"])
 print(f"worst chunk combined similarity: {worst:.3f}")
 ```
 
-The Pydantic model is `yt_uniquifier.core.models.QAReport` if you'd
+The Pydantic model is `video_uniquifier.core.models.QAReport` if you'd
 rather work with typed objects.

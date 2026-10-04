@@ -16,8 +16,8 @@ from __future__ import annotations
 from pathlib import Path
 
 from tests.unit.test_pipeline_hdr_grouping import _plan, _src
-from yt_uniquifier.core.models import TransformConfig
-from yt_uniquifier.core.pipeline import build_video_segment_command
+from video_uniquifier.core.models import TransformConfig
+from video_uniquifier.core.pipeline import build_video_segment_command
 
 
 def test_segment_command_wraps_color_transforms_for_hdr_source(

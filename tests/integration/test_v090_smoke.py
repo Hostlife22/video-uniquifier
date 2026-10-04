@@ -34,7 +34,7 @@ import pytest
 
 
 def test_r1_bootstrap_catalog_is_valid_and_https_only() -> None:
-    from yt_uniquifier.core import profile_marketplace as pm
+    from video_uniquifier.core import profile_marketplace as pm
 
     raw = pm.BOOTSTRAP_CATALOG_PATH.read_bytes()
     catalog = pm._parse_catalog(raw, source=str(pm.BOOTSTRAP_CATALOG_PATH))
@@ -47,7 +47,7 @@ def test_r1_bootstrap_catalog_is_valid_and_https_only() -> None:
 
 
 def test_r1_find_entry_and_list_entries_round_trip() -> None:
-    from yt_uniquifier.core.profile_marketplace import (
+    from video_uniquifier.core.profile_marketplace import (
         fetch_catalog,
         find_entry,
         list_entries,
@@ -67,7 +67,7 @@ def test_r1_find_entry_and_list_entries_round_trip() -> None:
 
 
 def test_r2_subtitles_transform_registered() -> None:
-    from yt_uniquifier.core.transforms import get
+    from video_uniquifier.core.transforms import get
     spec = get("video.subtitles")
     assert spec.kind == "video"
 
@@ -75,7 +75,7 @@ def test_r2_subtitles_transform_registered() -> None:
 def test_r2_preflight_blocks_missing_srt_and_accepts_present(
     tmp_path: Path,
 ) -> None:
-    from yt_uniquifier.core.models import (
+    from video_uniquifier.core.models import (
         AudioStream,
         EncoderCandidate,
         HDRInfo,
@@ -85,8 +85,8 @@ def test_r2_preflight_blocks_missing_srt_and_accepts_present(
         TransformConfig,
         VideoStream,
     )
-    from yt_uniquifier.core.pipeline import compute_plan_hash
-    from yt_uniquifier.core.preflight import has_fail, preflight
+    from video_uniquifier.core.pipeline import compute_plan_hash
+    from video_uniquifier.core.preflight import has_fail, preflight
 
     src_file = tmp_path / "in.mp4"
     src_file.touch()
@@ -132,7 +132,7 @@ def test_r2_preflight_blocks_missing_srt_and_accepts_present(
 
 
 def test_r3_disabled_telemetry_is_silent(tmp_path: Path) -> None:
-    from yt_uniquifier.core import telemetry
+    from video_uniquifier.core import telemetry
 
     cfg = telemetry.TelemetryConfig(enabled=False, events_dir=tmp_path)
     telemetry.record({"kind": "ignored"}, cfg)
@@ -140,7 +140,7 @@ def test_r3_disabled_telemetry_is_silent(tmp_path: Path) -> None:
 
 
 def test_r3_enabled_telemetry_round_trips_event(tmp_path: Path) -> None:
-    from yt_uniquifier.core import telemetry
+    from video_uniquifier.core import telemetry
 
     cfg = telemetry.TelemetryConfig(enabled=True, events_dir=tmp_path)
     telemetry.record({"kind": "smoke", "status": "completed"}, cfg)
@@ -161,7 +161,7 @@ def test_r4_web_app_builds_and_healthz_responds(tmp_path: Path) -> None:
         pytest.skip("fastapi not installed; [web] extra absent")
     from fastapi.testclient import TestClient
 
-    from yt_uniquifier.web.app import WebConfig, build_app
+    from video_uniquifier.web.app import WebConfig, build_app
 
     work = tmp_path / "w"
     out = tmp_path / "o"
@@ -185,7 +185,7 @@ def test_r5_install_translator_translates_known_key() -> None:
     from PyQt6.QtCore import QCoreApplication
     from PyQt6.QtWidgets import QApplication
 
-    from yt_uniquifier.gui.i18n import (
+    from video_uniquifier.gui.i18n import (
         SOURCE_LOCALE,
         install_translator,
     )
@@ -211,11 +211,11 @@ def test_bootstrap_catalog_shas_match_in_tree_profiles() -> None:
     catalog hash — install would then 502 with a SHA mismatch
     for every fresh user.
     """
-    from yt_uniquifier.core.profile_marketplace import (
+    from video_uniquifier.core.profile_marketplace import (
         fetch_catalog,
         list_entries,
     )
-    from yt_uniquifier.gui.paths import profiles_dir
+    from video_uniquifier.gui.paths import profiles_dir
 
     catalog = fetch_catalog()
     bundled = profiles_dir()

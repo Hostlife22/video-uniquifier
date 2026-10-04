@@ -7,7 +7,7 @@ body:
     attributes:
       value: |
         Use this template for any change to a **stable contract** (see
-        [`docs/api-contracts.md`](https://github.com/Hostlife22/yt-uniquifier/blob/main/docs/api-contracts.md)):
+        [`docs/api-contracts.md`](https://github.com/Hostlife22/video-uniquifier/blob/main/docs/api-contracts.md)):
         adding/removing/renaming/retyping fields on pydantic models,
         changing CLI flag semantics, removing shipped profiles, adding
         new `RunEvent.kind` literals.
@@ -15,7 +15,7 @@ body:
         **Minimum 7-day comment window** before acceptance. Two
         maintainer `LGTM` + zero `Block` → ready to merge. The
         process is described in
-        [`CONTRIBUTING.md § RFC process`](https://github.com/Hostlife22/yt-uniquifier/blob/main/CONTRIBUTING.md#rfc-process).
+        [`CONTRIBUTING.md § RFC process`](https://github.com/Hostlife22/video-uniquifier/blob/main/CONTRIBUTING.md#rfc-process).
 
   - type: textarea
     id: problem

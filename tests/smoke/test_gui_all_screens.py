@@ -56,7 +56,7 @@ EXPECTED_WIDGETS: dict[str, list[str]] = {
 @pytest.fixture(scope="module")
 def main_window():
     """One MainWindow shared by every screen test in this module."""
-    from yt_uniquifier.gui.app_pyqt import MainWindow
+    from video_uniquifier.gui.app_pyqt import MainWindow
 
     app = QApplication.instance() or QApplication([])
     win = MainWindow()

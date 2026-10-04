@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from yt_uniquifier.core.transforms import get
-from yt_uniquifier.core.transforms.audio_reverb import ReverbParams
-from yt_uniquifier.core.transforms.base import LabelAllocator, call_build
+from video_uniquifier.core.transforms import get
+from video_uniquifier.core.transforms.audio_reverb import ReverbParams
+from video_uniquifier.core.transforms.base import LabelAllocator, call_build
 
 
 def test_default_small_room_at_baseline_intensity() -> None:

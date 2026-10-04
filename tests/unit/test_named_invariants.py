@@ -24,8 +24,8 @@ from pathlib import Path, PurePosixPath, PureWindowsPath
 
 import pytest
 
-from yt_uniquifier.core.checkpoint import CheckpointStore
-from yt_uniquifier.core.models import (
+from video_uniquifier.core.checkpoint import CheckpointStore
+from video_uniquifier.core.models import (
     AudioStream,
     EncoderCandidate,
     HDRInfo,
@@ -36,9 +36,9 @@ from yt_uniquifier.core.models import (
     TransformConfig,
     VideoStream,
 )
-from yt_uniquifier.core.pipeline import compute_plan_hash
-from yt_uniquifier.core.transforms import all_ids, get
-from yt_uniquifier.core.transforms.base import LabelAllocator, call_build
+from video_uniquifier.core.pipeline import compute_plan_hash
+from video_uniquifier.core.transforms import all_ids, get
+from video_uniquifier.core.transforms.base import LabelAllocator, call_build
 
 # ---- helpers ----------------------------------------------------------------
 

@@ -6,9 +6,9 @@ from pathlib import Path
 
 import pytest
 
-from yt_uniquifier.core.profile_loader import ProfileLoadError, load_profile
+from video_uniquifier.core.profile_loader import ProfileLoadError, load_profile
 
-REPO_PROFILES = Path(__file__).parents[2] / "src" / "yt_uniquifier" / "profiles"
+REPO_PROFILES = Path(__file__).parents[2] / "src" / "video_uniquifier" / "profiles"
 
 
 @pytest.mark.parametrize(

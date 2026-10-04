@@ -13,7 +13,7 @@ from tools.natural_corpus import load_manifest
 
 
 def test_measured_qa_does_not_imply_quality_acceptance() -> None:
-    from yt_uniquifier.core.models import QAReport
+    from video_uniquifier.core.models import QAReport
 
     report = QAReport(
         input_md5="source", output_md5="output", input_size_bytes=1, output_size_bytes=2,
@@ -31,7 +31,7 @@ def test_measured_qa_does_not_imply_quality_acceptance() -> None:
 
 def _local_profile(tmp_path: Path) -> Path:
     profile = tmp_path / "soft.yaml"
-    shutil.copy2("src/yt_uniquifier/profiles/soft.yaml", profile)
+    shutil.copy2("src/video_uniquifier/profiles/soft.yaml", profile)
     return profile
 
 

@@ -13,16 +13,16 @@ from pathlib import Path
 
 import pytest
 
-from yt_uniquifier.core.calibration import loop as loop_mod
-from yt_uniquifier.core.calibration.loop import (
+from video_uniquifier.core.calibration import loop as loop_mod
+from video_uniquifier.core.calibration.loop import (
     CalibrationTarget,
     _evaluate_chromaprint,
     _evaluate_sscd,
     calibrate,
 )
-from yt_uniquifier.core.errors import PipelineError
-from yt_uniquifier.core.models import Profile, TransformConfig
-from yt_uniquifier.core.runner import CancelToken
+from video_uniquifier.core.errors import PipelineError
+from video_uniquifier.core.models import Profile, TransformConfig
+from video_uniquifier.core.runner import CancelToken
 
 # ----- shared fixtures -----------------------------------------------------
 
@@ -95,7 +95,7 @@ def test_default_metric_is_chromaprint(
 
 def test_chromaprint_evaluator_unit() -> None:
     """``_evaluate_chromaprint`` returns ``predict().match_probability_self``."""
-    from yt_uniquifier.core.calibration import loop as lm
+    from video_uniquifier.core.calibration import loop as lm
 
     class _CID:
         match_probability_self = 0.42
@@ -167,9 +167,9 @@ def test_evaluate_sscd_returns_mean_similarity(
         captured.append((src, out, cancel_token))
         return _StubResult(0.92)
 
-    # Patch the symbol *inside* yt_uniquifier.core.qa.sscd because
+    # Patch the symbol *inside* video_uniquifier.core.qa.sscd because
     # _evaluate_sscd imports it lazily; monkeypatch the module attr.
-    import yt_uniquifier.core.qa.sscd as sscd_mod
+    import video_uniquifier.core.qa.sscd as sscd_mod
 
     monkeypatch.setattr(sscd_mod, "compute_sscd", _fake_compute)
 
@@ -185,7 +185,7 @@ def test_evaluate_sscd_clamps_pathological_similarity(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Pathological cosine values are clamped to the public [0, 1] range."""
-    import yt_uniquifier.core.qa.sscd as sscd_mod
+    import video_uniquifier.core.qa.sscd as sscd_mod
 
     class _Negative:
         mean_similarity = -0.30

@@ -5,8 +5,8 @@ from __future__ import annotations
 from pathlib import Path
 from unittest.mock import patch
 
-from yt_uniquifier.core.models import Plan, Profile, TransformConfig
-from yt_uniquifier.gui.workers.batch_worker import BatchWorker
+from video_uniquifier.core.models import Plan, Profile, TransformConfig
+from video_uniquifier.gui.workers.batch_worker import BatchWorker
 
 
 def _make_profile() -> Profile:
@@ -38,8 +38,8 @@ def test_batch_worker_happy_path_3_files(tmp_path: Path) -> None:
     done: list[tuple[str, str]] = []
     fake_plan = _make_plan(tmp_path)
     with (
-        patch("yt_uniquifier.gui.workers.batch_worker.build_plan", return_value=fake_plan),
-        patch("yt_uniquifier.gui.workers.batch_worker.run_full"),
+        patch("video_uniquifier.gui.workers.batch_worker.build_plan", return_value=fake_plan),
+        patch("video_uniquifier.gui.workers.batch_worker.run_full"),
     ):
         worker = BatchWorker(
             input_dir, tmp_path / "out", _make_profile(), None,
@@ -69,8 +69,8 @@ def test_batch_worker_continue_on_error(tmp_path: Path) -> None:
     failed: list[tuple[str, str]] = []
     done: list[tuple[str, str]] = []
     with (
-        patch("yt_uniquifier.gui.workers.batch_worker.build_plan", return_value=fake_plan),
-        patch("yt_uniquifier.gui.workers.batch_worker.run_full", side_effect=fake_run),
+        patch("video_uniquifier.gui.workers.batch_worker.build_plan", return_value=fake_plan),
+        patch("video_uniquifier.gui.workers.batch_worker.run_full", side_effect=fake_run),
     ):
         worker = BatchWorker(
             input_dir, tmp_path / "out", _make_profile(), None,
@@ -91,9 +91,9 @@ def test_batch_worker_stop_on_error(tmp_path: Path) -> None:
 
     fake_plan = _make_plan(tmp_path)
     with (
-        patch("yt_uniquifier.gui.workers.batch_worker.build_plan", return_value=fake_plan),
+        patch("video_uniquifier.gui.workers.batch_worker.build_plan", return_value=fake_plan),
         patch(
-            "yt_uniquifier.gui.workers.batch_worker.run_full",
+            "video_uniquifier.gui.workers.batch_worker.run_full",
             side_effect=RuntimeError("boom"),
         ),
     ):
@@ -121,8 +121,8 @@ def test_batch_worker_cancel_midway(tmp_path: Path) -> None:
         worker.request_cancel()
 
     with (
-        patch("yt_uniquifier.gui.workers.batch_worker.build_plan", return_value=fake_plan),
-        patch("yt_uniquifier.gui.workers.batch_worker.run_full", side_effect=fake_run),
+        patch("video_uniquifier.gui.workers.batch_worker.build_plan", return_value=fake_plan),
+        patch("video_uniquifier.gui.workers.batch_worker.run_full", side_effect=fake_run),
     ):
         worker = BatchWorker(
             input_dir, tmp_path / "out", _make_profile(), None,

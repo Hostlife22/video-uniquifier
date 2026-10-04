@@ -109,14 +109,14 @@ def _run_smoke_worker(timeout_sec: float = 60.0) -> tuple[bool, str]:
     is reported as a skip, not a failure.
     """
     fixture = Path("tests/fixtures/.gen/clip_a.mp4")
-    profile = Path("src/yt_uniquifier/profiles/soft.yaml")
+    profile = Path("src/video_uniquifier/profiles/soft.yaml")
     if not fixture.exists():
         return False, f"skip: fixture {fixture} not generated (run corpus gen)"
     if not profile.exists():
         return False, f"skip: profile {profile} missing"
     try:
-        from yt_uniquifier.core.orchestrator import RunOptions, build_plan, run_full
-        from yt_uniquifier.core.profile_loader import load_profile
+        from video_uniquifier.core.orchestrator import RunOptions, build_plan, run_full
+        from video_uniquifier.core.profile_loader import load_profile
     except ImportError as exc:
         return False, f"skip: import error {exc}"
 
@@ -228,7 +228,7 @@ def main() -> int:
     # Imports deferred so --help works without PyQt6 installed.
     from PyQt6.QtWidgets import QApplication
 
-    from yt_uniquifier.gui.app_pyqt import MainWindow
+    from video_uniquifier.gui.app_pyqt import MainWindow
 
     app = QApplication.instance() or QApplication(sys.argv[:1])
     win = MainWindow()

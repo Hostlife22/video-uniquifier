@@ -12,7 +12,7 @@ from __future__ import annotations
 import pytest
 from PyQt6.QtWidgets import QApplication
 
-from yt_uniquifier.gui.widgets.divergence_indicator import DivergenceIndicator
+from video_uniquifier.gui.widgets.divergence_indicator import DivergenceIndicator
 
 
 @pytest.fixture(scope="module")

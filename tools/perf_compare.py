@@ -117,12 +117,12 @@ def _build_report(
     lines.append("")
     lines.append(
         f"- baseline: `{baseline.get('git_sha', '?')}` "
-        f"({baseline.get('yt_uniquifier_version', '?')}, "
+        f"({baseline.get('video_uniquifier_version', '?')}, "
         f"{baseline.get('platform', '?')}, py {baseline.get('py_version', '?')})",
     )
     lines.append(
         f"- current:  `{current.get('git_sha', '?')}` "
-        f"({current.get('yt_uniquifier_version', '?')}, "
+        f"({current.get('video_uniquifier_version', '?')}, "
         f"{current.get('platform', '?')}, py {current.get('py_version', '?')})",
     )
     lines.append(f"- threshold: ±{threshold:.0f}% (hard-gates only on wall_sec)")

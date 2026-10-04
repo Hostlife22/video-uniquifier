@@ -5,8 +5,8 @@ from __future__ import annotations
 from pathlib import Path
 
 from tests.unit.test_pipeline_graph import _plan, _src
-from yt_uniquifier.core.models import TransformConfig
-from yt_uniquifier.core.pipeline import (
+from video_uniquifier.core.models import TransformConfig
+from video_uniquifier.core.pipeline import (
     build_main_audio_command,
     build_main_audio_command_windowed,
 )

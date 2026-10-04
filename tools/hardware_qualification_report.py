@@ -117,7 +117,7 @@ def main() -> int:
     output.parent.mkdir(parents=True, exist_ok=True)
     requested = [
         value.strip()
-        for value in os.environ.get("YT_UNIQ_HARDWARE_ENCODERS", "").split(",")
+        for value in os.environ.get("VIDEO_UNIQ_HARDWARE_ENCODERS", "").split(",")
         if value.strip()
     ]
     payload = {

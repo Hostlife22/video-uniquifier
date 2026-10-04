@@ -2,8 +2,8 @@ from pathlib import Path
 
 import pytest
 
-from yt_uniquifier.core.errors import PipelineError
-from yt_uniquifier.core.subtitle_timing import retime_canonical_srt
+from video_uniquifier.core.errors import PipelineError
+from video_uniquifier.core.subtitle_timing import retime_canonical_srt
 
 
 @pytest.mark.parametrize("rate, start, end", [
