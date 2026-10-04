@@ -113,7 +113,6 @@ exclude_docs: |
   bug-triage-*.md
   gui.md
   gui_sweep.md
-  gui-test-coverage.md
   manual_gui_checklist.md
   runbook_scale_test.md
   test-report-*.md

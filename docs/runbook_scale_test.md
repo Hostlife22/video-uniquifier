@@ -1,7 +1,7 @@
 # Runbook: Scale validation and long-form recovery
 
-Referenced by `specs/10-scale-validation.md`. This procedure qualifies the existing
-segment/checkpoint/audio/concat pipeline; it does not introduce a second pipeline.
+This procedure qualifies the existing segment/checkpoint/audio/concat pipeline;
+it does not introduce a second pipeline.
 
 ## Scope and evidence levels
 

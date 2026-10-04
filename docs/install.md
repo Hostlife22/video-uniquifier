@@ -94,7 +94,7 @@ brew install ffmpeg chromaprint
 
 v1.1.0 продолжает шипиться **без подписи** под Windows — sponsored
 SignPath OSS и коммерческие EV-сертификаты вне scope этого relase
-(см. `specs/v1.0.1-to-v1.3-roadmap.plan.md` § v1.1.0 Task 9). UX
+(см. историю выпуска v1.1.0 в `CHANGELOG.md`). UX
 почти как с unsigned macOS-бандлом: SmartScreen один раз показывает
 warning, дальше тишина.
 

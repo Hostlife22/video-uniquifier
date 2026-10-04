@@ -73,5 +73,4 @@ A fuller tour lives at [Getting started](getting-started.md).
 * **Localization (en + ru)** — hot-swappable in Settings →
   Appearance → Language. [Read more →](i18n.md)
 
-The full v0.9 roadmap and round-by-round breakdown live at
-`specs/v0.9-plan.md` in the repo.
+Release history and completed changes are recorded in `CHANGELOG.md` in the repo.

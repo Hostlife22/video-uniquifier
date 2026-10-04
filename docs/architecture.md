@@ -126,8 +126,6 @@ legacy AB prototype, which embedded the entire pipeline inside a PyQt
 
 ## Why split-process-concat (not keyframe seek)
 
-See `specs/03-segmenter-resume-metadata-preflight.md`. Summary:
-
 - A single ffmpeg `-ss <T>` resume loses all progress on crash.
 - Per-segment processing makes resume O(1) and gives clean MD5-stable outputs
   for the same `(plan_hash, run_seed)`.

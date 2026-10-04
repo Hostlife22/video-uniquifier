@@ -1,7 +1,6 @@
 # SSCD copy-detection QA
 
-> Added in v0.8.0 (R4 — metric; R6 — calibrate-by-SSCD). See
-> `specs/v0.8-plan.md`.
+> Added in v0.8.0 (R4 — metric; R6 — calibrate-by-SSCD).
 
 SSCD (Self-Supervised Copy Detection) is the embedding model Meta released
 alongside the [VSC2022](https://ai.meta.com/research/publications/the-2022-video-similarity-challenge/)

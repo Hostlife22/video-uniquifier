@@ -2,8 +2,7 @@
 # v1.1.0 Task 8: ad-hoc codesign for the PyInstaller .app bundle.
 #
 # Why: full Apple notarization needs the $99/yr Developer Program and
-# is intentionally out of scope (see specs/v1.0.1-to-v1.3-roadmap.plan.md
-# § v1.1.0 Task 8). An ad-hoc signature (`codesign --sign -`) does NOT
+# is intentionally out of scope. An ad-hoc signature (`codesign --sign -`) does NOT
 # pass Gatekeeper on its own — the user still has to right-click → Open
 # the first time — but it stabilises the bundle across macOS updates so
 # subsequent versions don't trip the "app is damaged and can't be

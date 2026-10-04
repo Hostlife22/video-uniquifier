@@ -451,7 +451,8 @@ Production correctness and recovery hardening after the repository-wide audit.
 ## [1.3.0]
 
 AV1 + plugin sandbox + cross-OS quality. Backwards-compatible. MINOR.
-See `.claude/plans/v1.0.1-to-v1.3-roadmap.plan.md` for the full roadmap.
+The original roadmap is retained in Git history at
+`.claude/plans/v1.0.1-to-v1.3-roadmap.plan.md`.
 
 ### Added
 
@@ -557,7 +558,8 @@ See `.claude/plans/v1.0.1-to-v1.3-roadmap.plan.md` for the full roadmap.
 ## [v1.1.0] — 2026-06-14
 
 Distribution trust + observability + UX. Backwards-compatible. MINOR.
-See `.claude/plans/v1.0.1-to-v1.3-roadmap.plan.md` for the full roadmap.
+The original roadmap is retained in Git history at
+`.claude/plans/v1.0.1-to-v1.3-roadmap.plan.md`.
 
 ### Added
 
@@ -617,7 +619,8 @@ See `.claude/plans/v1.0.1-to-v1.3-roadmap.plan.md` for the full roadmap.
 ## [v1.0.1] — 2026-06-14
 
 Hotfix release. Backwards-compatible (no Plan/Profile field changes).
-See `specs/v1.0.1-to-v1.3-roadmap.plan.md` for the full roadmap.
+The original roadmap is retained in Git history at
+`.claude/plans/v1.0.1-to-v1.3-roadmap.plan.md`.
 
 ### Fixed
 

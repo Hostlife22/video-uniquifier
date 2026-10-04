@@ -155,12 +155,11 @@ reset-cache:  ## Remove encoder + keyframe + work caches (force re-detect).
 	@echo "Cleared ~/.cache/yt_uniquifier/{encoders.json,keyframes}"
 
 .PHONY: clean
-clean:  ## Remove build artefacts (dist/, build/, __pycache__, .pytest_cache).
-	rm -rf dist/ build/ *.egg-info src/*.egg-info
-	find . -type d -name __pycache__ -prune -exec rm -rf {} +
-	find . -type d -name .pytest_cache -prune -exec rm -rf {} +
-	find . -type d -name .mypy_cache -prune -exec rm -rf {} +
-	find . -type d -name .ruff_cache -prune -exec rm -rf {} +
+clean:  ## Remove generated builds, docs site, test caches and coverage reports.
+	rm -rf dist/ build/ site/ htmlcov/ .hypothesis/ .pytest_cache/ .mypy_cache/ .ruff_cache/
+	rm -rf *.egg-info src/*.egg-info
+	rm -f .coverage .coverage.*
+	find src tests tools -type d -name __pycache__ -prune -exec rm -rf {} +
 	@echo "Cleaned build + cache directories"
 
 .PHONY: distclean

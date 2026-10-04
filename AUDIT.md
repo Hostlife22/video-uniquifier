@@ -205,7 +205,7 @@ Chromaprint и SSCD полезны только как внутренние diag
 ## Scope и метод
 
 Изучены `README.md`, `CLAUDE.md`, `AGENTS.md`, `CHANGELOG.md`, документы в `docs/`,
-история требований в `specs/`, `.claude/plans/`, локальные reference-инструкции в
+сохранённые RFC в `specs/`, история планов в Git, локальные reference-инструкции в
 `.claude/skills/`, весь `src/`, тестовые suites, workflows, profiles и packaging.
 Фактические команды FFmpeg проверялись по builders и реальными smoke runs.
 

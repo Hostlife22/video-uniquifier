@@ -1,7 +1,7 @@
 # Transform plugins
 
 > Added in v0.8.0. Hardened in v1.2.0 with manifest + capability gate + audit-hook
-> sandbox (Task 23). See `specs/v0.8-plan.md` § R1 and the v1.2.0 roadmap.
+> sandbox (Task 23).
 
 Built-in transforms (crop+rescale, color jitter, loudnorm, pitch+tempo …) live in
 `src/yt_uniquifier/core/transforms/` and self-register via `register(TransformSpec(…))`

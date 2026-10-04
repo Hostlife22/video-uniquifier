@@ -112,7 +112,10 @@ See `docs/gui.md` for the screen-by-screen tour and `pyinstaller/` for the deskt
 
 ## Specs
 
-`specs/` is the phased implementation plan — currently `00-bootstrap` through `25-gui-polish-packaging`, plus version roadmaps (`v0.2-plan.md`, `v0.3-plan.md`, `v0.3.2-3-plan.md`, `v0.4-plan.md`, `v0.5-plan.md`) and a `README.md` index. They are the spec of record for module signatures and acceptance criteria — consult the matching phase before significant changes to a module. Phases 06–20 cover HDR pipeline, audio CID-resistance, fingerprint-aware QA, calibration loop, parallel/distributed batch, per-segment seed divergence, and bitstream sanitization. Phases 21–25 cover the PyQt6 GUI (foundation, batch+calibrate, QA/profile/history, queue/validation, polish+packaging). Treat all phases as additive, not retroactive.
+`specs/` contains retained RFCs for geometry and QA contracts; see `specs/README.md`.
+Completed implementation plans and version roadmaps are available in Git history.
+Use `docs/architecture.md` and `docs/api-contracts.md` for current behavior, and
+`PRODUCTION_PLAN.md` / `RISK_REGISTER.md` for outstanding production work.
 
 ## Docs
 

@@ -5,7 +5,7 @@
 # The "security-extended" suite catches a wider net than the default
 # (e.g. py/path-traversal-uncontrolled-input which the manual audit
 # verified is correctly blocked by .resolve().relative_to() in
-# web/app.py — see specs/v1.0.1-to-v1.3-roadmap.plan.md Summary).
+# web/app.py).
 #
 # Results land in the GitHub repository's Security tab. CI does NOT
 # fail on alerts — triage happens in the Security tab so a routine

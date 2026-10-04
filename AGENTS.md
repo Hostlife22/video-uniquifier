@@ -7,7 +7,7 @@ This Python 3.11+ project uses a `src` layout. Application code lives in
 commands, `gui/` the PyQt6 desktop application, and `web/` the FastAPI interface.
 Shipped YAML profiles are under `profiles/`. Tests mirror behavior by scope in
 `tests/unit`, `tests/integration`, `tests/gui`, `tests/smoke`, `tests/contracts`,
-`tests/property`, and `tests/visual`. Documentation, implementation plans, utility
+`tests/property`, and `tests/visual`. Documentation, contract RFCs, utility
 scripts, and packaging definitions live in `docs/`, `specs/`, `tools/`, and
 `pyinstaller/` respectively.
 

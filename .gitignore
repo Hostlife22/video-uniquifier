@@ -20,12 +20,15 @@ tests/fixtures/*
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+.hypothesis/
 .coverage
+.coverage.*
 htmlcov/
 
 # yt-uniquifier work artifacts
 .yt_uniq_work/
 .yt_uniq_calib/
+.gui_sweep_work/
 .qualification/
 .qualification-current/
 .nfs-qualification/
