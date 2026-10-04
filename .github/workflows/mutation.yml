@@ -12,7 +12,12 @@ on:
     # time — just outside US/EU business hours so a long run doesn't
     # contend with on-demand CI traffic.
     - cron: "0 2 * * 0"
-  workflow_dispatch:  # operators can re-trigger manually after a deps bump
+  workflow_dispatch:
+    inputs:
+      mutants:
+        description: "Optional mutant pattern for a focused smoke; empty runs all core mutations"
+        required: false
+        default: ""
 
 jobs:
   mutate:
@@ -36,11 +41,16 @@ jobs:
       - name: Run mutmut on core/
         env:
           QT_QPA_PLATFORM: offscreen
+          MUTMUT_PATTERN: ${{ inputs.mutants || '' }}
         # mutmut 3 reads source/test selection from [tool.mutmut].
         # Infrastructure and baseline failures must fail this step; surviving
         # mutants are evaluated separately by the existing 40% gate.
         run: |
-          mutmut run
+          if [ -n "${MUTMUT_PATTERN}" ]; then
+            mutmut run "${MUTMUT_PATTERN}"
+          else
+            mutmut run
+          fi
           mutmut export-cicd-stats
       - name: Compute kill rate and gate at 40%
         run: |
