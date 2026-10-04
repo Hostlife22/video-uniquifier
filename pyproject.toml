@@ -21,14 +21,14 @@ dependencies = [
     # the patched boundary even when another optional extra accepts older Click.
     "click>=8.3.3,<9",
     "pydantic~=2.7",
-    "rich~=13.7",
+    "rich>=13.7,<16.0",
     "pyyaml~=6.0",
     "imagehash~=4.3",
     # Pillow is production runtime through imagehash. Keep the lower bound at
     # the first release that fixes the 2026 image-decoder advisories; permissive
     # old bounds otherwise let a fresh install resolve a known-vulnerable wheel.
     "Pillow>=12.3,<13",
-    "structlog~=24.1",
+    "structlog>=24.1,<27.0",
     "jinja2~=3.1",
     # Pause/resume uses native POSIX signals on Unix. Windows has no
     # equivalent stdlib API, so psutil is a runtime requirement there;
@@ -62,9 +62,9 @@ scene = ["scenedetect~=0.7.1"]
 # the Intel exception is documented as trusted, hash-pinned SSCD inference only.
 ml = [
     "numpy>=1.26,<2",
-    "torch>=2.10,<3; platform_system != 'Darwin' or platform_machine != 'x86_64'",
+    "torch==2.14.1; platform_system != 'Darwin' or platform_machine != 'x86_64'",
     "torch==2.2.2; platform_system == 'Darwin' and platform_machine == 'x86_64'",
-    "torchvision>=0.25,<1; platform_system != 'Darwin' or platform_machine != 'x86_64'",
+    "torchvision==0.29.1; platform_system != 'Darwin' or platform_machine != 'x86_64'",
     "torchvision==0.17.2; platform_system == 'Darwin' and platform_machine == 'x86_64'",
 ]
 # v1.2.0 Task 25 — Ed25519 signature verification for marketplace catalog
@@ -120,7 +120,7 @@ dev = [
     # dims tail) and mutmut-driven mutation testing of core/.  Both
     # ship dev-only — production installs don't need them.
     "hypothesis~=6.108",
-    "mutmut~=2.5",
+    "mutmut>=3.8,<4.0",
     # Signature contract tests generate Ed25519 signatures; keep the
     # production feature optional while making the dev test closure complete.
     "cryptography>=50,<51",
@@ -213,6 +213,17 @@ markers = [
 # opcodes, which the GIL-released communicate() never returns to).
 timeout = 180
 timeout_method = "thread"
+
+# mutmut 3 copies the package before mutation; keep resource files and
+# repository fixtures available while limiting mutation to core functions.
+[tool.mutmut]
+source_paths = ["src/video_uniquifier/"]
+# Unit fixtures use Qt/threads; fork workers from a clean server.
+process_isolation = "forkserver"
+only_mutate = ["src/video_uniquifier/core/*"]
+pytest_add_cli_args_test_selection = ["tests/unit/"]
+pytest_add_cli_args = ["-x", "-q", "-m", "not integration and not visual"]
+also_copy = ["tools/", "docs/", "profiles/", "pyinstaller/", ".github/", "Makefile"]
 
 [tool.mypy]
 python_version = "3.11"

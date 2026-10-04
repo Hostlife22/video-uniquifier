@@ -12,7 +12,12 @@ on:
     # time — just outside US/EU business hours so a long run doesn't
     # contend with on-demand CI traffic.
     - cron: "0 2 * * 0"
-  workflow_dispatch:  # operators can re-trigger manually after a deps bump
+  workflow_dispatch:
+    inputs:
+      mutants:
+        description: "Optional mutant pattern for a focused smoke; empty runs all core mutations"
+        required: false
+        default: ""
 
 jobs:
   mutate:
@@ -36,32 +41,29 @@ jobs:
       - name: Run mutmut on core/
         env:
           QT_QPA_PLATFORM: offscreen
-        # ``--paths-to-mutate`` restricts the mutation set to core/; the
-        # CLI/GUI shells are intentionally excluded because they're
-        # thin wrappers around core and mutations there mostly land in
-        # untested glue.  Unit tests run with -m "not integration and
-        # not visual" so the mutation pass uses the fast lane only.
+          MUTMUT_PATTERN: ${{ inputs.mutants || '' }}
+        # mutmut 3 reads source/test selection from [tool.mutmut].
+        # Infrastructure and baseline failures must fail this step; surviving
+        # mutants are evaluated separately by the existing 40% gate.
         run: |
-          mutmut run \
-            --paths-to-mutate src/video_uniquifier/core/ \
-            --tests-dir tests/unit/ \
-            --runner 'pytest -x -q -m "not integration and not visual"' \
-            || true   # mutmut exits nonzero when survivors exist; we
-                     #  inspect the kill rate below
+          if [ -n "${MUTMUT_PATTERN}" ]; then
+            mutmut run "${MUTMUT_PATTERN}"
+          else
+            mutmut run
+          fi
+          mutmut export-cicd-stats
       - name: Compute kill rate and gate at 40%
-        # ``mutmut results`` produces a small summary; we parse it for
-        # the killed/total ratio.  A v1.2.0 floor of 40 % is a starting
-        # ratchet — v1.3.0 raises this to 70 % per the roadmap.
         run: |
           python <<'PY'
-          import re, subprocess, sys
-          out = subprocess.check_output(["mutmut", "results"], text=True)
-          killed = sum(int(m.group(1)) for m in re.finditer(r"(\d+) killed", out))
-          survived = sum(int(m.group(1)) for m in re.finditer(r"(\d+) survived", out))
+          import json, sys
+          from pathlib import Path
+          stats = json.loads(Path("mutants/mutmut-cicd-stats.json").read_text())
+          killed = stats["killed"]
+          survived = stats["survived"]
           total = killed + survived
           if total == 0:
-              print("No mutations recorded — likely an environment issue")
-              sys.exit(0)
+              print("No completed mutations recorded — environment or baseline failure")
+              sys.exit(1)
           rate = 100.0 * killed / total
           print(f"Mutation kill rate: {killed}/{total} = {rate:.1f}%")
           if rate < 40.0:
