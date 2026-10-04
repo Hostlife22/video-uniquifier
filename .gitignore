@@ -47,3 +47,7 @@ tests/visual/__snapshots__/_actual_*.png
 out/
 # mkdocs build output (gh-pages workflow generates fresh per deploy)
 site/
+
+# mutmut generated source copies and result cache
+mutants/
+.mutmut-cache

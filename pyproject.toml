@@ -120,7 +120,7 @@ dev = [
     # dims tail) and mutmut-driven mutation testing of core/.  Both
     # ship dev-only — production installs don't need them.
     "hypothesis~=6.108",
-    "mutmut>=2.5,<4.0",
+    "mutmut>=3.8,<4.0",
     # Signature contract tests generate Ed25519 signatures; keep the
     # production feature optional while making the dev test closure complete.
     "cryptography>=50,<51",
@@ -213,6 +213,17 @@ markers = [
 # opcodes, which the GIL-released communicate() never returns to).
 timeout = 180
 timeout_method = "thread"
+
+# mutmut 3 copies the package before mutation; keep resource files and
+# repository fixtures available while limiting mutation to core functions.
+[tool.mutmut]
+source_paths = ["src/video_uniquifier/"]
+# Unit fixtures use Qt/threads; fork workers from a clean server.
+process_isolation = "forkserver"
+only_mutate = ["src/video_uniquifier/core/*"]
+pytest_add_cli_args_test_selection = ["tests/unit/"]
+pytest_add_cli_args = ["-x", "-q", "-m", "not integration and not visual"]
+also_copy = ["tools/", "docs/", "profiles/", "pyinstaller/", ".github/", "Makefile"]
 
 [tool.mypy]
 python_version = "3.11"

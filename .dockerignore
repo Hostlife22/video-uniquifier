@@ -57,3 +57,7 @@ Thumbs.db
 .claude
 .kilo
 .github/instructions
+
+# mutmut generated source copies and result cache
+mutants/
+.mutmut-cache
