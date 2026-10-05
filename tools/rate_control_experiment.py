@@ -15,13 +15,20 @@ import math
 import shutil
 import statistics
 import subprocess
+from dataclasses import asdict
 from pathlib import Path
 from typing import Any
 
 from tools.media_diagnostics import decoded_timeline
 from tools.natural_corpus import _capture, _load_json, _psnr, _sha256, load_manifest
+from video_uniquifier.core._quality_size_policy import (
+    CandidateObservation,
+    QualitySizeLimits,
+    select_candidate,
+)
 from video_uniquifier.core.orchestrator import build_plan
 from video_uniquifier.core.pipeline import _encoder_args_for, build_video_segment_command
+from video_uniquifier.core.probe import probe
 from video_uniquifier.core.profile_loader import load_profile
 from video_uniquifier.core.qa.ssim import compute as ssim
 from video_uniquifier.core.qa.vmaf import compute as vmaf
@@ -97,6 +104,104 @@ def assess_existing(destination: Path) -> None:
                      "<p>No human approval recorded. Same post-transform SDR reference; "
                      "not a comparison of HDR mastering or transform quality.</p>"
                      + "\n".join(previews))
+
+
+def select_existing(
+    destination: Path, output: Path, *, minimum_vmaf: float,
+    maximum_size_ratio: float, maximum_average_bitrate_bps: float,
+) -> dict[str, Any]:
+    """Evaluate retained short encodes only; supplied limits are hypotheses.
+
+    Re-decode and re-score short candidates, pin references, and refuse size
+    mismatches. Never encode a candidate or modify production settings here.
+    """
+    if not math.isfinite(maximum_size_ratio) or maximum_size_ratio <= 0:
+        raise ValueError("positive finite size ratio required")
+    report = _load_json(destination / "results.json")
+    if (not report.get("complete") or not report.get("rows")
+            or report.get("method") !=
+            "paired encoding-only against identical transformed FFV1 SDR reference"):
+        raise ValueError("complete transformed-SDR experiment required")
+    groups: dict[str, list[dict[str, Any]]] = {}
+    for row in report["rows"]:
+        groups.setdefault(f"{row['case']}__{row['variant']}", []).append(row)
+    cells = []
+    for name, rows in sorted(groups.items()):
+        cell = destination / name
+        if not cell.resolve().is_relative_to(destination.resolve()):
+            raise ValueError("unsafe cell")
+        reference = cell / "reference.mkv"
+        metadata = probe(reference)
+        if len(metadata.video) != 1 or metadata.video[0].color.is_hdr:
+            raise ValueError("reference must be single-video SDR")
+        expected = decoded_timeline(reference)["streams"][0]
+        reference_hash = _sha256(reference)
+        if not 0 < metadata.duration_sec <= 30:
+            raise ValueError("reference exceeds bounded selection scope")
+        baseline = [row for row in rows if row["policy"] == "source_cap"]
+        if not baseline:
+            raise ValueError("source_cap baseline required for each cell")
+        limits = QualitySizeLimits(
+            reference_hash, "vmaf", "plan_transformed_sdr", minimum_vmaf,
+            math.floor(min(row["size_bytes"] for row in baseline) * maximum_size_ratio),
+            maximum_average_bitrate_bps,
+        )
+        candidates = []
+        identities = []
+        for row in rows:
+            path = cell / f"{row['policy']}-{row['repeat']}.mp4"
+            if not path.resolve().is_relative_to(cell.resolve()):
+                raise ValueError("unsafe candidate path")
+            if path.stat().st_size != row["size_bytes"]:
+                raise ValueError("candidate size differs from scored evidence")
+            if not 0 < row["seconds"] <= 30:
+                raise ValueError("selection only supports bounded development clips")
+            candidate_meta = probe(path)
+            if (not 0 < candidate_meta.duration_sec <= 30 or len(candidate_meta.video) != 1
+                    or candidate_meta.video[0].color.is_hdr):
+                raise ValueError("candidate must be bounded single-video SDR")
+            timeline = decoded_timeline(path)
+            streams = timeline["streams"]
+            actual = streams[0]
+            correct = (
+                len(streams) == 1 and actual["kind"] == "video"
+                and actual["frames"] == expected["frames"] and actual["frames"] > 0
+                and not actual["missing_pts_frames"] and not actual["non_increasing_pts_frames"]
+                and not expected["missing_pts_frames"]
+                and not expected["non_increasing_pts_frames"]
+                and actual["end_sec"] is not None and expected["end_sec"] is not None
+                and abs(actual["end_sec"] - expected["end_sec"]) <= 0.001
+                and actual["start_sec"] is not None and expected["start_sec"] is not None
+                and abs(actual["start_sec"] - expected["start_sec"]) <= 0.001
+            )
+            duration = (actual["end_sec"] - actual["start_sec"]
+                        if actual["end_sec"] is not None and actual["start_sec"] is not None
+                        else float("nan"))
+            measured = vmaf(reference, path)
+            candidates.append(CandidateObservation(
+                path.name, reference_hash, "vmaf", "plan_transformed_sdr", measured.score,
+                path.stat().st_size, duration, row["wall_sec"], correct,
+            ))
+            identities.append({"candidate": path.name, "sha256": _sha256(path),
+                               "source_sha256": row["source_sha256"], "timeline": timeline,
+                               "retained_vmaf": row["vmaf"], "current_vmaf": measured.score,
+                               "metric_note": measured.note})
+        cells.append({"cell": name, "limits": asdict(limits),
+                      "selection": asdict(select_candidate(tuple(candidates), limits)),
+                      "identities": identities})
+    payload = {
+        "experimental": True, "human_acceptance": "NOT VERIFIED",
+        "production_defaults_changed": False,
+        "limits_origin": "explicit engineering hypotheses; not fitted or accepted bands",
+        "score_provenance": "fresh VMAF on pinned retained SDR references and candidates",
+        "results_sha256": _sha256(destination / "results.json"),
+        "baseline": "smallest retained source_cap output per cell; not source file size",
+        "bitrate_scope": "whole-file average; not a peak bitrate or VBV guarantee",
+        "maximum_size_ratio": maximum_size_ratio, "cells": cells,
+    }
+    with output.open("x", encoding="utf-8") as stream:
+        json.dump(payload, stream, indent=2, allow_nan=False)
+    return payload
 
 
 def without_vbv(args: list[str]) -> list[str]:
@@ -260,8 +365,22 @@ if __name__ == "__main__":
     parser.add_argument("--start-sec", type=float, default=0.0)
     parser.add_argument("--vbv-multiplier", type=float, action="append", default=[])
     parser.add_argument("--assess-existing", action="store_true")
+    parser.add_argument("--select-existing", action="store_true")
+    parser.add_argument("--minimum-vmaf", type=float)
+    parser.add_argument("--maximum-size-ratio", type=float)
+    parser.add_argument("--maximum-average-bitrate-mbps", type=float)
+    parser.add_argument("--selection-report", type=Path)
     args = parser.parse_args()
-    if args.assess_existing:
+    if args.select_existing:
+        if args.assess_existing or any(value is None for value in (
+            args.minimum_vmaf, args.maximum_size_ratio,
+            args.maximum_average_bitrate_mbps, args.selection_report,
+        )):
+            parser.error("selection needs explicit quality, size, bitrate and report arguments")
+        select_existing(args.results, args.selection_report, minimum_vmaf=args.minimum_vmaf,
+                        maximum_size_ratio=args.maximum_size_ratio,
+                        maximum_average_bitrate_bps=args.maximum_average_bitrate_mbps * 1_000_000)
+    elif args.assess_existing:
         assess_existing(args.results)
     elif args.manifest is None:
         parser.error("manifest is required for a new experiment")

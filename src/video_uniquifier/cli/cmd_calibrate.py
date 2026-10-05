@@ -33,7 +33,7 @@ def calibrate_cmd(
     ),
     min_quality: float = typer.Option(
         88.0, "--min-quality",
-        help="Minimum quality score (VMAF / SSIM × 100 / pHash × 100, unified scale).",
+        help="Minimum raw-reference quality score: VMAF or SSIM × 100; choose by backend.",
     ),
     iterations: int = typer.Option(5, "--iterations"),
     clip_sec: float = typer.Option(
@@ -49,7 +49,7 @@ def calibrate_cmd(
         "chromaprint", "--metric",
         help=(
             "Local similarity diagnostic used by the bounded search. "
-            "'chromaprint' uses the v0.5 audio-fingerprint predictor (needs fpcalc); "
+            "'chromaprint' uses max(pHash, prefix audio Jaccard); audio needs fpcalc. "
             "'sscd' uses the SSCD copy-detection embedding (needs the [ml] extra)."
         ),
     ),

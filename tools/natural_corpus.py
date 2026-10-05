@@ -15,6 +15,7 @@ import subprocess
 import sys
 import time
 from dataclasses import dataclass
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -44,6 +45,8 @@ class CorpusCase:
     media_class: str
     review_cues: tuple[str, ...]
     variant_ids: tuple[str, ...]
+    family_id: str | None = None
+    split: str | None = None
 
 
 @dataclass(frozen=True)
@@ -160,6 +163,8 @@ def load_manifest(path: Path, *, require_media: bool = True) -> CorpusManifest:
         raise ValueError("cases must be a non-empty list")
     cases: list[CorpusCase] = []
     ids: set[str] = set()
+    family_splits: dict[str, str] = {}
+    content_splits: dict[str, str] = {}
     for index, value in enumerate(case_values):
         if not isinstance(value, dict):
             raise ValueError(f"cases[{index}] must be a mapping")
@@ -167,6 +172,19 @@ def load_manifest(path: Path, *, require_media: bool = True) -> CorpusManifest:
         if case_id in ids:
             raise ValueError(f"duplicate case id: {case_id}")
         ids.add(case_id)
+        family_value, split_value = value.get("family_id"), value.get("split")
+        family_id: str | None = None
+        split: str | None = None
+        if family_value is not None or split_value is not None:
+            family_id = _safe_id(family_value, f"cases[{index}].family_id")
+            split = _nonempty_string(split_value, f"cases[{index}].split")
+            if split not in {"development", "holdout", "pilot"}:
+                raise ValueError(f"unsupported split for case {case_id}")
+            previous = family_splits.get(family_id)
+            # Pilot and development may share a tuning family; holdout may not.
+            if previous is not None and previous != split and "holdout" in {previous, split}:
+                raise ValueError(f"family {family_id} leaks across splits")
+            family_splits[family_id] = split
         source, source_rel = _safe_relative(
             path.parent, value.get("source"), f"cases[{index}].source"
         )
@@ -174,6 +192,12 @@ def load_manifest(path: Path, *, require_media: bool = True) -> CorpusManifest:
             raise ValueError(f"unsupported media suffix for case {case_id}")
         if require_media and not source.is_file():
             raise ValueError(f"source does not exist for case {case_id}: {source_rel}")
+        if require_media and split is not None:
+            content_hash = _sha256(source)
+            old_split = content_splits.get(content_hash)
+            if old_split is not None and old_split != split and "holdout" in {old_split, split}:
+                raise ValueError(f"identical media leaks across splits: {case_id}")
+            content_splits[content_hash] = split
         rights_status = _nonempty_string(
             value.get("rights_status"), f"cases[{index}].rights_status"
         )
@@ -222,6 +246,8 @@ def load_manifest(path: Path, *, require_media: bool = True) -> CorpusManifest:
                 media_class=media_class,
                 review_cues=tuple(cue.strip() for cue in cue_values),
                 variant_ids=case_variant_ids,
+                family_id=family_id,
+                split=split,
             )
         )
     return CorpusManifest(
@@ -240,6 +266,23 @@ def _sha256(path: Path) -> str:
         while chunk := handle.read(1024 * 1024):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def _toolchain() -> dict[str, object]:
+    """Capture actual executable versions, retaining missing/error states."""
+    versions: dict[str, object] = {}
+    for binary in ("ffmpeg", "ffprobe", "fpcalc"):
+        try:
+            result = subprocess.run(
+                [binary, "-version"], capture_output=True, text=True, timeout=10, check=False,
+            )
+            versions[binary] = {
+                "returncode": result.returncode,
+                "version_output": (result.stdout + result.stderr)[:8192],
+            }
+        except (OSError, subprocess.SubprocessError) as exc:
+            versions[binary] = {"unavailable": str(exc)}
+    return versions
 
 
 def _capture(command: list[str], log: Path) -> int:
@@ -489,6 +532,8 @@ def run_manifest(
     decode_timelines: bool = False,
     source_evidence: Path | None = None,
 ) -> int:
+    started_at = datetime.now(UTC).isoformat()
+    manifest_hash = _sha256(manifest.path)
     cached_source: dict[str, Any] | None = None
     evidence_sha256: str | None = None
     if source_evidence is not None:
@@ -612,6 +657,7 @@ def run_manifest(
             ]
             benchmark_rc = _capture(benchmark_command, cell_dir / "benchmark.log")
             qa_rc: int | None = None
+            qa_command: list[str] | None = None
             if benchmark_rc == 0:
                 qa_command = [
                     str(REPO / ".venv" / "bin" / "video-uniq"),
@@ -630,6 +676,7 @@ def run_manifest(
                 qa_rc = _capture(qa_command, cell_dir / "qa.log")
             pipeline_ok = benchmark_rc == 0 and qa_rc == 0
             benchmark = _load_json(benchmark_json)
+            actual_plan = _load_json(plan_json)
             qa = _load_json(qa_json)
             qa_resources = _load_json(cell_dir / "qa.resources.json")
             psnr_db: float | None = None
@@ -688,7 +735,8 @@ def run_manifest(
             ]
             metrics["complete"] = not missing_metrics
             metrics["missing"] = missing_metrics
-            cell_ok = pipeline_ok and not missing_metrics
+            source_unchanged = _sha256(case.source) == source_sha256
+            cell_ok = pipeline_ok and not missing_metrics and source_unchanged
             failed |= not cell_ok
             cells.append({
                 "cell_id": cell_id,
@@ -708,6 +756,25 @@ def run_manifest(
                 "production_acceptance": "NOT VERIFIED: human/corpus policy review required",
                 "metrics": metrics,
                 "review_cues": case.review_cues,
+                "family_id": case.family_id,
+                "split": case.split,
+                "output_sha256": _sha256(output) if output.is_file() else None,
+                "effective_profile": actual_plan.get("profile"),
+                "requested_profile": profile.model_dump(mode="json"),
+                "seed": actual_plan.get("run_seed"),
+                "requested_seed": profile.seed,
+                "seed_strategy": profile.seed_strategy,
+                "commands": {"benchmark": benchmark_command, "qa": qa_command},
+                "measurement_availability": {
+                    key: "available" if metric_value is not None else "unavailable"
+                    for key, metric_value in metrics.items()
+                    if key not in {"notes", "complete", "missing", "decoded_timeline"}
+                },
+                "reference_domains": {
+                    "raw": "source/candidate", "registered": "exact plan-transformed replay",
+                    "similarity": "sampled diagnostic; not platform detection",
+                },
+                "source_unchanged": source_unchanged,
             })
     comparisons = _comparisons(cells)
     summary = {
@@ -715,6 +782,11 @@ def run_manifest(
         "manifest": manifest.path.name,
         "python": platform.python_version(),
         "platform": f"{platform.system()}-{platform.machine()}",
+        "started_at_utc": started_at,
+        "finished_at_utc": datetime.now(UTC).isoformat(),
+        "manifest_sha256": manifest_hash,
+        "manifest_unchanged": manifest_hash == _sha256(manifest.path),
+        "toolchain": _toolchain(),
         "sources": sources,
         "cells": cells,
         "comparisons": comparisons,
@@ -724,7 +796,7 @@ def run_manifest(
     )
     _write_summary_csv(sources, cells, results / "summary.csv")
     _write_summary_html(sources, cells, comparisons, results / "summary.html")
-    return 1 if failed else 0
+    return 1 if failed or not summary["manifest_unchanged"] else 0
 
 
 def _qa_verdict(payload: dict[str, Any]) -> dict[str, Any]:

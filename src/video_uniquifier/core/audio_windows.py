@@ -2,8 +2,8 @@
 
 Audio gets one rng draw per run by default, which means every video
 segment shares identical audio params (rubberband pitch, Haas delay,
-compand threshold, EQ band shifts). A temporal-aware audio CID has a
-stable target.
+compand threshold, EQ band shifts). Window variation is an experimental
+processing option; its effect on external matching systems is unverified.
 
 The `divergent` seed strategy v0.4.2 splits audio into ~60 s windows,
 each with its own seed derived via `derive_segment_seed(plan_hash,

@@ -323,6 +323,16 @@ def sample_frames_range(
     return _split_png_stream(proc.stdout)
 
 
+def _sample_hashes_range(path: Path, start_sec: float, span_sec: float, n: int) -> list[int]:
+    """Bounded hashes on a shared absolute window, without duration normalization."""
+    frames = sample_frames_range(path, start_sec, span_sec, min(n, 600))
+    try:
+        return [int(str(imagehash.phash(frame)), 16) for frame in frames]
+    finally:
+        for frame in frames:
+            frame.close()
+
+
 def compare_range_pair(
     source_path: Path, encoded_path: Path,
     *,

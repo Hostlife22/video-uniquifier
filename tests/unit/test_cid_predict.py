@@ -46,8 +46,10 @@ def _patch(monkeypatch: pytest.MonkeyPatch, *, duration: float,
            in_fp: list[int] | None = None, out_fp: list[int] | None = None) -> None:
     monkeypatch.setattr(cid_predict.phash, "_probe_duration", lambda _p: duration)
     monkeypatch.setattr(
-        cid_predict.phash, "_sample_hashes",
-        lambda path, n=60: phashes_in if path.name == "in.mp4" else phashes_out,
+        cid_predict.phash, "_sample_hashes_range",
+        lambda path, start, span, n: [
+            h for h in (phashes_in if path.name == "in.mp4" else phashes_out)
+         for _ in range(max(1, n // len(phashes_in)))] if phashes_in else [],
     )
     monkeypatch.setattr(
         cid_predict.audio_fp, "fpcalc_available",
@@ -68,12 +70,12 @@ def _paths(tmp_path: Path) -> tuple[Path, Path]:
     return a, b
 
 
-def test_zero_duration_returns_zero(tmp_path: Path,
+def test_zero_duration_is_unavailable(tmp_path: Path,
                                      monkeypatch: pytest.MonkeyPatch) -> None:
     _patch(monkeypatch, duration=0, n_chunks=0, phashes_in=[], phashes_out=[])
     a, b = _paths(tmp_path)
     res = cid_predict.predict(a, b)
-    assert res.match_probability_self == 0.0
+    assert res.match_probability_self is None
     assert res.chunks == []
     assert res.weakest_chunk is None
 
@@ -136,5 +138,7 @@ def test_audio_jaccard_per_chunk(tmp_path: Path,
     # Visual all-zero, but audio identical → combined = audio similarity.
     for c in res.chunks:
         assert c.visual_similarity == 0.0
-        assert c.audio_similarity > 0.99
-        assert c.combined > 0.99
+        assert c.audio_similarity is None
+        assert c.combined == 0.0
+    assert res.match_probability_self == 1.0
+    assert res.audio_available

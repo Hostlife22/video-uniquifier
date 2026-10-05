@@ -78,6 +78,15 @@ def test_clean_source_passes(tmp_path: Path) -> None:
     assert not has_fail(f)
 
 
+def test_untagged_surround_does_not_claim_speaker_identity(tmp_path: Path) -> None:
+    from video_uniquifier.core.preflight import _check_audio_channel_layout
+
+    source = _source(tmp_path, audio_channels=6)
+    findings = _check_audio_channel_layout(_plan(source, []))
+    assert "audio.speaker_identity_unknown" in _codes(findings)
+    assert all(f.severity == "warn" for f in findings)
+
+
 @pytest.mark.parametrize("container, blocked", [("mp4", True), ("mov", True), ("mkv", False)])
 def test_leading_chapter_gap_is_never_silently_discarded(
     tmp_path: Path, container: str, blocked: bool,

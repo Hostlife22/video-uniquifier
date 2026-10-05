@@ -50,7 +50,7 @@ def test_first_call_writes_cache(
 
     out = seg_mod.list_keyframes(src)
     assert out == [0.0, 5.0, 10.0]
-    assert calls["n"] == 1
+    assert calls["n"] == 2
     cache_path = seg_mod._keyframe_cache_path(src)
     assert cache_path.exists()
 
@@ -64,8 +64,8 @@ def test_second_call_is_cache_hit(
 
     seg_mod.list_keyframes(src)
     seg_mod.list_keyframes(src)
-    # ffprobe called only once.
-    assert calls["n"] == 1
+    # One origin probe and one scan; second call is entirely cached.
+    assert calls["n"] == 2
 
 
 def test_force_bypasses_cache(
@@ -77,7 +77,7 @@ def test_force_bypasses_cache(
 
     seg_mod.list_keyframes(src)
     seg_mod.list_keyframes(src, force=True)
-    assert calls["n"] == 2
+    assert calls["n"] == 4
 
 
 def test_keyframes_are_relative_to_video_stream_start(
@@ -92,7 +92,30 @@ def test_keyframes_are_relative_to_video_stream_start(
     )
 
     assert seg_mod.list_keyframes(src) == [0.0, 1.0, 2.0]
-    assert calls["n"] == 1
+    assert calls["n"] == 2
+
+
+def test_scan_mutated_start_time_cannot_shift_keyframes(tmp_path, monkeypatch) -> None:
+    source = tmp_path / "offset.mp4"
+    source.write_bytes(b"fixture")
+    calls = []
+
+    def fake_run(cmd, **kwargs):
+        calls.append(cmd)
+        # Some FFmpeg versions update stream.start_time after skip_frame
+        # decoder scanning. Only a separate pre-scan probe is authoritative.
+        payload = {"streams": [{"start_time": "5.0"}]}
+        if "-show_frames" in cmd:
+            payload = {
+                "streams": [{"start_time": "6.0"}],
+                "frames": [{"pts_time": str(t)} for t in [5., 6., 7.]],
+            }
+        return subprocess.CompletedProcess(cmd, 0, json.dumps(payload), "")
+
+    monkeypatch.setattr(seg_mod.subprocess, "run", fake_run)
+    assert seg_mod.list_keyframes(source) == [0., 1., 2.]
+    assert len(calls) == 2
+    assert "-show_frames" not in calls[0]
 
 
 def test_old_absolute_pts_cache_schema_is_invalidated(
@@ -114,7 +137,7 @@ def test_old_absolute_pts_cache_schema_is_invalidated(
     )
 
     assert seg_mod.list_keyframes(src) == [0.0, 1.0, 2.0]
-    assert calls["n"] == 1
+    assert calls["n"] == 2
 
 
 def test_different_file_different_cache(
@@ -129,7 +152,7 @@ def test_different_file_different_cache(
     seg_mod.list_keyframes(a)
     seg_mod.list_keyframes(b)
     # Different MD5 → different cache file → both probes happened.
-    assert calls["n"] == 2
+    assert calls["n"] == 4
 
 
 def test_stale_cache_ignored(
@@ -148,7 +171,7 @@ def test_stale_cache_ignored(
 
     out = seg_mod.list_keyframes(src)
     assert out == [0.0, 5.0, 10.0]
-    assert calls["n"] == 1
+    assert calls["n"] == 2
 
 
 def test_corrupt_cache_recovers(
@@ -162,7 +185,7 @@ def test_corrupt_cache_recovers(
     calls = _stub_ffprobe(monkeypatch, [0.0])
 
     seg_mod.list_keyframes(src)
-    assert calls["n"] == 1
+    assert calls["n"] == 2
 
 
 def test_keyframe_cache_atomic_replace(

@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-from PyQt6.QtWidgets import QApplication
+from PyQt6.QtWidgets import QApplication, QLabel
 
 from video_uniquifier.core.preflight import PreflightFinding
 from video_uniquifier.gui.state import AppState
@@ -152,3 +152,13 @@ def test_kpi_pills_set_qa_populates_pills(app: QApplication) -> None:
     })
     # 4 pills + 1 stretch = 5 layout items.
     assert pills._layout.count() >= 5
+
+
+def test_unavailable_phash_is_not_a_green_zero(app: QApplication) -> None:
+    pills = KpiPills()
+    pills.set_qa({"phash_samples": 0, "phash_similarity": 0.0, "cid_predict_self": None})
+    labels = pills.findChildren(QLabel)
+    phash = next(label for label in labels if "pHash worst" in label.text())
+    assert "n/a" in phash.text()
+    maximum = next(label for label in labels if "Similarity max" in label.text())
+    assert "n/a" in maximum.text()

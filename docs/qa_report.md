@@ -52,14 +52,14 @@ decoding the same output twice; standalone `video-uniq qa` performs its own deco
 | `phash_samples` | — | typically 120 | how many frames were sampled |
 | `phash_distance_min`, `_mean`, `_max` | imagehash.phash on `samples` frames | 0..64 bits | Hamming distance between paired frames |
 | `phash_similarity` | `1 - mean_distance / 64` | 0..1 | aggregate; higher = closer to source |
-| `vmaf_mean` | ffmpeg `libvmaf` | 0..100 | perceptual quality vs source; null if libvmaf missing |
+| `vmaf_mean` | ffmpeg `libvmaf` | 0..100 | perceptual quality vs source; null if libvmaf missing or raw HDR domain unsupported |
 | `ssim_mean` | ffmpeg `ssim` | 0..1 | structural similarity index; null if disabled |
 
 ### Audio similarity
 
 | Field | Source | Range | Meaning |
 |---|---|---|---|
-| `audio_fp_similarity` | chromaprint Jaccard over uint32 sub-fingerprints | 0..1 | **strict set-equality** check; see warning below |
+| `audio_fp_similarity` | chromaprint Jaccard over uint32 sub-fingerprints | 0..1 | set overlap of decoded codes; not byte identity |
 | **`audio_fp_hamming_per_frame`** | chromaprint XOR + popcount, paired frames, mean | 0..32 bits | internal bit-level distance diagnostic |
 | **`audio_fp_match_confidence`** | `1 - hamming_per_frame / 32` | 0..1 | legacy normalized similarity heuristic; not calibrated confidence |
 
@@ -68,18 +68,11 @@ instead of six `fpcalc` processes per report. For sources longer than 600 second
 five 120-second windows cover the start, middle and tail and are concatenated before
 fingerprinting; `notes[]` records that stratified coverage was used.
 
-> **About `audio_fp_similarity`.** This is Jaccard
-> (`|A ∩ B| / |A ∪ B|`) over the 32-bit chromaprint sub-fingerprint
-> *sets*. Chromaprint deliberately flips bits across the entire 32-bit
-> code on small acoustic changes (≈1 dB loudnorm shift alone) so two
-> 32-bit codes are exact-equal only when the audio is byte-identical.
-> In practice **this field reads 0.0 for every video-uniq output**, even
-> on the softest profile — the audio is perfectly recognisable, the
-> codes simply don't survive bit-exact match. Don't read it as "audio
-> destroyed". The metric that reflects perceived similarity is
-> `audio_fp_match_confidence` (Hamming-based, normalised). The
-> `_similarity` field is retained for schema compatibility with
-> downstream tools that already key on it.
+`audio_fp_similarity` is Jaccard (`|A ∩ B| / |A ∪ B|`) over decoded 32-bit
+sub-fingerprint sets. An exact code match is not byte identity; re-encodes can
+retain codes. Ordering is discarded, and a low score does not prove audible damage.
+Hamming is another fingerprint diagnostic, not a model of human perception.
+Neither metric is a calibrated confidence or proprietary-system prediction.
 
 The Hamming fields were introduced in v0.3.3. Their legacy names are retained for
 schema compatibility, but they are not a rights-system KPI or probability. Interpret
@@ -92,6 +85,15 @@ them only relative to a pinned source/corpus and tool version:
 | higher value | paired codes differ more; this says nothing about audibility or an external system |
 
 ### Plan-registered metrics (v1.5, RFC #12)
+
+For long files, raw and registered VMAF apply the existing automatic sampling
+policy (approximately four scored frames per second). Registered sampling uses
+the output duration and cadence, and its interval is recorded in report notes.
+Cancellable VMAF/SSIM also emit FFmpeg progress for the inactivity watchdog;
+the null muxer writes to the portable null device.
+The entire timeline is decoded; this is sampling of VMAF scores, not a shorter
+reference or continuous per-frame quality evidence. Short files retain per-frame
+scoring. This policy does not set a hard limit on FFmpeg or whole-QA memory.
 
 Raw source/output metrics above intentionally retain their historical meaning. When
 automatic run/batch QA has the exact completed `Plan`, it additionally replays the
@@ -125,9 +127,8 @@ transformed reference. Neither number alone authorizes a production release.
 The corpus runner records measurement completeness separately from QA verdict
 and human acceptance; its `measured` status is not a quality pass.
 
-Explicit public correctness/loudness objects and independent opt-in thresholds
-are proposed in `specs/28-qa-correctness-loudness-rfc.md`, not yet accepted or
-implemented. Existing report/CLI contracts remain unchanged.
+Public nullable correctness/loudness objects and optional quality policies are
+implemented under accepted RFC #21; see the explicit-evidence section below.
 
 Reference generation is cancellable and guarded by both free space and
 `VIDEO_UNIQ_REGISTERED_REFERENCE_MAX_BYTES` (40 GiB by default). If the conservative
@@ -141,20 +142,19 @@ digest; corrupt entries are rebuilt atomically.
 ### SSCD semantic similarity (v0.8.0 R4, opt-in)
 
 Populated only when `video-uniq qa --sscd` is passed. Requires the `[ml]` extra (torch +
-transformers). The first run downloads ~200 MB of model weights to
+torchvision). The first run downloads ~94 MB of model weights to
 `~/.cache/video_uniquifier/models/`; subsequent runs use the cache.
 Full background in [`docs/sscd.md`](./sscd.md).
 
 | Field | Source | Range | Meaning |
 |---|---|---|---|
-| `sscd.mean_similarity` | mean cosine similarity over N-frame embedding pairs | 0..1 | aggregate semantic match |
-| `sscd.min_similarity`  | min cosine similarity (weakest paired frame) | 0..1 | worst case — the chunk most likely to fail human review |
-| `sscd.per_frame[]`     | `{frame_idx, similarity}` for each sampled pair | 0..1 | drives the SSCD heatmap in the HTML report |
-| `sscd.band`            | derived bucket: `high` ≥0.85, `medium` 0.65-0.85, `low` <0.65 | enum | colour-coded in HTML |
+| `sscd_mean` | mean cosine over paired embeddings | -1..1 | image-copy diagnostic |
+| `sscd_min` | lowest sampled cosine | -1..1 | least-similar paired sample |
+| `sscd_per_frame[]` | ordered cosines on normalized midpoint grid | -1..1 | sampled evidence, not segment localization |
 
-Unlike pHash (pixel-level), SSCD reflects what a content-aware human
-or model would see: a recoloured + cropped + slightly-noisy clip can
-score 0.92 on SSCD while pHash similarity drops below 0.50.
+`notes[]` records the highest sampled cosine and its requested source/output
+timestamps, pair count, official model hash and preprocessing. A short matching
+insert between samples can be missed. SSCD is not human quality or Content ID.
 
 ### Target-VMAF retry events (v0.8.0 R5)
 
@@ -177,19 +177,20 @@ highest-scoring encoded candidate and emits `target_vmaf_failed`.
 The feedback scorer currently uses a plain source slice. Preflight rejects
 `target_vmaf` with geometry, retiming, mirroring, overlays, subtitles or tonemapping
 because that pair is not registered and CRF retries cannot make the score converge.
-Use the loop only on a registered encode-quality path.
+Use this source-slice retry only for the supported unmodified reference domain;
+it is separate from post-run plan-registered QA.
 
 ### Legacy self-similarity heuristic (v0.2+)
 
 | Field | Source | Meaning |
 |---|---|---|
-| `cid_predict_self` | weighted (visual + audio) Jaccard over 4-second chunks | 0..1; internal self-similarity heuristic (legacy field name) |
+| `cid_predict_self` | maximum of sampled pHash and available aggregate prefix audio Jaccard | 0..1; internal self-similarity heuristic (legacy field name) |
 | `weakest_chunk_sec` | argmax over `chunk_similarities[].combined` | (start_sec, end_sec) of the chunk most similar to source |
-| `chunk_similarities[]` | per 4-sec chunk: `{start_sec, end_sec, visual, audio, combined}` | drives the HTML heatmap |
+| `chunk_similarities[]` | sampled windows on common prefix: `{start_sec, end_sec, visual, combined}`, optional `audio` | drives the HTML heatmap |
 | `corpus_matches[]` | comparison against `video-uniq corpus` entries | `{id, path, visual, audio, combined}` for files above threshold |
 
 `cid_predict_self` is neither a probability nor a predictor of YouTube Content ID.
-It is a project-specific convex combination useful for regression comparisons and
+It is a project-specific maximum similarity diagnostic useful for regression comparisons and
 self-collision diagnostics on owned or licensed derivatives. Do not use it as a
 production pass/fail gate without corpus-specific validation.
 
@@ -274,8 +275,16 @@ licensed natural-content corpus. Similarity fields remain separate diagnostics.
 
 ## Reading the heatmap
 
-The HTML report renders one cell per 4-sec chunk, coloured by
-`combined = α·visual + (1-α)·audio`:
+The HTML renders sampled windows, coloured by visual similarity. Audio appears in
+a window only when the single window covers the entire measured prefix. The
+overall score also includes aggregate audio when available. Missing audio is
+omitted from the window dictionary and displayed as unavailable, not zero.
+
+The common prefix ends at the shortest file or 600 seconds. Longer tails are
+unmeasured. Windows partition that prefix (up to 150 windows, at most 600 visual
+samples), including the residual duration; they are not continuous analysis.
+Raw retiming is not automatically aligned. Requested sample times have cadence
+resolution, and each compared file uses the same absolute visual span:
 
 ```
 [█][█][░][▒][█][▒][░][░][█][▒]  ← time →
@@ -343,9 +352,13 @@ if hp is not None:
     print(f"Audio FP distance: {hp:.1f} bits/frame")
 
 # Worst chunk:
-worst = max(c["combined"] for c in qa["chunk_similarities"])
-print(f"worst chunk combined similarity: {worst:.3f}")
+worst = max((c["combined"] for c in qa["chunk_similarities"]), default=None)
+print("worst sampled similarity:", worst)
 ```
 
 The Pydantic model is `video_uniquifier.core.models.QAReport` if you'd
 rather work with typed objects.
+
+For stratified concatenation on sources over 600 seconds, aggregate audio distances
+remain available but physical timeline offset/drift registration is unavailable.
+A shift on the stitched fingerprint cannot be converted into a whole-film clock.

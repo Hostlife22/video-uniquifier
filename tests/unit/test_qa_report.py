@@ -342,6 +342,59 @@ def test_build_report_runs_probe_before_hash_and_similarity(
     assert events == ["probe", "probe", "md5", "md5", "phash"]
 
 
+@pytest.mark.parametrize("duration,output_fps,expected_subsample", [
+    (10.0, 30000 / 1001, 1), (10823.99, 30000 / 1001, 7), (10823.99, 60.0, 15),
+])
+def test_registered_vmaf_uses_long_form_sampling_policy(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path,
+    duration: float, output_fps: float, expected_subsample: int,
+) -> None:
+    from tests.unit.test_pipeline_graph import _plan, _src
+    from video_uniquifier.core.qa import registration
+
+    original = _src(tmp_path)
+    source = original.model_copy(update={
+        "duration_sec": duration,
+        "video": [original.video[0].model_copy(update={"fps": 30000 / 1001})],
+    })
+    plan = _plan(source, [])
+    output = tmp_path / "output.mp4"
+    output.touch()
+    output_meta = source.model_copy(update={
+        "path": output,
+        "video": [source.video[0].model_copy(update={"fps": output_fps})],
+    })
+    monkeypatch.setattr(
+        report_mod, "probe_file", lambda path: source if path == source.path else output_meta,
+    )
+    monkeypatch.setattr(
+        report_mod, "inspect_output_contract",
+        lambda *_args, **_kwargs: MediaInvariantReport(output=source.path, failures=()),
+    )
+    monkeypatch.setattr(report_mod.hashes, "md5_file", lambda _path: "abc")
+    monkeypatch.setattr(report_mod.phash, "compare", lambda *_args, **_kwargs: _FakePHash())
+    monkeypatch.setattr(
+        registration, "build_transformed_reference",
+        lambda *_args, **_kwargs: registration.TransformedReference(source.path, "test", 1),
+    )
+    calls: list[dict[str, object]] = []
+
+    def compute(_reference: Path, _output: Path, **kwargs: object) -> _FakeVmaf:
+        calls.append(kwargs)
+        return _FakeVmaf()
+
+    monkeypatch.setattr(report_mod.vmaf, "compute", compute)
+    result = report_mod.build_report(
+        source.path, output, plan=plan, run_registered=True,
+        run_ssim=False, run_audio_fp=False, predict_cid=False, verify_decode=False,
+    )
+    assert result.vmaf_mean == 90.0
+    assert result.vmaf_registered_mean == 90.0
+    assert len(calls) == 2
+    assert calls[0]["subsample"] == (1 if duration < 1800 else 7)
+    assert calls[1]["subsample"] == expected_subsample
+
+
 def test_build_report_uses_strict_plan_media_contract(
     monkeypatch: pytest.MonkeyPatch, tiny_clip: Path,
 ) -> None:

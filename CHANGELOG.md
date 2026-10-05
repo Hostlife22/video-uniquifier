@@ -10,6 +10,49 @@ versioning follows the git tags `v0.1.0`, `v0.2.0`, `v0.3.x`, `v0.4.x`,
 The `[Unreleased]` section, if present, summarises post-tip changes since
 the last tag.
 
+## [Unreleased]
+
+### Fixed
+
+- Micro-crop preserves source display proportions for non-square pixels and integer
+  crop rounding. Explicit destination canvases retain square pixels and configured
+  dimensions; encode policy v8 prevents reuse of older distorted segments.
+- Hardware evidence retains structured stream/HDR metadata on large inputs by
+  probing a declared packet prefix; truncated command output is marked explicitly.
+  Full decoded timeline diagnostics include every declared video stream.
+- Cancellable VMAF/SSIM emit progress so long-running metrics do not trigger
+  a false inactivity timeout; metric outputs use the portable null device.
+- Registered VMAF applies the existing long-form sampling policy using the output
+  duration and cadence, and records its sampling interval in QA notes. Short-file
+  scoring remains per frame.
+- Calibration scales current schema parameters, including valid odd sharpen
+  kernels, temporal probabilities, EQ/Haas jitter, reverb, compand ratio and
+  linear-amplitude noise levels. Disabled effects remain unchanged.
+- Legacy similarity uses an explicitly bounded common-prefix visual grid; missing
+  metrics are unavailable and aggregate audio gets no invented chunk timestamps.
+  Calibration cannot accept a missing required audio fingerprint as a low score.
+- Keyframe origin is probed before frame scanning; schema 3 invalidates old caches.
+  Calibration score caches also bind to executable versions and SSCD model identity.
+- Legacy ffprobe absolute MP4 duration endpoints are normalized only when every
+  timed stream agrees with the reported origin and endpoint; corrected source
+  metadata invalidates incompatible plan/resume hashes.
+- Constant audio/static visual evidence cannot establish confident temporal alignment.
+- Noise overlay preserves the selected speaker topology and seeds generated noise
+  for repeatable loudness measurement/replay. Encode policy v7 invalidates old
+  resume/score identities; unknown surround layouts remain explicitly unverified.
+- GUI displays missing pHash as neutral `n/a` and labels the diagnostic maximum
+  without implying a platform prediction; validation observations retain the CSV contract.
+- QA documents sampled SSCD maxima/provenance and corrects stale metric claims.
+  Natural-corpus evidence retains commands, hashes, seeds, availability and family splits.
+
+### Added
+
+- Private experimental PCM observations for native-rate sample peaks, DC offset,
+  stereo correlation and equal-weight mono cancellation, without a listening verdict.
+- Offline experimental quality/size selector with explicit budgets, pinned SDR
+  references, fresh VMAF and decoded correctness checks. Missing evidence or an
+  infeasible budget cannot pass; application profiles and encoder defaults are unchanged.
+
 ## [2.0.0] — 2026-10-04
 
 ### Changed — project rename

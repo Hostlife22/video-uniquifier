@@ -47,7 +47,7 @@ class KpiPills(QWidget):
     """Horizontal row of colored chips for QA KPIs.
 
     Empty when no qa.json is set. Renders 4 pills:
-    pHash worst chunk, VMAF, Audio FP Hamming, CID predicted.
+    pHash worst chunk, VMAF, Audio FP Hamming, local maximum similarity.
 
     Pass `state` to subscribe to `theme_changed` so the pills repaint
     on theme switch. Construction without `state` keeps the widget
@@ -101,6 +101,8 @@ class KpiPills(QWidget):
         chunks: list[dict[str, float]] = chunks_raw if isinstance(chunks_raw, list) else []
         phash_fallback = qa.get("phash_similarity")
         phash_default = phash_fallback if isinstance(phash_fallback, (int, float)) else None
+        if qa.get("phash_samples") == 0:
+            phash_default = None
         worst_phash: float | None = max(
             (
                 float(c.get("combined", c.get("visual", 0.0)))
@@ -122,7 +124,7 @@ class KpiPills(QWidget):
                 "audio_hamming",
                 "{:.1f}b",
             ),
-            ("CID predicted", _opt_float("cid_predict_self"), "cid_predict", "{:.2f}"),
+            ("Similarity max", _opt_float("cid_predict_self"), "cid_predict", "{:.2f}"),
         ]
         for label, value, band_key, fmt in pills:
             self._layout.insertWidget(self._layout.count() - 1,

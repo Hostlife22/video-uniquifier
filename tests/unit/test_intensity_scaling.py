@@ -122,11 +122,7 @@ def test_scale_loudnorm_unchanged() -> None:
 
 
 # ---------------------------------------------------------------------------
-# v1.0.0 R3 — close coverage gaps in intensity._scale_params for the rest of
-# the registered transforms. Many of these branches reference legacy
-# param names that no longer live in the transform's defaults; the test
-# exercises the branch by passing the param explicitly so the production
-# rule is still verified for users carrying over older profiles.
+# Regression tests use current transform schemas.
 # ---------------------------------------------------------------------------
 
 
@@ -163,55 +159,30 @@ def test_scale_haas_stereo_delay_ms() -> None:
     assert _get(out, "audio.haas_stereo")["delay_ms"] == pytest.approx(15.0)
 
 
-def test_scale_compand_amount_when_provided() -> None:
-    # `amount` is not in the current defaults but the branch handles
-    # users who carry it over from older profiles; assert the branch runs.
-    p = _profile([TransformConfig(id="audio.compand", params={"amount": 0.4})])
-    out = scale_profile(p, 1.5)
-    assert _get(out, "audio.compand")["amount"] == pytest.approx(0.6)
+def test_scale_compand_ratio_toward_one() -> None:
+    p = _profile([TransformConfig(id="audio.compand", params={"ratio": 3.0})])
+    assert _get(scale_profile(p, 0.5), "audio.compand")["ratio"] == pytest.approx(2.0)
 
 
-def test_scale_reverb_legacy_wet_keys() -> None:
-    p = _profile([
-        TransformConfig(
-            id="audio.reverb",
-            params={"wet": 0.2, "room_size": 0.5, "damping": 0.3},
-        ),
-    ])
-    out = scale_profile(p, 2.0)
-    e = _get(out, "audio.reverb")
-    assert e["wet"] == pytest.approx(0.4)
-    assert e["room_size"] == pytest.approx(1.0)
-    assert e["damping"] == pytest.approx(0.6)
+def test_scale_reverb_intensity() -> None:
+    p = _profile([TransformConfig(id="audio.reverb", params={"intensity": 0.1})])
+    assert _get(scale_profile(p, 2.0), "audio.reverb")["intensity"] == pytest.approx(0.2)
 
 
-def test_scale_noise_overlay_amix_weight() -> None:
-    p = _profile([
-        TransformConfig(id="audio.noise_overlay", params={"amix_weight_noise": 0.05}),
-    ])
-    out = scale_profile(p, 2.0)
-    assert _get(out, "audio.noise_overlay")["amix_weight_noise"] == pytest.approx(0.10)
+def test_scale_noise_overlay_linear_amplitude() -> None:
+    p = _profile([TransformConfig(id="audio.noise_overlay", params={"noise_db": -20.0})])
+    assert _get(scale_profile(p, 2.0), "audio.noise_overlay")["noise_db"] == pytest.approx(-13.9794)
 
 
-def test_scale_subpixel_sharpen_legacy_keys() -> None:
-    p = _profile([
-        TransformConfig(
-            id="video.subpixel_sharpen",
-            params={"amount": 0.3, "radius": 2.0},
-        ),
-    ])
-    out = scale_profile(p, 1.5)
-    e = _get(out, "video.subpixel_sharpen")
-    assert e["amount"] == pytest.approx(0.45)
-    assert e["radius"] == pytest.approx(3.0)
+def test_scale_subpixel_sharpen_odd_integer_kernel() -> None:
+    p = _profile([TransformConfig(id="video.subpixel_sharpen", params={"radius": 5})])
+    assert _get(scale_profile(p, 0.75), "video.subpixel_sharpen")["radius"] == 3
+    assert _get(scale_profile(p, 1.5), "video.subpixel_sharpen")["radius"] == 7
 
 
-def test_scale_temporal_jitter_shift_frames_int() -> None:
-    p = _profile([
-        TransformConfig(id="video.temporal_jitter", params={"shift_frames": 3}),
-    ])
-    out = scale_profile(p, 2.0)
-    assert _get(out, "video.temporal_jitter")["shift_frames"] == 6
+def test_scale_temporal_jitter_probabilities() -> None:
+    p = _profile([TransformConfig(id="video.temporal_jitter", params={"drop_prob": 0.05})])
+    assert _get(scale_profile(p, 2.0), "video.temporal_jitter")["drop_prob"] == pytest.approx(0.1)
 
 
 def test_scale_tonemap_sdr_is_pass_through() -> None:

@@ -37,12 +37,8 @@ class AudioFPHamming:
     Each subfingerprint is a 32-bit integer. Pair frame i of input with
     frame i of output, popcount(a XOR b), average over all paired frames.
 
-    Interpretation (chromaprint heuristic):
-      ≤ 5 bits/frame → high-confidence match
-      6 – 14         → match
-      15 – 25        → uncertain
-      ≥ 26           → no match
-      ≥ 30           → high-confidence non-match
+    Distance is a local diagnostic, not audibility, calibrated confidence or
+    the outcome of any proprietary matching system.
     """
 
     available: bool
@@ -61,7 +57,7 @@ def _run_fpcalc(path: Path) -> dict[str, object] | None:
     cmd = ["fpcalc", "-json", "-length", "600", str(path)]
     try:
         proc = subprocess.run(cmd, capture_output=True, text=True, timeout=120, check=True)
-    except (subprocess.CalledProcessError, subprocess.TimeoutExpired):
+    except (OSError, subprocess.CalledProcessError, subprocess.TimeoutExpired):
         return None
     try:
         parsed = json.loads(proc.stdout)
@@ -186,9 +182,8 @@ class AudioFPVariance:
     subfingerprints inside window i (paired input vs output frames).
     `variance_between_windows` = stdev of those means.
 
-    With v0.3.3-style uniform audio: variance ≈ 0 (all windows have the
-    same params, so per-window deltas are similar). With v0.4.2 windowed
-    audio: variance ≥ 4 bits expected on real fixtures.
+    Content and processing both affect variance. It has no universal target
+    and does not establish perceptual quality or temporal synchronization.
     """
 
     available: bool
@@ -242,6 +237,11 @@ def align_fingerprints(
         return RegisteredAudioFP(
             False, None, None, None, 0, 0.0, 0.0,
             "empty fingerprint cannot be registered",
+        )
+    if len(set(reference)) < 2 or len(set(candidate)) < 2:
+        return RegisteredAudioFP(
+            False, None, None, None, 0, 0.0, 0.0,
+            "constant fingerprint: offset/drift are ambiguous",
         )
     if max_offset_frames < 0 or max_drift_frames < 0:
         raise ValueError("audio registration bounds must be non-negative")
@@ -387,7 +387,13 @@ def analyze_pair(
         similarity=AudioFPResult(True, similarity, None),
         hamming=hamming,
         variance=AudioFPVariance(True, means, variance),
-        registered=align_fingerprints(ai, bi, n_windows=n_windows),
+        registered=(
+            RegisteredAudioFP(False, None, None, None, 0, 0.0, 0.0,
+                              "stratified concatenation cannot establish physical "
+                              "timeline offset/drift; per-window alignment required")
+            if input_is_long or output_is_long
+            else align_fingerprints(ai, bi, n_windows=n_windows)
+        ),
         coverage_note=(
             "stratified 600-second fingerprint coverage across the full timeline"
             if input_is_long or output_is_long
@@ -417,6 +423,6 @@ def compare_hamming(input_path: Path, output_path: Path) -> AudioFPHamming:
 
     Returns AudioFPHamming with available=False if fpcalc is missing.
     `match_confidence` is `1 - mean_hamming / 32`, in [0, 1]: higher means
-    closer to the input fingerprint, i.e. *worse* for CID divergence.
+    closer to the input fingerprint. It is not calibrated match confidence.
     """
     return analyze_pair(input_path, output_path).hamming

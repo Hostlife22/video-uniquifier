@@ -30,12 +30,12 @@ from video_uniquifier.core.qa.cid_predict import predict
 from video_uniquifier.core.qa.quality import QualityMetric, quality_score
 from video_uniquifier.core.runner import CancelToken
 from video_uniquifier.core.segmenter import stream_copy_extract
-from video_uniquifier.core.utils.ffmpeg_paths import ffmpeg_bin
+from video_uniquifier.core.utils.ffmpeg_paths import ffmpeg_bin, ffprobe_bin
 
 CalibrationMetric = Literal["chromaprint", "sscd"]
 
 # Bump whenever cached score semantics or the probe construction changes.
-CALIBRATION_CACHE_SCHEMA_VERSION = 2
+CALIBRATION_CACHE_SCHEMA_VERSION = 3
 _PROBE_WINDOW_COUNT = 3
 _MIN_LOG_INTERVAL = 0.025
 
@@ -147,6 +147,12 @@ def calibrate(
             "seed": target.seed,
         })
         plan = build_plan(clip, scaled, encoder_override)
+        plan_source = getattr(plan, "source", None)
+        if plan_source is not None and any(video.color.is_hdr for video in plan_source.video):
+            raise PipelineError(
+                "calibration raw quality reference is unsupported for HDR; "
+                "prepare an authorized SDR reference or use registered post-run QA"
+            )
         iteration = len(steps) + 1
 
         cached = (
@@ -230,6 +236,15 @@ def calibrate(
             f"no candidate satisfied both constraints after {len(steps)} trial(s); "
             f"{stop_reason}; returning lowest-violation candidate"
         )
+    algorithm = (
+        "max(pHash, prefix Chromaprint Jaccard)"
+        if metric == "chromaprint" else "SSCD mean cosine"
+    )
+    note += (
+        f"; similarity backend={algorithm}, units=[0,1]; "
+        f"quality backend={best.quality_metric}, domain=raw source/candidate; "
+        "registered post-run quality is a separate measurement"
+    )
 
     return CalibratedResult(
         profile=best.profile,
@@ -284,7 +299,10 @@ def _run_trial(
                 raise PipelineError(
                     f"quality evaluator returned invalid score: {quality.value!r}"
                 )
-            return self_match, quality.value, quality.metric, quality.note
+            return self_match, quality.value, quality.metric, _join_notes(
+                quality.note, "quality reference=raw source/candidate; "
+                "SSIM x 100 and VMAF thresholds are backend-specific",
+            )
         except Exception as exc:  # noqa: PERF203 - retry boundary is intentional
             if cancel_token is not None and cancel_token.is_cancelled():
                 raise
@@ -572,6 +590,24 @@ def _trial_cache_path(work_dir: Path, plan_hash: str, metric: CalibrationMetric)
     return work_dir / "trial_cache" / f"{plan_hash}_{metric}.json"
 
 
+def _scoring_environment(metric: CalibrationMetric) -> str:
+    """Bind durable scores to executable versions and the selected model."""
+    identity: list[str] = []
+    for binary in (ffmpeg_bin(), ffprobe_bin(), shutil.which("fpcalc") or "fpcalc"):
+        try:
+            result = subprocess.run(
+                [binary, "-version"], capture_output=True, text=True, timeout=10, check=False,
+            )
+            identity.extend([binary, str(result.returncode), result.stdout, result.stderr])
+        except (OSError, subprocess.SubprocessError) as exc:
+            identity.extend([binary, str(exc)])
+    if metric == "sscd":
+        from video_uniquifier.core.qa.sscd import _MODEL_SHA256
+
+        identity.append(_MODEL_SHA256)
+    return hashlib.sha256("\0".join(identity).encode()).hexdigest()
+
+
 def _load_trial(
     work_dir: Path, plan_hash: str, metric: CalibrationMetric,
 ) -> _CachedTrial | None:
@@ -583,6 +619,8 @@ def _load_trial(
         if raw.get("schema_version") != CALIBRATION_CACHE_SCHEMA_VERSION:
             return None
         if raw.get("plan_hash") != plan_hash or raw.get("metric") != metric:
+            return None
+        if raw.get("scoring_environment") != _scoring_environment(metric):
             return None
         self_match = float(raw["self_match"])
         quality = float(raw["quality"])
@@ -630,6 +668,7 @@ def _save_trial(
         "quality": trial.quality,
         "quality_metric": trial.quality_metric,
         "quality_note": trial.quality_note,
+        "scoring_environment": _scoring_environment(metric),
     }
     temp = path.with_name(
         f".{path.name}.{os.getpid()}.{secrets.token_hex(4)}.tmp"
@@ -670,9 +709,16 @@ def _build_evaluator(metric: CalibrationMetric) -> MetricEvaluator:
 def _evaluate_chromaprint(
     source: Path, candidate: Path, cancel: CancelToken | None,
 ) -> float:
-    """Return the legacy weighted local self-similarity heuristic."""
+    """Return the maximum pHash/audio diagnostic, failing closed if unavailable."""
     _ = cancel
-    return predict(source, candidate).match_probability_self
+    result = predict(source, candidate)
+    if result.match_probability_self is None:
+        raise PipelineError("calibration similarity measurement unavailable")
+    # For sources with audio, do not silently change the objective to
+    # visual-only when fpcalc fails. Video-only inputs are explicitly allowed.
+    if not getattr(result, "audio_available", True) and probe_file(source).audio:
+        raise PipelineError("calibration audio fingerprint required but unavailable")
+    return result.match_probability_self
 
 
 def _evaluate_sscd(

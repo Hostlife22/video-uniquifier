@@ -34,7 +34,10 @@ KPI pills colour-code per band:
 - **pHash worst chunk** — green < 0.75, yellow < 0.85, red ≥ 0.85
 - **VMAF mean** — green ≥ 85, yellow ≥ 75, red < 75
 - **Audio FP Hamming** — green ≥ 18 bits, yellow ≥ 10 bits, red < 10
-- **CID predicted** — green < 0.2, yellow < 0.4, red ≥ 0.4
+- **Similarity max** — legacy display bands: green < 0.2, yellow < 0.4, red ≥ 0.4
+
+These colors are local diagnostic display bands, not probabilities, human quality
+bands or predicted Content ID outcomes. Missing measurements display `n/a`.
 
 ### 2. Batch
 
@@ -112,7 +115,7 @@ Two sub-tabs:
 3-step wizard for the v0.4.1 real-CID validation harness:
 - **Generate** — N variants of one source. Calls
   GenerateVariantsWorker (wraps `tools/generate_variants.py`).
-- **Record** — editable table with per-variant predicted KPIs +
+- **Record** — editable table with per-variant local diagnostic KPIs +
   empty cells for `upload_date`, `youtube_video_id`, `match_status`,
   `notes`. "Save to validation_log.csv" appends.
 - **Analyze** — runs `python tools/validation_correlate.py` against

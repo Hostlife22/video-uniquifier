@@ -8,7 +8,7 @@ import pytest
 
 from tools.media_diagnostics import decoded_timeline
 from video_uniquifier.core.errors import PipelineError
-from video_uniquifier.core.models import Profile, Segment
+from video_uniquifier.core.models import Profile
 from video_uniquifier.core.orchestrator import build_plan
 from video_uniquifier.core.qa import phash, registration
 from video_uniquifier.core.qa.ssim import compute as compute_ssim
@@ -36,14 +36,7 @@ def test_virtual_reference_matches_materialized(
         command.extend(["-c:v", "libx264", "-preset", "ultrafast", "-g", "15", str(source)])
         subprocess.run(command, capture_output=True, check=True, timeout=60)
     plan = build_plan(source, Profile(name="bounded"), encoder_override="libx264")
-    if cadence == "vfr":
-        # Isolate reference storage from FFmpeg 9's post-scan stream.start_time
-        # mutation (tracked separately in RISK_REGISTER.md). These are actual
-        # keyframes of this generated 30000/1001 select/GOP fixture.
-        monkeypatch.setattr(registration, "plan_segments", lambda *_args: [
-            Segment(idx=0, start_sec=0.0, end_sec=1.668),
-            Segment(idx=1, start_sec=1.668, end_sec=plan.source.duration_sec),
-        ])
+    # Exercise the real planner, including FFmpeg 9 VFR origin behavior.
     physical = registration.build_transformed_reference(
         plan, tmp_path / "physical" / "ref.mkv", target_segment_sec=1,
     )

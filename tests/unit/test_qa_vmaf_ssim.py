@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import subprocess
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -162,3 +163,35 @@ def test_registered_metric_propagates_cancellation(
 
     with pytest.raises(PipelineError, match="cancelled"):
         metric.compute(source, output, reset_pts=True, cancel_token=token)
+
+
+@pytest.mark.parametrize("metric", [vmaf, ssim])
+def test_cancellable_metric_reports_progress_to_stall_watchdog(
+    metric: Any, monkeypatch: pytest.MonkeyPatch, tmp_path: Path,
+) -> None:
+    from video_uniquifier.core import runner as runner_mod
+    from video_uniquifier.core.pipeline import BuiltCommand
+
+    executable = tmp_path / "metric_ffmpeg"
+    executable.write_text(
+        "import sys, time\n"
+        "for i in range(30):\n"
+        "    if '-progress' in sys.argv:\n"
+        "        print(f'out_time_us={i * 100000}\\nprogress=continue', flush=True)\n"
+        "    time.sleep(.1)\n"
+        "print('VMAF score: 95.0\\nSSIM All:0.99', file=sys.stderr, flush=True)\n",
+    )
+    if metric is vmaf:
+        monkeypatch.setattr(vmaf, "vmaf_available", lambda: True)
+    real_run = runner_mod.run
+
+    def run_with_short_watchdog(cmd: BuiltCommand, **kwargs: Any) -> Any:
+        simulated = BuiltCommand(args=[sys.executable, str(executable), *cmd.args[1:]])
+        return real_run(simulated, **kwargs, stall_timeout_sec=1.0)
+
+    monkeypatch.setattr(runner_mod, "run", run_with_short_watchdog)
+    result = metric.compute(
+        tmp_path / "reference.mp4", tmp_path / "output.mp4", cancel_token=CancelToken(),
+    )
+    assert result.note is None
+    assert result.score == (95.0 if metric is vmaf else .99)

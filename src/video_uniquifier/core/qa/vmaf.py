@@ -7,6 +7,7 @@ available=False and the QA report records a 'skipped' note. No crash.
 from __future__ import annotations
 
 import math
+import os
 import re
 import subprocess
 import tempfile
@@ -59,10 +60,10 @@ def auto_subsample_for_duration(
 ) -> int:
     """Return a sensible ``subsample`` for VMAF on a long source.
 
-    B5 (v0.6.0): scoring every frame on a 4-hour 24 fps source is
-    345k samples (4-11 h of compute). One sample per ~0.25 s
-    converges within ~0.5 VMAF points of full-frame scoring on
-    natural footage. For sources below ``threshold_sec`` we keep
+    Long-form sampling targets approximately one frame per 0.25 s to
+    bound compute. Convergence against full-frame scoring depends on
+    content and must be measured; no universal score-error bound is assumed.
+    For sources below ``threshold_sec`` we keep
     ``subsample=1`` so short calibration clips and snippet QA stay
     untouched.
     """
@@ -123,7 +124,7 @@ def compute(
         "-lavfi",
         f"{distorted};{reference};[r0]setsar=1[r];[d][r]{libvmaf_args}",
         "-f", "null",
-        "-",
+        os.devnull,
     ]
     metric_log: str
     if cancel_token is None:
@@ -146,10 +147,9 @@ def compute(
             try:
                 run_ffmpeg(
                     BuiltCommand(args=cmd),
-                    output=Path("-"),
+                    output=Path(os.devnull),
                     cancel_token=cancel_token,
                     log_path=log_path,
-                    progress_via_stdout=False,
                     wall_timeout_sec=3600.0,
                 )
             except PipelineError as exc:

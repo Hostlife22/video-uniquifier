@@ -63,7 +63,7 @@ _log = logging.getLogger(__name__)
 _LOUDNORM_LOG_TAIL_BYTES = 64 * 1024
 
 KEYFRAME_CACHE_TTL_SEC = 30 * 24 * 3600  # 30 days
-KEYFRAME_CACHE_SCHEMA_VERSION = 2
+KEYFRAME_CACHE_SCHEMA_VERSION = 3
 _CACHE_REPLACE_ATTEMPTS = 12
 _CACHE_REPLACE_MAX_DELAY_SEC = 0.1
 
@@ -98,14 +98,33 @@ def list_keyframes(source: Path, *, force: bool = False) -> list[float]:
     if cached is not None:
         return cached
 
+    # Read origin before decoder scanning: skip_frame can mutate the stream
+    # start_time reported by the same ffprobe invocation on VFR/edit-list media.
+    origin_cmd = [
+        ffprobe_bin(), "-v", "error", "-select_streams", "v:0",
+        "-show_entries", "stream=start_time", "-of", "json", str(source),
+    ]
+    try:
+        origin = subprocess.run(
+            origin_cmd, capture_output=True, text=True, timeout=30, check=True,
+        )
+        origin_raw = json.loads(origin.stdout)
+        streams = origin_raw.get("streams", [])
+        start = streams[0].get("start_time") if streams else None
+        stream_start = float(start) if start not in (None, "N/A") else 0.0
+        if not math.isfinite(stream_start):
+            raise ValueError("non-finite video origin")
+    except (subprocess.SubprocessError, json.JSONDecodeError, TypeError, ValueError,
+            AttributeError, IndexError) as exc:
+        raise PipelineError(f"ffprobe video origin failed for {source}: {exc}") from exc
+
     cmd = [
         ffprobe_bin(),
         "-v", "error",
         "-select_streams", "v:0",
         "-skip_frame", "nokey",
-        "-show_streams",
         "-show_frames",
-        "-show_entries", "frame=pts_time:stream=start_time",
+        "-show_entries", "frame=pts_time",
         "-of", "json",
         str(source),
     ]
@@ -127,13 +146,6 @@ def list_keyframes(source: Path, *, force: bool = False) -> list[float]:
     # start near 1.4 s) into the planner creates boundaries beyond duration.
     # The old cache schema persisted those absolute values; schema v2 below
     # deliberately invalidates it.
-    stream_start = 0.0
-    streams = raw.get("streams", [])
-    if isinstance(streams, list) and streams:
-        try:
-            stream_start = float(streams[0].get("start_time", 0.0))
-        except (AttributeError, TypeError, ValueError):
-            stream_start = 0.0
     ks: list[float] = []
     for f in frames:
         t = f.get("pts_time")

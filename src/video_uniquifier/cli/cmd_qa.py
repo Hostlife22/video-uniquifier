@@ -172,7 +172,7 @@ def qa_cmd(
     if report.audio_fp_similarity is not None:
         console.print(f"  Audio FP:         {report.audio_fp_similarity:.4f}")
     if report.cid_predict_self is not None:
-        console.print(f"  Legacy weighted similarity: {report.cid_predict_self:.4f}")
+        console.print(f"  Legacy maximum similarity: {report.cid_predict_self:.4f}")
     if report.sscd_mean is not None:
         from video_uniquifier.core.qa.sscd import sscd_band
 

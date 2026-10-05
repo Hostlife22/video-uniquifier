@@ -81,6 +81,9 @@ nav:
       - Telemetry: telemetry.md
       - Localization: i18n.md
   - Project:
+      - Audit implementation plan: implementation-plan.md
+      - Audit implementation decisions: audit-implementation-decisions.md
+      - Audit implementation results: audit-implementation-results.md
       - Versioning & compatibility: versioning.md
       - API contracts: api-contracts.md
       - Security policy: security.md

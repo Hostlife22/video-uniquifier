@@ -21,7 +21,7 @@ QualityMetric = Literal["vmaf", "ssim"]
 
 @dataclass(frozen=True)
 class QualityScore:
-    value: float                     # 0..100 on a unified scale
+    value: float                     # backend-specific value; SSIM multiplied by 100 for display
     metric: QualityMetric            # which metric produced it
     raw: float                       # source value before normalisation
     note: str | None = None          # set when we fell back

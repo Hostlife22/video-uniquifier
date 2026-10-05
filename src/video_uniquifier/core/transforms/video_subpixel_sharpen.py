@@ -1,22 +1,9 @@
-"""Sub-visible-threshold unsharp masking for neural-FP perturbation.
+"""Luma-only unsharp masking for controlled authorized derivatives.
 
-Modern (post-2020) perceptual hashing systems use CNN/transformer
-embeddings of the image. Those embeddings are trained to be robust to
-classical pixel-domain transforms (crop, brightness, noise) but are
-sensitive to *high-frequency texture changes* in the image.
-
-`unsharp` with very small `amount` (≤ 0.10) modifies every pixel by ~1 LSB
-at the high-frequency end. This is below visual perception threshold (per
-ITU-R BT.500 contrast sensitivity studies) but above the sub-pixel
-statistical noise floor that neural embeddings absorb during training.
-
-Source: Singh et al., "Robust Neural Audio Fingerprinting using Music
-Foundation Models", arXiv:2511.05399 (NeurIPS 2025) — sister work for
-video neural FP shows the same robustness pattern + the same
-attack-surface property in the high-frequency band.
-
-Chroma is intentionally left untouched (ca=0.0): chroma sharpening
-produces color fringing on edges.
+The kernel and luma amount alter high-frequency texture. Visibility depends on
+content, scale and encoding; no universal sub-visible threshold is established.
+This filter has no demonstrated relationship to a proprietary matching system.
+Chroma remains untouched to limit color fringing on edges.
 """
 
 from __future__ import annotations
@@ -35,7 +22,7 @@ from video_uniquifier.core.transforms.base import (
 class SubpixelSharpenParams(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    # unsharp luma amount. ≤0.1 = sub-visible-threshold; 0.3+ is visibly sharp.
+    # Luma amount; assess visibility on the actual material.
     luma_amount: float = Field(default=0.05, ge=0.0, le=0.3)
     # Kernel size for the local-mean subtraction. 5×5 standard.
     # Must be odd (ffmpeg constraint); clamped to {3, 5, 7, 9, 11}.

@@ -38,7 +38,7 @@ def _video_timeline(path: Path) -> tuple[float, int, str]:
     raw = subprocess.run(
         [
             "ffprobe", "-v", "error", "-count_frames", "-select_streams", "v:0",
-            "-show_entries", "stream=start_time,nb_read_frames,sample_aspect_ratio",
+            "-show_entries", "stream=start_time,nb_read_frames,display_aspect_ratio",
             "-of", "json", str(path),
         ],
         check=True, capture_output=True, text=True, timeout=30,
@@ -47,7 +47,7 @@ def _video_timeline(path: Path) -> tuple[float, int, str]:
     return (
         float(stream.get("start_time", 0.0)),
         int(stream["nb_read_frames"]),
-        str(stream.get("sample_aspect_ratio", "1:1")),
+        str(stream["display_aspect_ratio"]),
     )
 
 
@@ -117,11 +117,13 @@ def test_fused_path_produces_correct_output(
     assert out_meta.audio[0].codec == "aac"
     assert out_meta.audio[0].sample_rate == 48_000
 
-    source_start, source_frames, _ = _video_timeline(multi_segment_clip)
-    output_start, output_frames, output_sar = _video_timeline(out)
+    source_start, source_frames, source_dar = _video_timeline(multi_segment_clip)
+    output_start, output_frames, output_dar = _video_timeline(out)
     assert abs(output_start - source_start) <= 1 / 24
     assert output_frames == source_frames
-    assert output_sar == "1:1"
+    # Integer crop rounding can require non-square pixels to keep the
+    # source display proportions at the restored even pixel dimensions.
+    assert output_dar == source_dar
 
 
 @needs_ffmpeg

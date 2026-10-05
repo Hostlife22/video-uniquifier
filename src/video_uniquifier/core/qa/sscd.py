@@ -1,13 +1,9 @@
 """SSCD (Self-Supervised Copy Detection) similarity metric.
 
-v0.8.0 R4 — opt-in ML-grade QA metric. SSCD is the embedding model
-released alongside Meta's VSC2022 dataset; it was used to deduplicate
-the LLaMA training corpus and is the state-of-the-art for "is this
-video a derivative of that one?". Marketing aside, the practical win
-over our chromaprint + pHash baseline is robustness to crops, color
-shifts, and frame-rate retiming. Here it is only an internal regression
-and self-collision diagnostic for authorized derivatives; it does not
-predict or validate a third-party rights-detection system.
+The official model was trained/evaluated for image-copy detection. Applying it to
+sampled video frames is a local engineering diagnostic; temporal coverage is a
+separate concern. It does not model human quality or any proprietary matching
+system. Crop/color/cadence robustness depends on the actual test corpus.
 
 The supported backend is the official TorchScript checkpoint exposed
 by Meta's upstream project.  The upstream project does not publish an
@@ -40,6 +36,7 @@ from __future__ import annotations
 
 import hashlib
 import logging
+import math
 import os
 import tempfile
 import urllib.request
@@ -345,10 +342,21 @@ def align_cosine_matrix(
             False, None, (), 0, 0.0, 0.0, None, None,
             "empty or ragged SSCD similarity matrix",
         )
+    if any(not math.isfinite(value) or not -1 <= value <= 1
+           for row in similarities for value in row):
+        return SSCDRegistrationResult(
+            False, None, (), 0, 0.0, 0.0, None, None,
+            "invalid SSCD cosine matrix",
+        )
     if max_displacement_frames < 0:
         raise ValueError("max_displacement_frames must be non-negative")
     if not 0.0 < min_coverage <= 1.0:
         raise ValueError("min_coverage must be in (0, 1]")
+    if all(max(row) - min(row) <= 1e-8 for row in similarities):
+        return SSCDRegistrationResult(
+            False, None, (), 0, 0.0, 0.0, None, None,
+            "static similarity matrix: temporal alignment is ambiguous",
+        )
 
     negative_infinity = float("-inf")
     gap_penalty = 0.25
@@ -535,6 +543,8 @@ def compute_sscd(
 
     if not cosines:
         raise PipelineError("sscd produced no frame pairs")
+    if any(not math.isfinite(value) or not -1 <= value <= 1 for value in cosines):
+        raise PipelineError("sscd produced invalid cosine values")
     mean_sim = sum(cosines) / len(cosines)
     min_sim = min(cosines)
     return SSCDResult(

@@ -11,24 +11,27 @@ from video_uniquifier.core.errors import PipelineError
 from video_uniquifier.core.qa import cid_predict, phash
 
 
-def test_long_predict_uses_compact_hashes_without_changing_sampling(monkeypatch):
+def test_long_predict_caps_prefix_and_reports_unmeasured_tail(monkeypatch):
     monkeypatch.setattr(phash, "_probe_duration", lambda _path: 10823.99)
     calls = []
 
-    def hashes(path, n):
+    def hashes(path, start, span, n):
+        assert start == 0.0 and span == 600.0
         calls.append((path, n))
         return [0] * n
 
     def forbidden(*args, **kwargs):
         pytest.fail("long-form prediction retained decoded image lists")
 
-    monkeypatch.setattr(phash, "_sample_hashes", hashes, raising=False)
+    monkeypatch.setattr(phash, "_sample_hashes_range", hashes, raising=False)
     monkeypatch.setattr(phash, "sample_frames", forbidden)
     monkeypatch.setattr(cid_predict, "_full_fingerprint", lambda _path: [])
     result = cid_predict.predict(Path("input"), Path("output"))
-    assert [n for _, n in calls] == [10820, 10820]
-    assert len(result.chunks) == 2705
+    assert [n for _, n in calls] == [600, 600]
+    assert len(result.chunks) == 150
     assert all(chunk.visual_similarity == 1 for chunk in result.chunks)
+    assert result.chunks[-1].end_sec == 600.0
+    assert any("tail unmeasured" in note for note in result.notes)
 
 
 def test_frame_cache_enforces_bytes_and_evicts_oldest(monkeypatch):

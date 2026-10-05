@@ -53,10 +53,15 @@ def _build_crop_resize(
     cw = max(1 - crop_x, 0.5)
     ch = max(1 - crop_y, 0.5)
     out = alloc.next("v")
+    # Keep the input display aspect through integer/chroma crop rounding.
+    # Refresh frame SAR from crop's output link before scale: crop's
+    # keep_aspect updates the link but can leave incoming frame SAR intact.
+    # Scale then carries that SAR to the restored pixel dimensions.
+    # Forcing square pixels here squeezed anamorphic sources horizontally.
     filt = (
-        f"crop=iw*{cw:.4f}:ih*{ch:.4f}:iw*{left:.4f}:ih*{top:.4f},"
-        f"scale=round(iw/{cw:.4f}/2)*2:round(ih/{ch:.4f}/2)*2:flags=lanczos,"
-        "setsar=1"
+        f"crop=iw*{cw:.4f}:ih*{ch:.4f}:iw*{left:.4f}:ih*{top:.4f}:keep_aspect=1,"
+        "setsar=sar:max=65535,"
+        f"scale=round(iw/{cw:.4f}/2)*2:round(ih/{ch:.4f}/2)*2:flags=lanczos"
     )
     return FilterChain(in_label=in_lbl, out_label=out, filter_str=filt)
 
@@ -121,7 +126,7 @@ register(
 
 
 class MirrorParams(BaseModel):
-    """Horizontal flip. Completely destroys pHash similarity.
+    """Horizontal flip; fingerprint response depends on image symmetry and sampling.
 
     WARNING: visible on any content with on-screen text, logos, or
     lateralized framing. Default-disabled in shipped CID profiles; the user

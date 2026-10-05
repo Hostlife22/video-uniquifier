@@ -3,3 +3,7 @@ results/**
 manifest*.local.yaml
 !media/.gitkeep
 !results/.gitkeep
+
+# Per-run audit exports stay local; retain only their concise result record.
+audit-*/**
+!audit-*/README.md

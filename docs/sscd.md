@@ -2,12 +2,11 @@
 
 > Added in v0.8.0 (R4 — metric; R6 — calibrate-by-SSCD).
 
-SSCD (Self-Supervised Copy Detection) is the embedding model Meta released
-alongside the [VSC2022](https://ai.meta.com/research/publications/the-2022-video-similarity-challenge/)
-dataset and used to deduplicate the LLaMA training corpus. Its strength is
-robustness to crop, colour jitter, frame-rate retiming and re-encode. Here it is
-used as an internal regression/self-collision diagnostic for owned or licensed
-content. It does not predict or validate a third-party rights-detection system.
+SSCD (Self-Supervised Copy Detection) is Meta's image-copy embedding model,
+[evaluated on DISC/Copydays](https://github.com/facebookresearch/sscd-copy-detection).
+This project applies it to sampled video frames as an internal diagnostic for
+owned/licensed content. Temporal sampling/alignment is a separate procedure and
+does not reproduce YouTube Content ID or human visual quality.
 
 In `video-uniquifier` SSCD is **opt-in**: the model is not bundled, torch is
 not a hard dependency, and the metric runs only when you ask for it.
@@ -61,8 +60,8 @@ sidecar gains three flat fields:
 
 ### Threshold bands
 
-Bands are picked from the SSCD paper's threshold-vs-precision curves
-on the DISC21 evaluation set:
+These are retained project display buckets, not calibrated detector thresholds
+or direct conversions of DISC21 precision curves:
 
 | Mean similarity | Band      | Reading                                    |
 |----------------:|:----------|:-------------------------------------------|
@@ -91,7 +90,8 @@ while the independent quality floor also passes. SSCD and Chromaprint targets ar
 not interchangeable and must be calibrated separately on an authorized corpus.
 
 The chromaprint default is unchanged: omitting `--metric` runs the v0.7
-loop verbatim, including the `fpcalc` runtime requirement.
+mixed maximum pHash/audio diagnostic, including the `fpcalc` requirement when
+the source has audio. Missing fingerprints cannot satisfy its acceptance gate.
 
 GUI: the Calibrate screen has a **Metric** dropdown next to the
 test-clip duration spinner.
@@ -154,3 +154,8 @@ See also:
 * [`docs/qa_report.md`](qa_report.md) — JSON/HTML schema for the QA artifact
 * [`docs/calibrate.md`](calibrate.md) — bisection loop semantics
 * [`docs/profiles.md`](profiles.md) — profile schema (no SSCD fields; metric is per-run)
+
+Requested timestamps, highest sampled cosine, pair count, model hash and
+preprocessing are recorded in QA notes. Inserts between samples can be missed.
+Static matrices cannot establish temporal offset; registration is unavailable
+for that ambiguity while raw paired cosine remains a valid sampled diagnostic.

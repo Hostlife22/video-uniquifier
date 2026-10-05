@@ -7,6 +7,7 @@ unnecessary — ffprobe handles every container we care about).
 from __future__ import annotations
 
 import json
+import math
 import re
 import subprocess
 from pathlib import Path
@@ -116,7 +117,7 @@ def _parse(raw: dict[str, Any], path: Path) -> SourceMeta:
         elif kind == "subtitle":
             subtitle.append(_parse_subtitle(s))
 
-    duration = _to_float(fmt.get("duration"), 0.0)
+    duration = _presentation_duration(fmt, streams)
     size_bytes = _to_int(fmt.get("size"), 0)
     container = _normalize_container(fmt.get("format_name", ""), path=path)
 
@@ -152,6 +153,32 @@ def _parse(raw: dict[str, Any], path: Path) -> SourceMeta:
         )
         result._first_video_pts_sec = _to_float_or_none(timestamp)
     return result
+
+
+def _presentation_duration(fmt: dict[str, Any], streams: list[dict[str, Any]]) -> float:
+    """Normalize a legacy absolute endpoint only when stream bounds prove it."""
+    duration = _to_float(fmt.get("duration"), 0.0)
+    origin = _to_float_or_none(fmt.get("start_time"))
+    if origin is None or not math.isfinite(origin) or origin <= 0:
+        return duration
+    bounds: list[tuple[float, float]] = []
+    for stream in streams:
+        if stream.get("codec_type") not in {"video", "audio", "subtitle", "data"}:
+            continue
+        if bool((stream.get("disposition") or {}).get("attached_pic", 0)):
+            continue
+        start = _to_float_or_none(stream.get("start_time"))
+        length = _to_float_or_none(stream.get("duration"))
+        if (start is None or length is None or not math.isfinite(start)
+                or not math.isfinite(length) or length <= 0):
+            return duration
+        bounds.append((start, start + length))
+    # ffprobe 5.1 MOV may report end PTS as format.duration. Later probes
+    # already report the relative span, which must not be shortened again.
+    if (bounds and abs(min(start for start, _ in bounds) - origin) <= .001
+            and abs(max(end for _, end in bounds) - duration) <= .001):
+        return max(end for _, end in bounds) - origin
+    return duration
 
 
 def _parse_auxiliary_streams(

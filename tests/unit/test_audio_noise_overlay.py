@@ -1,7 +1,6 @@
 """audio.noise_overlay — parametric pink/white/brown noise mixed via amix.
 
-Source: Smitelli (2010). At -10 dB (~30 %) mix, chromaprint shifts
-significantly while speech stays intelligible.
+Numerical mixing weights do not establish speech intelligibility.
 """
 
 from __future__ import annotations
@@ -61,9 +60,12 @@ def test_randomize_within_db_different_seeds_differ() -> None:
     )
 
 
-def test_no_randomize_is_deterministic_without_rng() -> None:
+def test_generator_seed_is_deterministic_and_bound_to_run_rng() -> None:
     spec = get("audio.noise_overlay")
     p = NoiseOverlayParams(noise_db=-10.0, randomize_within_db=0)
     c1 = call_build(spec, p, LabelAllocator(), "0:a:0", rng=random.Random(99))
-    c2 = call_build(spec, p, LabelAllocator(), "0:a:0", rng=None)
+    c2 = call_build(spec, p, LabelAllocator(), "0:a:0", rng=random.Random(99))
     assert c1.filter_str == c2.filter_str
+    default = call_build(spec, p, LabelAllocator(), "0:a:0", rng=None)
+    assert "seed=0" in default.filter_str
+    assert c1.filter_str != default.filter_str

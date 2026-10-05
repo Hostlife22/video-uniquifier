@@ -181,13 +181,16 @@ class ValidationScreen(ScreenBase):
     def _build_record_step(self) -> QWidget:
         w = QWidget()
         layout = QVBoxLayout(w)
-        layout.addWidget(QLabel(
-            "Upload each variant as Unlisted on YouTube. Wait 5–10 min, then "
-            "check Studio → Content → Copyright. Record outcomes below.",
-        ))
+        instructions = QLabel(
+            "Use owned/licensed material and record Studio observations with timestamps. "
+            "Claim experiments require a reference owner and confirmed baseline match; "
+            "recheck observations over time.",
+        )
+        instructions.setWordWrap(True)
+        layout.addWidget(instructions)
         self.record_table = QTableWidget(0, 8)
         self.record_table.setHorizontalHeaderLabels([
-            "variant_id", "cid_predict", "phash_worst", "audio_hamming",
+            "variant_id", "similarity_max", "phash_worst", "audio_hamming",
             "upload_date", "youtube_video_id", "match_status", "notes",
         ])
         layout.addWidget(self.record_table)
@@ -211,7 +214,7 @@ class ValidationScreen(ScreenBase):
         self.run_corr_btn.setObjectName("run")
         self.run_corr_btn.clicked.connect(self._on_correlate)
         mark(self.run_corr_btn, "Run correlation analysis",
-             "Compute Spearman correlation between predicted and observed CID outcomes.",
+             "Compare local similarity diagnostics with recorded platform observations.",
              shortcut="Ctrl+R")
         layout.addWidget(self.run_corr_btn)
         self.corr_output = QPlainTextEdit()

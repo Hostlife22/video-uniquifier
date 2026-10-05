@@ -85,6 +85,27 @@ def _write_manifest(tmp_path: Path, payload: dict[str, object]) -> Path:
     return path
 
 
+def test_holdout_family_cannot_leak_into_development(tmp_path: Path) -> None:
+    profile = _local_profile(tmp_path)
+    payload = _manifest(Path(profile.name))
+    first = payload["cases"][0]
+    first.update({"family_id": "master-one", "split": "development"})
+    payload["cases"].append({
+        **first, "id": "holdout-clip", "source": "media/other.mkv", "split": "holdout",
+    })
+    with pytest.raises(ValueError, match="family.*split"):
+        load_manifest(_write_manifest(tmp_path, payload), require_media=False)
+
+
+def test_valid_family_partition_is_retained(tmp_path: Path) -> None:
+    profile = _local_profile(tmp_path)
+    payload = _manifest(Path(profile.name))
+    payload["cases"][0].update({"family_id": "master-one", "split": "development"})
+    loaded = load_manifest(_write_manifest(tmp_path, payload), require_media=False)
+    assert loaded.cases[0].family_id == "master-one"
+    assert loaded.cases[0].split == "development"
+
+
 def test_manifest_requires_real_media_by_default(tmp_path: Path) -> None:
     profile = _local_profile(tmp_path)
     manifest = _write_manifest(tmp_path, _manifest(Path(profile.name)))

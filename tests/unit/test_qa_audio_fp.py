@@ -146,6 +146,9 @@ def test_long_form_analysis_uses_stratified_full_timeline_once_per_file(
     assert calls == [(source, 7_200.0), (output, 7_199.9)]
     assert result.coverage_note is not None
     assert "stratified" in result.coverage_note
+    assert result.registered is not None and not result.registered.available
+    assert result.registered.offset_frames is None
+    assert result.registered.drift_frames is None
 
 
 def test_stratified_windows_cover_start_middle_and_tail() -> None:

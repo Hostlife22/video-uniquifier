@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import re
 import subprocess
 import tempfile
@@ -54,7 +55,7 @@ def compute(
         "-lavfi",
         graph,
         "-f", "null",
-        "-",
+        os.devnull,
     ]
     metric_log: str
     if cancel_token is None:
@@ -75,10 +76,9 @@ def compute(
             try:
                 run_ffmpeg(
                     BuiltCommand(args=cmd),
-                    output=Path("-"),
+                    output=Path(os.devnull),
                     cancel_token=cancel_token,
                     log_path=log_path,
-                    progress_via_stdout=False,
                     wall_timeout_sec=3600.0,
                 )
             except PipelineError as exc:

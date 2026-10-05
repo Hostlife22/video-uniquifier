@@ -28,6 +28,8 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
 
+from pydantic import BaseModel
+
 from video_uniquifier import __version__
 from video_uniquifier.core.auxiliary_streams import get_auxiliary_streams
 from video_uniquifier.core.errors import PipelineError
@@ -47,7 +49,8 @@ from video_uniquifier.core.transforms.audio_loudnorm import (
     build_apply,
     measure,
 )
-from video_uniquifier.core.transforms.base import LabelAllocator, call_build
+from video_uniquifier.core.transforms.audio_noise_overlay import _build_noise_overlay
+from video_uniquifier.core.transforms.base import FilterChain, LabelAllocator, call_build
 from video_uniquifier.core.transforms.hdr_wrap import (
     is_color_transform,
     is_tonemap_active,
@@ -69,7 +72,7 @@ BLEND_B_ID = "video.blend_b"
 OUTPUT_AUDIO_SAMPLE_RATE = 48_000
 # Increment whenever an internal encode policy changes in a way that makes existing
 # completed segments unsafe to reuse under the same package development version.
-_ENCODE_POLICY_REVISION = "encoder-bitstream-policy-v6"
+_ENCODE_POLICY_REVISION = "encoder-bitstream-policy-v8"
 
 
 def _main_audio_bitrate(plan: Plan) -> str:
@@ -175,6 +178,25 @@ def _audio_transform_params(plan: Plan, tc: TransformConfig) -> Any:
     return spec.schema.model_validate(raw)
 
 
+def _build_audio_transform_chain(
+    plan: Plan, tc: TransformConfig, params: BaseModel, alloc: LabelAllocator,
+    label: str, *, rng: random.Random,
+) -> FilterChain:
+    """Resolve built-in noise topology without adding profile-facing fields."""
+    if tc.id == "audio.noise_overlay":
+        selected = selected_audio_relative_indices(plan.source, plan.profile.audio_tracks)
+        stream = plan.source.audio[selected[0]]
+        # Upper-case C expresses an unspecified channel order, not an inferred
+        # speaker mask. The existing preflight warning retains that limitation.
+        layout = stream.channel_layout or {1: "mono", 2: "stereo"}.get(stream.channels)
+        if layout is None:
+            layout = f"{stream.channels}C"
+        if not re.fullmatch(r"[A-Za-z0-9_.()+]+", layout):
+            raise PipelineError("noise overlay requires a filter-safe audio channel layout")
+        return _build_noise_overlay(params, alloc, label, rng=rng, channel_layout=layout)
+    return call_build(get(tc.id), params, alloc, label, rng=rng)
+
+
 def _resolve_loudnorm_target(
     params: LoudnormParams,
     rng: random.Random,
@@ -208,9 +230,8 @@ def _measure_before_loudnorm(
     for tc in audio_transforms:
         if tc.id == LOUDNORM_ID:
             break
-        spec = get(tc.id)
         resolved = _audio_transform_params(plan, tc)
-        chain = call_build(spec, resolved, alloc, label, rng=rng)
+        chain = _build_audio_transform_chain(plan, tc, resolved, alloc, label, rng=rng)
         chains.append(_wrap_chain_str(chain.in_label, chain.filter_str, chain.out_label))
         label = chain.out_label
     params = _resolve_loudnorm_target(
@@ -247,12 +268,13 @@ def _video_tail_scale(plan: Plan) -> str:
     rescale approximately because FFmpeg rounds crop coordinates to pixel
     boundaries, so the generic even-dimension tail can otherwise leave a
     1920x1078 or 3838x2160 result. Re-assert the configured fit-aspect
-    canvas at the tail; non-platform profiles keep the legacy even guard.
+    square-pixel canvas at the tail; non-platform profiles keep the legacy
+    even guard and the source display aspect.
     """
     for transform in reversed(plan.profile.transforms):
         if transform.enabled and transform.id == "video.fit_aspect":
             params = _resolved_fit_aspect_params(plan, transform)
-            return f"scale={params.target_width}:{params.target_height}"
+            return f"scale={params.target_width}:{params.target_height},setsar=1"
     return "scale=trunc(iw/2)*2:trunc(ih/2)*2"
 
 
@@ -497,7 +519,6 @@ class FilterGraph:
             # `chain.out_label` (also truthy) on every iteration.
             a_label = f"0:a:{selected_audio[0]}"
             for tc in audio_transforms:
-                spec = get(tc.id)
                 params = _audio_transform_params(self.plan, tc)
                 if tc.id == LOUDNORM_ID:
                     # A2 (v0.5.5): explicit raises in place of `assert` so
@@ -519,8 +540,8 @@ class FilterGraph:
                         a_label, rng=audio_rng,
                     )
                 else:
-                    chain = call_build(
-                        spec, params, self.alloc, a_label, rng=audio_rng,
+                    chain = _build_audio_transform_chain(
+                        self.plan, tc, params, self.alloc, a_label, rng=audio_rng,
                     )
                 a_chains.append(
                     _wrap_chain_str(chain.in_label, chain.filter_str, chain.out_label)
@@ -908,7 +929,6 @@ def build_main_audio_command(
     a_label, input_chain = _main_audio_input(plan, alloc)
     a_chains: list[str] = [input_chain]
     for tc in audio_transforms:
-        spec = get(tc.id)
         params = _audio_transform_params(plan, tc)
         if tc.id == LOUDNORM_ID:
             if not isinstance(params, LoudnormParams):
@@ -923,7 +943,7 @@ def build_main_audio_command(
                 )
             chain = build_apply(ln_params, measurement, alloc, a_label, rng=rng)
         else:
-            chain = call_build(spec, params, alloc, a_label, rng=rng)
+            chain = _build_audio_transform_chain(plan, tc, params, alloc, a_label, rng=rng)
         a_chains.append(
             _wrap_chain_str(chain.in_label, chain.filter_str, chain.out_label)
         )
@@ -1058,9 +1078,8 @@ def build_main_audio_command_windowed(
         a_label = trim_out
         # Apply each non-loudnorm transform with the per-window rng.
         for tc in audio_transforms:
-            spec = get(tc.id)
             params = _audio_transform_params(plan, tc)
-            chain = call_build(spec, params, alloc, a_label, rng=win_rng)
+            chain = _build_audio_transform_chain(plan, tc, params, alloc, a_label, rng=win_rng)
             chain_parts.append(
                 _wrap_chain_str(chain.in_label, chain.filter_str, chain.out_label)
             )
@@ -1391,7 +1410,7 @@ def build_encoder_capability_probe(plan: Plan) -> list[str]:
     width = max(2, video.width // 2 * 2)
     height = max(2, video.height // 2 * 2)
     tail_scale = _video_tail_scale(plan)
-    match = re.fullmatch(r"scale=(\d+):(\d+)", tail_scale)
+    match = re.fullmatch(r"scale=(\d+):(\d+),setsar=1", tail_scale)
     if match is not None:
         width, height = int(match.group(1)), int(match.group(2))
     pix_fmt = _segment_pix_fmt(plan)

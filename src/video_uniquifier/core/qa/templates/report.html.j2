@@ -174,7 +174,7 @@
   <h2>Legacy chunked similarity diagnostics</h2>
   <table>
     <tr>
-      <th>Weighted self-similarity heuristic</th>
+      <th>Maximum self-similarity heuristic</th>
       <td>
         {% if report.cid_predict_self is not none %}
           {{ "%.3f"|format(report.cid_predict_self) }}
@@ -197,7 +197,7 @@
           title="{{ '%.1f'|format(c.start_sec) }}s–{{ '%.1f'|format(c.end_sec) }}s
 combined: {{ '%.3f'|format(c.combined) }}
 visual: {{ '%.3f'|format(c.visual) }}
-audio: {{ '%.3f'|format(c.audio) }}"></span>
+audio: {% if 'audio' in c %}{{ '%.3f'|format(c.audio) }}{% else %}not localized / unavailable{% endif %}"></span>
     {% endfor %}
   </div>
   <div class="legend">

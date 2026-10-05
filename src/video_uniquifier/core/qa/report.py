@@ -306,6 +306,17 @@ def build_report(
     p("probe", 0.0)
     src_meta = probe_file(input_path)
     out_meta = probe_file(output_path)
+    pair_has_hdr = any(
+        getattr(getattr(video, "color", None), "is_hdr", False)
+        for meta in (src_meta, out_meta) for video in meta.video
+    )
+    for meta in (src_meta, out_meta):
+        for stream in getattr(meta, "audio", ()):
+            if stream.channels > 2 and stream.channel_layout in (None, "", "unknown"):
+                notes.append(
+                    f"audio_layout: {meta.path.name} stream {stream.index}: "
+                    "speaker identity unavailable; channel count is not a speaker mask"
+                )
     try:
         output_identity = DecodeEvidence.capture(output_path)
     except OSError:
@@ -414,7 +425,10 @@ def build_report(
     af_per_window: list[float] | None = None
     af_variance: float | None = None
     registered_audio: audio_fp.RegisteredAudioFP | None = None
-    if run_audio_fp:
+    pair_has_audio = bool(getattr(src_meta, "audio", ())) and bool(getattr(out_meta, "audio", ()))
+    if run_audio_fp and not pair_has_audio:
+        notes.append("audio_fp: unavailable: one input has no audio track")
+    if run_audio_fp and pair_has_audio:
         _check_cancel("audio_fp")
         p("audio_fp", 0.0)
         fingerprint_analysis = audio_fp.analyze_pair(
@@ -454,11 +468,14 @@ def build_report(
         sub = vmaf.auto_subsample_for_duration(
             src_meta.duration_sec, fps=src_fps,
         )
-        v = vmaf.compute(input_path, output_path, subsample=sub)
-        if v.score is not None:
-            vmaf_mean = v.score
-        elif v.note:
-            notes.append(f"vmaf: {v.note}")
+        if pair_has_hdr:
+            notes.append("vmaf: unavailable in raw HDR domain; SDR model is not HDR-qualified")
+        else:
+            v = vmaf.compute(input_path, output_path, subsample=sub)
+            if v.score is not None:
+                vmaf_mean = v.score
+            elif v.note:
+                notes.append(f"vmaf: {v.note}")
         p("vmaf", 1.0)
 
     ssim_mean: float | None = None
@@ -501,6 +518,21 @@ def build_report(
             sscd_mean = sres.mean_similarity
             sscd_min = sres.min_similarity
             sscd_per_frame = list(sres.per_frame)
+            if sscd_per_frame:
+                index = max(range(len(sscd_per_frame)), key=sscd_per_frame.__getitem__)
+                source_time = src_meta.duration_sec * (index + .5) / sscd_frame_count
+                output_time = out_meta.duration_sec * (index + .5) / sscd_frame_count
+                notes.append(
+                    f"sscd: highest sampled cosine={sscd_per_frame[index]:.6f}; "
+                    f"pair={index}, source={source_time:.6f}s, output={output_time:.6f}s; "
+                    f"pairs={len(sscd_per_frame)}/{sscd_frame_count}; midpoint normalized grid, "
+                    "not continuous segment localization"
+                )
+                notes.append(
+                    f"sscd: model sha256={_sscd._MODEL_SHA256}; "
+                    "preprocessing=288x288 RGB, ImageNet normalization, L2 cosine; "
+                    "timestamps requested, actual decoded frames depend on cadence"
+                )
         p("sscd", 1.0)
 
     vmaf_registered_mean: float | None = None
@@ -567,9 +599,19 @@ def build_report(
                             "a corpus-validated HDR scoring domain is configured"
                         )
                     elif run_vmaf:
+                        registered_subsample = vmaf.auto_subsample_for_duration(
+                            out_meta.duration_sec,
+                            fps=out_meta.video[0].fps if out_meta.video else 24.0,
+                        )
+                        if registered_subsample > 1:
+                            notes.append(
+                                f"registered_vmaf: scoring every {registered_subsample}-th "
+                                "frame across the full transformed-reference timeline"
+                            )
                         result = vmaf.compute(
                             reference.path,
                             output_path,
+                            subsample=registered_subsample,
                             reset_pts=True,
                             cancel_token=cancel_token,
                         )
@@ -669,6 +711,7 @@ def build_report(
             corpus=vs_corpus,
         )
         cid_self = cid.match_probability_self
+        notes.extend(getattr(cid, "notes", ()))
         if cid.weakest_chunk is not None:
             weakest_window = (cid.weakest_chunk.start_sec, cid.weakest_chunk.end_sec)
         chunk_dump = [
@@ -676,8 +719,8 @@ def build_report(
                 "start_sec": c.start_sec,
                 "end_sec": c.end_sec,
                 "visual": c.visual_similarity,
-                "audio": c.audio_similarity,
                 "combined": c.combined,
+                **({"audio": c.audio_similarity} if c.audio_similarity is not None else {}),
             }
             for c in cid.chunks
         ]

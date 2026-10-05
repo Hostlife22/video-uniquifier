@@ -1,12 +1,8 @@
 """Soft dynamic-range compression via `compand`, with per-run jitter.
 
-Why this matters for CID: chromaprint-style fingerprinting hashes the
-audio *envelope* — peaks and troughs in level over time. A constant
-loudness target (`audio.loudnorm` to -14 LUFS) keeps that envelope
-identical across our outputs, which is exactly the signal Content ID
-locks onto. Mild compression with randomised threshold/ratio per run
-flattens the envelope differently each time, breaking the lock without
-making the audio obviously squashed.
+Compression changes the signal envelope and can affect loudness, dynamics and
+fingerprints. Listening and waveform/event checks are required; this filter does
+not establish an outcome for any proprietary matching system.
 
 Filter shape (compand):
   attacks/decays in seconds, then a piecewise-linear transfer function

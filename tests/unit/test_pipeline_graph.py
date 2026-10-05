@@ -394,7 +394,7 @@ def test_fit_aspect_default_does_not_upscale_tail_canvas(tmp_path: Path) -> None
 
     built = FilterGraph(plan, tmp_path / "out.mp4").build()
 
-    assert "scale=1920:1080,format=yuv420p" in built.filter_complex
+    assert "scale=1920:1080,setsar=1,format=yuv420p" in built.filter_complex
 
 
 def test_fit_aspect_explicit_upscale_reasserts_exact_canvas_at_tail(tmp_path: Path) -> None:
@@ -411,7 +411,7 @@ def test_fit_aspect_explicit_upscale_reasserts_exact_canvas_at_tail(tmp_path: Pa
 
     built = FilterGraph(plan, tmp_path / "out.mp4").build()
 
-    assert "scale=3840:2160,format=yuv420p" in built.filter_complex
+    assert "scale=3840:2160,setsar=1,format=yuv420p" in built.filter_complex
 
 
 def test_hdr_source_uses_10bit_when_keep_hdr(tmp_path: Path) -> None:

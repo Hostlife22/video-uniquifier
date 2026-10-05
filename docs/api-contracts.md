@@ -70,6 +70,12 @@ RFC #21 (v1.6.0) adds nullable `QAReport.correctness`, `loudness`, and
 for field meanings, legacy JSON behavior and the opt-in CLI exit contract.
 QA command options are also locked by `tests/contracts/test_qa_cli_contract.py`.
 
+The October audit fixes preserve these schemas and CLI flags. Unavailable scores
+remain null (or `phash_samples=0`); an unavailable interval audio value is omitted
+from the existing open `chunk_similarities` dictionary, with its reason in `notes`.
+Clients must use `.get("audio")`, rather than treating a missing value as zero.
+See [audit compatibility decisions](audit-implementation-decisions.md).
+
 Field shapes (name + type repr + has-default) are locked by
 `tests/contracts/test_runoptions_dataclass_stable.py` and
 `tests/contracts/test_runevent_kinds_stable.py`. Default *values*

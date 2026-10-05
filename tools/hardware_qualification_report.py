@@ -52,6 +52,8 @@ def _run(command: list[str], *, timeout: int = 30) -> dict[str, object]:
         "returncode": proc.returncode,
         "stdout": _tail(proc.stdout),
         "stderr": _tail(proc.stderr),
+        "stdout_truncated": len(proc.stdout) > _OUTPUT_LIMIT,
+        "stderr_truncated": len(proc.stderr) > _OUTPUT_LIMIT,
     }
 
 
@@ -67,24 +69,34 @@ def _probe(path: Path) -> dict[str, Any]:
     command = [
         "ffprobe",
         "-v", "error",
+        "-read_intervals", "%+#64",
         "-show_entries",
         "stream=index,codec_name,codec_long_name,profile,level,codec_tag_string,"
         "pix_fmt,width,height,r_frame_rate,avg_frame_rate,has_b_frames,color_range,"
+        "color_space,color_transfer,color_primaries,bits_per_raw_sample:"
+        "stream_side_data:frame_side_data:"
+        "frame=media_type,key_frame,pict_type,best_effort_timestamp_time,pix_fmt,"
         "color_space,color_transfer,color_primaries:"
-        "frame=media_type,key_frame,pict_type,best_effort_timestamp_time:"
         "format=format_name,duration,size,bit_rate",
         "-of", "json",
         str(path),
     ]
     result = _run(command, timeout=60)
+    scope = {
+        "packet_prefix": 64,
+        "full_timeline_verified": False,
+        "metadata_absence": "NOT VERIFIED outside stream headers and decoded packet prefix",
+        "hardware_encode_verified": False,
+    }
     stdout = result.get("stdout")
     if result.get("returncode") == 0 and isinstance(stdout, str):
         try:
             command_result = {key: value for key, value in result.items() if key != "stdout"}
-            return {"command_result": command_result, "probe": json.loads(stdout)}
+            return {"scope": scope, "command_result": command_result,
+                    "probe": json.loads(stdout)}
         except json.JSONDecodeError:
-            pass
-    return {"command_result": result}
+            result["parse_error"] = "invalid or truncated ffprobe JSON; metadata unavailable"
+    return {"scope": scope, "command_result": result}
 
 
 def _media_results(root: Path, output: Path) -> list[dict[str, object]]:

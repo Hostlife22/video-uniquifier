@@ -26,7 +26,9 @@ video-uniq run /path/to/master.mp4 \
   --out /path/to/derivative.mp4
 ```
 
-`chromaprint` needs `fpcalc`. `sscd` needs the optional `[ml]` dependencies and is
+`chromaprint` names a mixed maximum pHash/audio diagnostic and needs `fpcalc`
+for sources with audio. Missing required fingerprints abort instead of making a
+visual-only candidate appear feasible. `sscd` needs the optional `[ml]` dependencies and is
 substantially heavier.
 
 ## Calibration v2 behavior
@@ -137,3 +139,12 @@ validated before any media work and must satisfy
 Calibration only scales parameters with an existing intensity rule. It does not
 toggle transforms, reorder the filter graph, choose a second pipeline, or replace
 full-output correctness and quality validation.
+
+## Intensity rules and scoring domain
+
+See [audit implementation decisions](audit-implementation-decisions.md) for current
+parameter rules, fixed effects, bounds and cache migration. Raw calibration quality
+compares the source and candidate; it is separate from registered encode-quality.
+HDR raw references are unsupported. Video-only input can use visual diagnostics;
+audio extraction failure on a source with audio is an error. Cache schema 3 records
+actual executable versions and the official SSCD model identity.

@@ -12,12 +12,14 @@ import math
 import subprocess
 import tempfile
 import threading
+from dataclasses import asdict
 from pathlib import Path
 from typing import Any
 
 import numpy as np
 
 from video_uniquifier.core.probe import probe
+from video_uniquifier.core.qa._audio_observation import observe_pcm
 from video_uniquifier.core.utils.ffmpeg_paths import ffmpeg_bin, ffprobe_bin
 
 
@@ -126,6 +128,32 @@ def _finite(value: str | None) -> float | None:
     return result if result is not None and math.isfinite(result) else None
 
 
+def observe_audio_file(
+    path: Path, *, start: float = 0, duration: float = 20,
+) -> dict[str, Any]:
+    """Native-rate bounded PCM; keep peaks separate from 8 kHz envelope evidence."""
+    if not math.isfinite(start) or start < 0 or not 0 < duration <= 30:
+        raise ValueError("invalid bounded observation interval")
+    metadata = probe(path)
+    if not metadata.audio:
+        raise ValueError("input needs audio")
+    audio = metadata.audio[0]
+    if not 1 <= audio.channels <= 32 or audio.sample_rate <= 0:
+        raise ValueError("unsupported audio topology")
+    result = subprocess.run([
+        ffmpeg_bin(), "-v", "error", "-xerror", "-ss", str(start), "-i", str(path),
+        "-map", f"0:{audio.index}", "-t", str(duration),
+        "-c:a", "pcm_f64le", "-f", "f64le", "-",
+    ], capture_output=True, check=True, timeout=300)
+    data = np.frombuffer(result.stdout, dtype="<f8").reshape(-1, audio.channels)
+    return {
+        "start_sec": start, "requested_duration_sec": duration,
+        "channel_layout": audio.channel_layout,
+        "channel_identity": "NOT VERIFIED without known speaker-labelled markers",
+        **asdict(observe_pcm(data, sample_rate=audio.sample_rate)),
+    }
+
+
 def decoded_timeline(path: Path, *, timeout_sec: float = 14400) -> dict[str, Any]:
     """Stream ffprobe frame records without retaining a movie in Python RAM.
 
@@ -135,7 +163,7 @@ def decoded_timeline(path: Path, *, timeout_sec: float = 14400) -> dict[str, Any
     """
     meta = probe(path)
     streams: dict[int, dict[str, Any]] = {}
-    for video in meta.video[:1]:
+    for video in meta.video:
         streams[video.index] = _stream("video")
     for audio in meta.audio:
         streams[audio.index] = {**_stream("audio"), "sample_rate": audio.sample_rate}

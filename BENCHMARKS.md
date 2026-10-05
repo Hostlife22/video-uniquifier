@@ -1,5 +1,109 @@
 # Benchmark Methodology and Baseline
 
+## October 2026 audit implementation — current working-tree evidence
+
+Fresh results and limits are recorded in
+[audit implementation results](docs/audit-implementation-results.md) and
+[the task registry](docs/implementation-plan.md). Source HEAD is `03c707a5`;
+the implementation is a dirty working tree on `fix/audit-implementation-20261004`,
+identified by snapshots and per-run SHA-256, not by HEAD alone.
+
+The study prepares 20 development and 10 family-separated holdout excerpts,
+retains every outcome of a 54-cell pilot, and measures temporal/audio ablations,
+local detectors, rate-control and the available Intel Mac encoder cells.
+Earlier pilot cells are preliminary; a fresh pilot after the noise correction
+uses the fixed processing core. Local metric qualification does not establish
+human quality bands or external platform detection.
+
+New full-film attempts after retiring only this session's verified duplicate
+downloads were refused: 180.4-minute input needs 26.728 GiB initial combined
+work/final reservation versus 12.412 GiB free; the 95-minute input needs
+14.118 GiB. No output/full-run QA was produced and no guard was weakened.
+Retained original inputs were rehashed; historical outputs were not reused.
+
+After the operator freed disk space to 69.47 GiB, a new 180.4-minute libx264
+encode completed: 4340.26 s, 263176 KiB sampled tree RSS, 19 segments and
+1,748,441,349 output bytes. User-paused and subsequently resource-stopped QA
+attempts remain separate historical failures. After two QA-only corrections,
+a fresh full production CLI QA completed with exit 0 and validated JSON/HTML;
+the retained encoder/transforms/profile/Plan did not change. Full-file PSNR,
+loudness and output decoded timelines also completed. The 95-minute case was
+cancelled before processing and remains NOT RUN. The concise record and local
+archive identity are in `validation-corpus/audit-20261004/README.md`. Full
+qualification remains at `.qualification-current/audit-20261004/long-after-space/qualification.json`.
+Generated configurations are archived outside Git; restore the archive before
+reproducing the permitted one-case `long/archival-only.yaml` experiment.
+
+The FFmpeg 9 VFR origin defect below is now reproduced and corrected with a
+separate pre-scan origin probe/cache schema 3. Real CFR/VFR integration tests use
+the planner's actual boundaries. A supplemental native source build of minimal
+ffprobe 5.1/6.0 reproduces the same origin mutation and verifies corrected actual
+keyframes/contiguous segments with all three probes. Full encodes still use FFmpeg
+9.0.1; full 5/6 encoder stacks, unavailable devices, original HDR timing/static metadata and human/listening acceptance remain outside
+this new verified scope; the bounded publisher-master proxy is reported separately.
+The current local `make check` passes: 2065 tests passed, 55 expected skips,one
+warning; fresh branch-aware core coverage 86.73% (80% gate). An additional legacy
+ffprobe 5.1 offset MP4 duration defect was reproduced and corrected with stream-
+bound validation; corrected SourceMeta is included in resume hashes.
+The first resumed full QA was stopped after registered VMAF drove
+rapid host swap growth (free disk fell below 9 GiB). Its −15 CLI exit and
+resource records are retained; it is not a completed qualification. A regression
+identified that registered VMAF omitted the existing long-form subsampling
+argument. The correction uses output duration/cadence and documents its interval.
+Full-duration registered VMAF completed 94.454314 (813.46 s,10012760 KiB);
+new make check 2065/55, fresh core coverage 86.73% passed. Full CLI QA completed.
+Cancellable VMAF/SSIM progress also required correction after a false 600 s stall;
+92 focused checks and a full registered wrapper run passed. Encoding/transforms/
+profile/Plan remain byte-identical; both QA corrections have a separate snapshot. No full-process RAM reduction
+is established by the 64 MiB pHash cache budget.
+
+## Fresh 180.4-minute archival qualification — 2026-10-05
+
+| Measurement | Result |
+| ---| ---:|
+| CLI QA exit / wall / sampled tree RSS | 0 /3944.17 s /10042992 KiB |
+| Raw / plan-transformed VMAF | 21.305849 /94.454314 |
+| Raw / plan-transformed SSIM | 0.787082 /0.987981 |
+| Registered sampled SSCD | 0.979004 |
+| Raw PSNR | 22.798385 dB |
+| Full output loudness / encoded peak | -14.63 LUFS /-1.79 dBTP |
+| Correctness / legacy raw quality | valid /fail(red) |
+
+Both source and output full decoded timelines have no missing/non-increasing
+PTS or decode errors. VMAF uses every 7th frame across the full timeline;
+SSCD uses 32 midpoint pairs, not continuous coverage. Similarity-localization
+is restricted to the 600 s common prefix and is not a platform measurement.
+Registered audio offset/drift remains unavailable for stratified concatenation;
+independent natural envelope checks cover three 20 s windows and 18 actual segment
+seams. Channel lags are −10…0 ms on a 10 ms grid, not a human event/lip-sync verdict.
+The original soundtrack ends about 287 ms before video; this source gap and actual
+unequal EOF sample counts are retained. The encoded-audio delivery guard retried
+once from the original source with linked −0.59 dB headroom, then passed.
+
+High registered scores do not change the red raw quality verdict. Human A/B
+assets contain zero labels. One Mac/dev title does not qualify other OS/devices,
+virtual or retimed full-length references, human acceptance or Content ID.
+No whole-process RAM reduction is claimed; 64 MiB is only the pHash payload-cache
+budget. Timings were measured on a shared host, without an isolated speed baseline.
+
+## Supplemental master-origin PQ proxy — 2026-10-05
+
+24 consecutive publisher Sparks HDR TIFF frames (4096×2160 RGB16) were packaged
+as a one-second, authored 24 fps FFV1 PQ/BT.2020 10-bit proxy. Local source pins,
+license/attribution, RGB/YUV conversion and all results are retained in
+`.qualification-current/audit-20261004/native-hdr/qualification.json`. See
+[the implementation report](docs/audit-implementation-results.md) for exact scope.
+
+Both libx265 and local HEVC VideoToolbox preserve color/bit depth and decode 24
+monotone-PTS frames. Encode 33.37/15.27 s, QA 95.42/140.60 s; correctness valid,
+quality warning. Raw/registered VMAF unavailable in the HDR domain; SSCD frame
+extraction 31/32 is retained as unavailable. SSIM/PSNR are coded-PQ diagnostics,
+not perceptual HDR acceptance. The proxy has no static/dynamic metadata and
+original presentation timing is unverified. The earlier static-HDR VideoToolbox
+refusal remains valid. These shared-host timings do not qualify a speed comparison.
+
+The following sections retain their historical revision and qualification limits.
+
 ## Bounded-QA v6 rerun — source measured, encoding blocked by disk admission
 
 Source qualification on `2ada787`: six-cell CI

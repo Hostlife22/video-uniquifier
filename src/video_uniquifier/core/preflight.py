@@ -399,22 +399,34 @@ def _check_encoder_capability(plan: Plan) -> list[PreflightFinding]:
 
 def _check_audio_channel_layout(plan: Plan) -> list[PreflightFinding]:
     """Reject transforms whose filter topology is stereo-only."""
+    findings: list[PreflightFinding] = []
+    selected_audio = selected_audio_relative_indices(plan.source, plan.profile.audio_tracks)
+    for relative_index in selected_audio:
+        audio = plan.source.audio[relative_index]
+        if audio.channels > 2 and audio.channel_layout in (None, "", "unknown"):
+            findings.append(PreflightFinding(
+                code="audio.speaker_identity_unknown", severity="warn",
+                message=f"Audio stream {audio.index}: {audio.channels} channels without a "
+                        "declared speaker layout; speaker identity is not verified.",
+                suggestion="Use correctly tagged masters and speaker-specific event checks; "
+                           "channel count alone cannot identify speakers.",
+            ))
     has_haas = any(
         transform.enabled and transform.id == "audio.haas_stereo"
         for transform in plan.profile.transforms
     )
     if not has_haas:
-        return []
+        return findings
 
     selected_audio = selected_audio_relative_indices(
         plan.source, plan.profile.audio_tracks,
     )
     if not selected_audio:
-        return []
+        return findings
     main_audio = plan.source.audio[selected_audio[0]]
     if main_audio.channels == 2:
-        return []
-    return [PreflightFinding(
+        return findings
+    findings.append(PreflightFinding(
         code="audio.haas_requires_stereo",
         severity="fail",
         message=(
@@ -425,7 +437,8 @@ def _check_audio_channel_layout(plan: Plan) -> list[PreflightFinding]:
             "Disable audio.haas_stereo or explicitly prepare a stereo mix "
             "before processing. Automatic downmixing is intentionally avoided."
         ),
-    )]
+    ))
+    return findings
 
 
 def _check_timeline_rate(plan: Plan) -> list[PreflightFinding]:

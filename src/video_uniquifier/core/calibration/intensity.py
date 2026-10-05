@@ -17,6 +17,7 @@ Bounds: each pydantic schema enforces ge/le; we clamp to those before validation
 
 from __future__ import annotations
 
+import math
 from copy import deepcopy
 from typing import Any
 
@@ -25,9 +26,14 @@ from video_uniquifier.core.transforms import get
 
 
 def scale_profile(profile: Profile, factor: float) -> Profile:
-    """Return a copy of `profile` with all transform intensities scaled."""
+    """Scale continuous effect knobs; fixed conversions/targets stay unchanged."""
+    if not math.isfinite(factor) or factor < 0:
+        raise ValueError("intensity factor must be finite and non-negative")
     new_transforms: list[TransformConfig] = []
     for tc in profile.transforms:
+        if not tc.enabled:
+            new_transforms.append(tc.model_copy(deep=True))
+            continue
         new_params = _scale_params(tc.id, dict(tc.params or {}), factor)
         new_transforms.append(
             TransformConfig(id=tc.id, enabled=tc.enabled, params=new_params)
@@ -46,7 +52,13 @@ def _scale_params(
     spec = get(transform_id)
     defaults = dict(spec.defaults)
     # Merge defaults so we operate on the effective starting values.
-    effective = {**defaults, **params}
+    # Some specs (notably EQ) keep their defaults in the schema only.
+    schema_defaults = {
+        key: field.get_default(call_default_factory=True)
+        for key, field in spec.schema.model_fields.items()
+        if not field.is_required()
+    }
+    effective = {**deepcopy(schema_defaults), **defaults, **params}
 
     scaled: dict[str, Any]
     if transform_id == "video.crop_resize":
@@ -96,6 +108,7 @@ def _scale_params(
 
     elif transform_id == "audio.eq":
         scaled = dict(effective)
+        scaled["jitter_db"] *= factor
         if "bands" in scaled and scaled["bands"]:
             scaled["bands"] = [
                 [float(freq), float(gain) * factor]
@@ -118,39 +131,41 @@ def _scale_params(
 
     elif transform_id == "audio.haas_stereo":
         scaled = dict(effective)
+        scaled["randomize_within_ms"] *= factor
         if "delay_ms" in scaled:
             scaled["delay_ms"] = scaled["delay_ms"] * factor
 
     elif transform_id == "audio.compand":
         scaled = dict(effective)
-        # `amount` is a unit-magnitude knob on [0..1] → multiply.
-        if "amount" in scaled:
-            scaled["amount"] = scaled["amount"] * factor
+        # Ratio 1 is neutral for the knee. The fixed -3 dB endpoint,
+        # threshold, time constants and boolean jitter policy stay fixed.
+        scaled["ratio"] = _around_one(scaled["ratio"], factor)
 
     elif transform_id == "audio.reverb":
         scaled = dict(effective)
-        for key in ("wet", "room_size", "damping"):
-            if key in scaled:
-                scaled[key] = scaled[key] * factor
+        scaled["intensity"] *= factor
 
     elif transform_id == "audio.noise_overlay":
         scaled = dict(effective)
-        # `amix_weight_noise` is the only intensity knob exposed; the
-        # `anoisesrc` color and amplitude are fixed by the spec.
-        if "amix_weight_noise" in scaled:
-            scaled["amix_weight_noise"] = scaled["amix_weight_noise"] * factor
+        # Multiply linear amplitude, not negative dB. Zero reaches the
+        # schema floor (-40 dB); disabling the transform is the true bypass.
+        scaled["noise_db"] = (
+            scaled["noise_db"] + 20 * math.log10(factor) if factor > 0 else -40.0
+        )
+        scaled["randomize_within_db"] *= factor
 
     elif transform_id == "video.subpixel_sharpen":
         scaled = dict(effective)
-        for key in ("amount", "radius"):
-            if key in scaled:
-                scaled[key] = scaled[key] * factor
+        scaled["luma_amount"] *= factor
+        # Nearest legal odd kernel, ties upward, bounded to ffmpeg's range.
+        scaled["radius"] = max(3, min(11, 2 * math.floor(scaled["radius"] * factor / 2) + 1))
+        if factor == 1:
+            scaled["radius"] = effective["radius"]
 
     elif transform_id == "video.temporal_jitter":
         scaled = dict(effective)
-        if "shift_frames" in scaled:
-            # Integer knob — round after scaling.
-            scaled["shift_frames"] = int(round(scaled["shift_frames"] * factor))
+        for key in ("blackout_prob", "drop_prob"):
+            scaled[key] *= factor
 
     elif transform_id == "video.tonemap_sdr":
         # Tonemap is a fixed colorspace conversion; intensity does not apply.
@@ -162,7 +177,10 @@ def _scale_params(
     # Clamp to schema bounds (pydantic Field constraints).
     clamped = _clamp_to_schema(transform_id, scaled)
     # Strip defaults so we only emit the user's overrides in dumps.
-    return {k: v for k, v in clamped.items() if defaults.get(k) != v or k in params}
+    return {
+        k: v for k, v in clamped.items()
+        if {**schema_defaults, **defaults}.get(k) != v or k in params
+    }
 
 
 def _clamp_to_schema(transform_id: str, params: dict[str, Any]) -> dict[str, Any]:
@@ -184,5 +202,7 @@ def _clamp_to_schema(transform_id: str, params: dict[str, Any]) -> dict[str, Any
                 value = max(value, ge_value)
             if le_value is not None:
                 value = min(value, le_value)
+            if field.annotation is int:
+                value = int(round(value))
             out[name] = value
     return out
