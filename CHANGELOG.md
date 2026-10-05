@@ -12,6 +12,15 @@ the last tag.
 
 ## [Unreleased]
 
+### Fixed
+
+- Queue instructions wrap and experiment CSV paths elide without widening the
+  desktop workspace on Linux or Windows. Profile cards grow with their wrapped
+  descriptions instead of clipping text with larger system fonts.
+- GUI result-path tests compare native paths across platforms. Calibration media
+  tests declare their optional Chromaprint, VMAF, Rubber Band and encoder needs;
+  unavailable capabilities skip before work, while pipeline failures still fail.
+
 ## [2.1.0] — 2026-10-05
 
 ### Changed

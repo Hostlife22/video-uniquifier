@@ -13,7 +13,7 @@ from PyQt6.QtWidgets import QApplication
 
 from video_uniquifier.core.models import EncoderCandidate, Plan
 from video_uniquifier.core.preflight import PreflightFinding
-from video_uniquifier.gui.app_pyqt import SIDEBAR_ITEMS, MainWindow
+from video_uniquifier.gui.app_pyqt import SIDEBAR_ITEMS
 from video_uniquifier.gui.i18n import active_locale, install_translator
 from video_uniquifier.gui.screens.run import PROFILES_DIR, RunScreen
 from video_uniquifier.gui.screens.settings import SettingsScreen
@@ -161,9 +161,8 @@ def test_encoder_override_reaches_combo_data_and_restores_saved_choice(qtbot) ->
     assert selector.currentData() is None
 
 
-def test_edit_profile_navigates_to_the_selected_recipe(qtbot) -> None:
-    window = MainWindow()
-    qtbot.addWidget(window)
+def test_edit_profile_navigates_to_the_selected_recipe(gui_window_factory) -> None:
+    window = gui_window_factory()
     window.show()
     run = window.stack.widget(0)
     run.profile_combo.setCurrentIndex(run.profile_combo.findText("medium"))
@@ -218,16 +217,15 @@ def test_completed_output_action_keeps_the_last_result_path(
     open_url = MagicMock(return_value=True)
     monkeypatch.setattr("video_uniquifier.gui.screens.run.QDesktopServices.openUrl", open_url)
     screen._on_open_output()
-    assert open_url.call_args.args[0].toLocalFile() == str(completed)
+    assert Path(open_url.call_args.args[0].toLocalFile()) == completed
 
 
 @pytest.mark.parametrize("index", range(len(SIDEBAR_ITEMS)))
 @pytest.mark.parametrize("theme", ["dark", "light"])
 def test_every_screen_fits_a_small_window_and_primary_action_stays_visible(
-    qtbot, qapp: QApplication, index: int, theme: str,
+    gui_window_factory, qapp: QApplication, index: int, theme: str,
 ) -> None:
-    window = MainWindow()
-    qtbot.addWidget(window)
+    window = gui_window_factory()
     window.state.set_theme(theme)
     window.resize(980, 640)
     window.show()
@@ -245,6 +243,39 @@ def test_every_screen_fits_a_small_window_and_primary_action_stays_visible(
         origin = page.run_btn.mapTo(window, button_rect.topLeft())
         assert window.rect().contains(origin)
         assert window.rect().contains(origin + button_rect.bottomRight())
+
+
+@pytest.mark.parametrize("theme", ["dark", "light"])
+def test_queue_and_validation_fit_with_long_paths_and_larger_text(
+    gui_window_factory, qapp: QApplication, monkeypatch: pytest.MonkeyPatch, theme: str,
+) -> None:
+    from PyQt6.QtWidgets import QLabel
+
+    from video_uniquifier.gui.screens import validation
+
+    long_path = Path("/example") / ("a-long-checkout-directory-" * 12) / "validation_log.csv"
+    monkeypatch.setattr(validation, "DEFAULT_CSV", long_path)
+    window = gui_window_factory()
+    window.state.set_theme(theme)
+    window.resize(980, 640)
+    queue = window.stack.widget(7)
+    for label in queue.findChildren(QLabel):
+        if label.text().startswith("Buckets live"):
+            label.setStyleSheet("font-size: 16px;")
+    window.show()
+    for index in (7, 8):
+        window.sidebar.setCurrentRow(index)
+        page = window.stack.currentWidget()
+        for _ in range(3):
+            qapp.processEvents()
+        assert page.page_scroll.widget().width() <= page.page_scroll.viewport().width()
+        if index == 7:
+            page.tabs.setCurrentIndex(1)
+        else:
+            page.stack.setCurrentIndex(2)
+        for _ in range(3):
+            qapp.processEvents()
+        assert page.page_scroll.widget().width() <= page.page_scroll.viewport().width()
 
 
 def test_cleared_metrics_do_not_reappear_when_theme_changes(qtbot) -> None:
@@ -273,10 +304,9 @@ def test_chart_theme_switch_preserves_samples(qtbot) -> None:
 
 
 def test_completed_result_and_expanded_metrics_fit_the_small_window(
-    qtbot, qapp: QApplication, tmp_path: Path,
+    gui_window_factory, qapp: QApplication, tmp_path: Path,
 ) -> None:
-    window = MainWindow()
-    qtbot.addWidget(window)
+    window = gui_window_factory()
     window.resize(980, 640)
     window.show()
     screen = window.stack.widget(0)

@@ -16,7 +16,6 @@ from video_uniquifier.core._review_images import _review_thumbnails
 from video_uniquifier.core.errors import PipelineError
 from video_uniquifier.core.models import HDRInfo, SourceMeta, VideoStream
 from video_uniquifier.core.runner import CancelToken
-from video_uniquifier.gui.app_pyqt import MainWindow
 from video_uniquifier.gui.i18n import active_locale, install_translator
 from video_uniquifier.gui.screens.run import PROFILES_DIR, RunScreen
 from video_uniquifier.gui.state import AppState
@@ -202,11 +201,16 @@ def test_profile_cards_and_custom_profile_remain_in_sync(qtbot, tmp_path, custom
 
 
 @pytest.mark.parametrize("theme", ["dark", "light"])
-def test_profile_card_descriptions_fit_small_russian_window(qtbot, qapp, theme):
+@pytest.mark.parametrize("larger_font", [False, True])
+def test_profile_card_descriptions_fit_small_russian_window(qtbot, qapp, theme, larger_font):
     install_translator(qapp, "ru_RU")
     screen = RunScreen(AppState())
     qtbot.addWidget(screen)
     screen.setStyleSheet(qss_for(theme))
+    if larger_font:
+        for labels in screen.profile_cards.labels.values():
+            for label in labels:
+                label.setStyleSheet("font-size: 16px;")
     screen.resize(740, 640)
     screen.show()
     qapp.processEvents()
@@ -399,9 +403,8 @@ def test_progress_polling_preserves_task_dropdown_navigation(qtbot):
     assert banner.progress.value() == 500
 
 
-def test_global_banner_survives_navigation_and_hides_after_completion(qtbot):
-    window = MainWindow()
-    qtbot.addWidget(window)
+def test_global_banner_survives_navigation_and_hides_after_completion(gui_window_factory):
+    window = gui_window_factory()
     screen = window.stack.widget(0)
     screen._sample_worker = MagicMock()
     screen.status_label.setText("Video 42%")

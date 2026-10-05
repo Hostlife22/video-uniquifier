@@ -204,7 +204,10 @@ class ValidationScreen(ScreenBase):
     def _build_analyze_step(self) -> QWidget:
         w = QWidget()
         layout = QVBoxLayout(w)
-        layout.addWidget(QLabel(f"CSV path: <code>{DEFAULT_CSV}</code>"))
+        csv_row = QHBoxLayout()
+        csv_row.addWidget(QLabel(self.tr("CSV path:")))
+        csv_row.addWidget(PathLabel(str(DEFAULT_CSV)), stretch=1)
+        layout.addLayout(csv_row)
         self.run_corr_btn = QPushButton(self.tr("Analyze observations"))
         self.run_corr_btn.setObjectName("run")
         self.run_corr_btn.clicked.connect(self._on_correlate)

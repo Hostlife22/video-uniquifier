@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import shutil
 import subprocess
+from functools import cache
 from pathlib import Path
 
 import pytest
@@ -13,6 +14,8 @@ from video_uniquifier.core.calibration.loop import CalibrationTarget, _cut_test_
 from video_uniquifier.core.orchestrator import build_plan
 from video_uniquifier.core.probe import probe
 from video_uniquifier.core.profile_loader import dump_profile, load_profile
+from video_uniquifier.core.qa.audio_fp import fpcalc_available
+from video_uniquifier.core.qa.vmaf import vmaf_available
 
 pytestmark = [
     pytest.mark.integration,
@@ -23,7 +26,30 @@ pytestmark = [
 ]
 
 
+@pytest.fixture(autouse=True)
+def isolated_keyframe_cache(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    # Calibration executes the real segmenter; its cache belongs to the test,
+    # even when the operator's home directory is deliberately read-only.
+    monkeypatch.setattr("video_uniquifier.core.segmenter.KEYFRAME_CACHE_DIR",
+                        tmp_path / "keyframe-cache")
+
+
+@cache
+def _ffmpeg_components(kind: str) -> set[str]:
+    result = subprocess.run(
+        ["ffmpeg", "-hide_banner", f"-{kind}"],
+        check=True, capture_output=True, text=True, timeout=10,
+    )
+    return {parts[1] for line in result.stdout.splitlines() if len(parts := line.split()) >= 2}
+
+
+def _require_component(kind: str, name: str) -> None:
+    if name not in _ffmpeg_components(kind):
+        pytest.skip(f"calibration smoke requires ffmpeg {kind}: {name}")
+
+
 def _make_source(path: Path, frequency: int) -> None:
+    _require_component("encoders", "libx264")
     subprocess.run(
         [
             "ffmpeg",
@@ -88,10 +114,18 @@ def test_stratified_probe_is_decodable_cached_and_content_keyed(tmp_path: Path) 
 def test_actual_profile_search_persistence_and_scored_resume(
     tmp_path: Path, isolated_cache: Path, profile_name: str,
 ) -> None:
-    source = tmp_path / "source.mp4"
-    _make_source(source, 440)
     path = Path(__file__).parents[2] / "src/video_uniquifier/profiles" / f"{profile_name}.yaml"
     profile = load_profile(path)
+    for transform in profile.transforms:
+        if (transform.enabled and transform.id == "audio.pitch_tempo"
+                and transform.params.get("method") == "rubberband"):
+            _require_component("filters", "rubberband")
+    if not fpcalc_available():
+        pytest.skip("calibration smoke requires fpcalc audio fingerprints")
+    if not vmaf_available():
+        pytest.skip("calibration smoke requires ffmpeg with libvmaf")
+    source = tmp_path / "source.mp4"
+    _make_source(source, 440)
     target = CalibrationTarget(
         test_clip_sec=9., max_iterations=4, min_factor=.7, max_factor=1.5,
         max_self_match=1., min_quality=0., seed=17,
@@ -118,5 +152,6 @@ def test_actual_profile_search_persistence_and_scored_resume(
 def test_all_shipped_profiles_reach_actual_plan(path, tiny_clip, isolated_cache) -> None:
     profile = scale_profile(load_profile(path), .75)
     encoder = {"h264": "libx264", "hevc": "libx265", "av1": "libaom-av1"}[profile.target_codec]
+    _require_component("encoders", encoder)
     plan = build_plan(tiny_clip, profile, encoder_override=encoder)
     assert plan.profile == profile

@@ -112,10 +112,12 @@ class QueueScreen(ScreenBase):
         actions.addStretch(1)
         layout.addLayout(actions)
 
-        layout.addWidget(QLabel(
+        instructions = QLabel(
             "Buckets live on the shared filesystem — refresh updates every 2s "
             "automatically once a queue root is set.",
-        ))
+        )
+        instructions.setWordWrap(True)
+        layout.addWidget(instructions)
         layout.addStretch(1)
         return w
 

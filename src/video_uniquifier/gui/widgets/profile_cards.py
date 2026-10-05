@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from PyQt6.QtCore import QEvent, Qt, pyqtSignal
+from PyQt6.QtGui import QResizeEvent
 from PyQt6.QtWidgets import QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QWidget
 
 from video_uniquifier.gui.design import Metrics, Space
@@ -61,6 +62,25 @@ class ProfileCards(QWidget):
             self.buttons[key].setAccessibleDescription(
                 self.tr(sources[1]) + " " + self.tr(sources[2]),
             )
+        self._fit_card_text()
+
+    def _fit_card_text(self) -> None:
+        # QPushButton's native size hint ignores its child layout. Let the
+        # wrapped descriptions set the minimum height at the actual card width.
+        for button in self.buttons.values():
+            layout = button.layout()
+            if layout is not None:
+                needed = max(Metrics.PROFILE_CARD_HEIGHT,
+                             layout.totalHeightForWidth(button.width()))
+                if button.minimumHeight() != needed:
+                    button.setMinimumHeight(needed)
+
+    def resizeEvent(self, event: QResizeEvent | None) -> None:
+        super().resizeEvent(event)
+        layout = self.layout()
+        if layout is not None:
+            layout.activate()
+        self._fit_card_text()
 
     def changeEvent(self, event: QEvent | None) -> None:
         if event is not None and event.type() == QEvent.Type.LanguageChange:

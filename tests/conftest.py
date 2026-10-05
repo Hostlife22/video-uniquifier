@@ -28,6 +28,27 @@ needs_ffmpeg = pytest.mark.skipif(
 )
 
 
+@pytest.fixture
+def gui_window_factory(qtbot):
+    """Keep top-level window wrappers alive through Qt's post-test event pass.
+
+    qtbot records weak references. A window with signal cycles can otherwise
+    be garbage-collected inside a native delegate's paint callback after the
+    test function releases its local variable.
+    """
+    from video_uniquifier.gui.app_pyqt import MainWindow
+
+    windows = []
+
+    def create():
+        window = MainWindow()
+        windows.append(window)
+        qtbot.addWidget(window)
+        return window
+
+    return create
+
+
 @pytest.fixture(autouse=True)
 def _isolated_resource_admission(
     tmp_path: Path,
