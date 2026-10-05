@@ -2,25 +2,28 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Literal
+
+from video_uniquifier.gui.design import Metrics, Space, Type
 
 ThemeName = Literal["dark", "light", "system"]
 
 
 DARK_TOKENS = {
-    "bg":             "#1f1f2b",
-    "bg_alt":         "#2a2a37",
-    "bg_deep":        "#16161e",
-    "fg":             "#e2e2e8",
-    "fg_dim":         "#9b9ba8",
-    "accent":         "#3b6ea8",
-    "accent_hover":   "#4f87c4",
-    "accent_warm":    "#d18b3b",
+    "bg":             "#101419",
+    "bg_alt":         "#191F27",
+    "bg_deep":        "#0C1015",
+    "fg":             "#F2F5F7",
+    "fg_dim":         "#A0ADBD",
+    "accent":         "#6BD9BD",
+    "accent_hover":   "#8DE5CE",
+    "accent_warm":    "#9FE8D4",
     "danger":         "#a83b3b",
-    "danger_hover":   "#c44f4f",
+    "danger_hover":   "#F18D92",
     "success":        "#3ba85c",
     "warning":        "#d1a93b",
-    "border":         "#444",
+    "border":         "#303A46",
     # Semantic tokens for status badges + KPI pills (R1/E4 — was hard-coded
     # in widgets/preflight_panel.py and widgets/kpi_pills.py, leaking across
     # theme switches). bg + fg are paired so a token swap repaints both at once.
@@ -43,24 +46,33 @@ DARK_TOKENS = {
     # Legacy single token kept for back-compat / fallback; per-band fg
     # is preferred by widgets/kpi_pills.py (R7 WCAG-AA fix).
     "kpi_fg":         "#ffffff",
+    "chart_intensity": "#E5BC71",
+    "chart_similarity": "#F18D92",
+    "chart_quality": "#6BD9BD",
+    "accent_fg": "#10261F",
+    "selected_bg": "#203C34",
+    "selected_fg": "#C4F9EA",
+    "disabled_bg": "#252C35",
+    "disabled_fg": "#8592A3",
+    "hover": "#252E39",
 }
 
 LIGHT_TOKENS = {
-    "bg":             "#f5f5f8",
-    "bg_alt":         "#ffffff",
-    "bg_deep":        "#eaeaef",
-    "fg":             "#1f1f2b",
+    "bg":             "#F3F5F7",
+    "bg_alt":         "#FFFFFF",
+    "bg_deep":        "#E9EDF2",
+    "fg":             "#15202B",
     # R7 / WCAG-AA: was #6a6a78 — failed 3.93:1 on sidebar (bg_deep).
     # Darkened to #5a5a68 → 5.09:1 on bg_deep, 5.74:1 on bg.
-    "fg_dim":         "#5a5a68",
-    "accent":         "#2b5e98",
-    "accent_hover":   "#3877b8",
-    "accent_warm":    "#c17a2b",
+    "fg_dim":         "#526173",
+    "accent":         "#176A56",
+    "accent_hover":   "#125644",
+    "accent_warm":    "#176A56",
     "danger":         "#a83b3b",
-    "danger_hover":   "#c44f4f",
+    "danger_hover":   "#B02D3A",
     "success":        "#2c8c4a",
     "warning":        "#b8902f",
-    "border":         "#ccc",
+    "border":         "#CBD3DD",
     # Light-theme semantic tokens — darker fills for AA contrast against
     # a near-white background; readable fg on each fill. R7 / WCAG-AA
     # forced dark fg on yellow + green fills (white was 4.13:1 / 3.86:1).
@@ -82,6 +94,15 @@ LIGHT_TOKENS = {
     "kpi_green_fg":   "#ffffff",
     "kpi_neutral_fg": "#ffffff",
     "kpi_fg":         "#ffffff",
+    "chart_intensity": "#8E601B",
+    "chart_similarity": "#B02D3A",
+    "chart_quality": "#176A56",
+    "accent_fg": "#FFFFFF",
+    "selected_bg": "#DBEFE7",
+    "selected_fg": "#145040",
+    "disabled_bg": "#E7EBF0",
+    "disabled_fg": "#657286",
+    "hover": "#E9EEF3",
 }
 
 
@@ -102,107 +123,142 @@ def qss_for(theme: str) -> str:
 
     `system` falls back to dark (MVP — explicit OS detection is v0.6).
     """
-    return _QSS_TEMPLATE.format(**tokens_for(theme))
+    return _QSS_TEMPLATE.format(
+        **tokens_for(theme), body=Type.BODY, caption=Type.CAPTION, label=Type.LABEL,
+        title=Type.TITLE, section=Type.SECTION, brand=Type.BRAND,
+        sm=Space.SM, md=Space.MD, lg=Space.LG, xl=Space.XL,
+        radius=Metrics.RADIUS, control_radius=Metrics.CONTROL_RADIUS,
+        profile_card_height=Metrics.PROFILE_CARD_HEIGHT,
+        arrow=(Path(__file__).parent / "assets" /
+               f"chevron-{'light' if theme == 'light' else 'dark'}.svg").as_posix(),
+    )
 
 
 _QSS_TEMPLATE = """
-QWidget {{ background: {bg}; color: {fg}; font-size: 13px; }}
-
+QWidget {{ background: {bg}; color: {fg}; font-size: {body}px; }}
+QLabel, QCheckBox, QRadioButton {{ background: transparent; }}
+QWidget#disclosure_content {{ background: transparent; }}
+QWidget#sidebar_shell, QListWidget#sidebar {{ background: {bg_deep}; }}
+QWidget#sidebar_shell {{ border-right: 1px solid {border}; }}
+QListWidget#sidebar {{ border: none; outline: none; }}
+QListWidget#sidebar::item {{ border: none; }}
+QLabel#brand {{ font-size: {brand}px; font-weight: bold; }}
+QLabel#eyebrow {{ color: {fg_dim}; font-size: {caption}px; }}
+QLabel#title {{ font-size: {title}px; font-weight: bold; background: transparent; }}
+QLabel#section_title {{ font-size: {section}px; font-weight: bold; }}
+QLabel#hint, QLabel#status, QLabel#subtitle {{ color: {fg_dim}; }}
+QLabel#subtitle {{ font-size: {label}px; }}
+QLabel#field_label {{ font-weight: bold; color: {fg}; }}
+QLabel#path {{ color: {fg}; background: transparent; }}
+QLabel#source_metadata {{ color: {fg_dim}; }}
+QLabel#status_badge {{
+    background: {selected_bg}; color: {selected_fg}; border-radius: {control_radius}px;
+    padding: {sm}px {md}px; font-weight: bold;
+}}
+QFrame#section_card {{
+    background: {bg_alt}; border: 1px solid {border}; border-radius: {radius}px;
+}}
+QPushButton#profile_card {{
+    padding: 0px; text-align: left; min-height: {profile_card_height}px;
+}}
+QPushButton#profile_card:checked {{ border-color: {accent}; background: {selected_bg}; }}
+QPushButton#profile_card QLabel {{ background: transparent; }}
+QWidget#action_bar {{ background: {bg_deep}; border-top: 1px solid {border}; }}
+QWidget#field_surface {{
+    background: {bg}; border: 1px solid {border}; border-radius: {control_radius}px;
+}}
+QWidget#field_surface[dragActive="true"] {{ border: 2px solid {accent}; }}
 QPushButton {{
-    background: {accent}; color: white; padding: 6px 14px;
-    border-radius: 4px; border: none;
+    background: {bg_alt}; color: {fg}; padding: {sm}px {lg}px;
+    border: 2px solid {border}; border-radius: {control_radius}px; min-height: 20px;
+    font-weight: 500;
 }}
-QPushButton:disabled {{ background: {fg_dim}; color: {bg}; }}
-QPushButton:hover:!disabled {{ background: {accent_hover}; }}
-QPushButton#cancel {{ background: {danger}; }}
-QPushButton#cancel:hover:!disabled {{ background: {danger_hover}; }}
-QPushButton#run {{
-    background: {accent_warm}; font-weight: bold; padding: 8px 18px;
+QPushButton:hover:!disabled {{ background: {hover}; }}
+QPushButton:pressed:!disabled {{ background: {selected_bg}; }}
+QPushButton:disabled {{
+    background: {disabled_bg}; color: {disabled_fg}; border-color: {disabled_bg};
 }}
-
-QListWidget#sidebar {{
-    background: {bg_deep}; border: none; padding: 8px 0; font-size: 14px;
+QPushButton#run, QPushButton[variant="primary"] {{
+    background: {accent}; color: {accent_fg}; border-color: {accent}; font-weight: bold;
 }}
-QListWidget#sidebar::item {{
-    padding: 10px 16px; color: {fg_dim}; border: none;
+QPushButton#run:hover:!disabled, QPushButton[variant="primary"]:hover:!disabled {{
+    background: {accent_hover}; border-color: {accent_hover};
 }}
-QListWidget#sidebar::item:selected {{
-    background: {accent}; color: white;
+QPushButton#run:disabled, QPushButton[variant="primary"]:disabled {{
+    background: {disabled_bg}; color: {disabled_fg}; border-color: {disabled_bg};
 }}
-QListWidget#sidebar::item:hover:!selected {{
-    background: {bg_alt}; color: {fg};
+QPushButton#cancel:enabled {{ color: {danger_hover}; }}
+QPushButton#cancel:hover:enabled {{ background: {danger}; color: {badge_fail_fg}; }}
+QPushButton#disclosure {{
+    color: {fg_dim}; border: 2px solid transparent; background: transparent;
+    padding-left: 0px; text-align: left;
 }}
-
-QLabel#path {{
-    background: {bg_alt}; padding: 5px 8px; border-radius: 3px;
-    color: {fg_dim};
+QPushButton#disclosure:hover {{ color: {fg}; }}
+QComboBox, QLineEdit, QSpinBox, QDoubleSpinBox {{
+    background: {bg_alt}; color: {fg}; padding: {sm}px {md}px;
+    border-radius: {control_radius}px; border: 2px solid {border}; min-height: 20px;
+    selection-background-color: {selected_bg}; selection-color: {selected_fg};
 }}
-QLabel#status {{ color: {fg_dim}; }}
-QLabel#title {{ font-size: 16px; font-weight: bold; color: {fg}; }}
-
-QComboBox {{
-    background: {bg_alt}; padding: 4px 8px; border-radius: 3px;
+QComboBox:disabled, QLineEdit:disabled, QSpinBox:disabled {{
+    color: {disabled_fg}; background: {disabled_bg};
+}}
+QComboBox::drop-down {{ width: 24px; border: none; }}
+QComboBox::down-arrow {{ image: url("{arrow}"); width: 16px; height: 16px; }}
+QComboBox QAbstractItemView {{
+    background: {bg_alt}; color: {fg}; padding: {sm}px;
+    selection-background-color: {selected_bg}; selection-color: {selected_fg};
     border: 1px solid {border};
 }}
-QComboBox::drop-down {{ border: none; }}
-
-QLineEdit, QSpinBox, QDoubleSpinBox {{
-    background: {bg_alt}; padding: 4px 8px; border-radius: 3px;
-    border: 1px solid {border};
-}}
-
 QProgressBar {{
-    background: {bg_alt}; border-radius: 3px; text-align: center;
-    color: white; padding: 1px; height: 16px;
+    background: {disabled_bg}; border: none; border-radius: 5px;
+    text-align: center; color: {fg}; height: 10px;
 }}
-QProgressBar::chunk {{ background: {accent}; border-radius: 3px; }}
-
+QProgressBar::chunk {{ background: {accent}; border-radius: 5px; }}
 QTextEdit, QPlainTextEdit {{
     background: {bg_deep}; color: {fg};
-    font-family: SFMono-Regular, Menlo, monospace; font-size: 11px;
-    border: 1px solid {border}; border-radius: 3px;
+    font-family: "Menlo", "Consolas", monospace; font-size: {caption}px;
+    border: 1px solid {border}; border-radius: {control_radius}px; padding: {sm}px;
+    selection-background-color: {selected_bg}; selection-color: {selected_fg};
 }}
-
 QTableWidget {{
-    background: {bg_alt}; gridline-color: {border};
-    border: 1px solid {border};
+    background: {bg_alt}; alternate-background-color: {bg}; gridline-color: {border};
+    border: 1px solid {border}; border-radius: {control_radius}px;
+    selection-background-color: {selected_bg}; selection-color: {selected_fg};
 }}
+QTableWidget::item {{ padding: {sm}px; }}
 QHeaderView::section {{
-    background: {bg_deep}; color: {fg_dim}; padding: 4px; border: none;
+    background: {bg_alt}; color: {fg_dim}; padding: {md}px {sm}px;
+    border: none; border-bottom: 1px solid {border}; font-weight: bold;
 }}
-
-QTabWidget::pane {{ border: 1px solid {border}; }}
+QTabWidget::pane {{ border: 1px solid {border}; border-radius: {control_radius}px; }}
 QTabBar::tab {{
-    background: {bg_alt}; padding: 6px 12px; color: {fg_dim};
-    border: 1px solid {border}; border-bottom: none;
+    background: transparent; padding: {md}px {lg}px; color: {fg_dim};
+    border-bottom: 2px solid transparent;
 }}
-QTabBar::tab:selected {{ background: {bg}; color: {fg}; }}
-
+QTabBar::tab:selected {{ color: {fg}; border-bottom: 2px solid {accent}; }}
+QTabBar::tab:hover {{ background: {hover}; }}
 QGroupBox {{
-    border: 1px solid {border}; border-radius: 4px;
-    margin-top: 10px; padding-top: 8px;
+    background: {bg_alt}; border: 1px solid {border}; border-radius: {radius}px;
+    margin-top: {xl}px; padding: {lg}px; padding-top: {xl}px;
 }}
 QGroupBox::title {{
-    subcontrol-origin: margin; left: 8px; padding: 0 4px;
-    color: {fg_dim};
+    subcontrol-origin: margin; left: {lg}px; padding: 0 {sm}px;
+    color: {fg}; font-size: {section}px; font-weight: bold;
 }}
-
-QStatusBar {{ background: {bg_deep}; color: {fg_dim}; }}
-
-/* v1.0.0 R6 — WCAG 2.1 SC 2.4.7 Focus Visible.
- * Qt's default focus indicator is a 1px dotted outline that disappears
- * on dark themes against the accent fill. Explicit 2px solid outline in
- * `accent_warm` (the same hue used for the primary Run button) guarantees
- * keyboard-only users see *which* control has focus on every screen.
- * Offset:1 keeps the ring outside the widget's painted background so it
- * never overlaps text or icon glyphs. */
-QPushButton:focus,
-QLineEdit:focus, QComboBox:focus,
-QSpinBox:focus, QDoubleSpinBox:focus,
-QCheckBox:focus, QRadioButton:focus,
-QListWidget:focus, QTreeWidget:focus, QTableWidget:focus,
-QTabBar::tab:focus {{
-    outline: 2px solid {accent_warm};
-    outline-offset: 1px;
+QCheckBox, QRadioButton {{ spacing: {sm}px; min-height: 24px; }}
+QCheckBox::indicator {{ width: 18px; height: 18px; }}
+QScrollArea, QScrollArea > QWidget > QWidget {{ border: none; background: {bg}; }}
+QScrollBar:vertical {{ background: transparent; width: 10px; margin: 0; }}
+QScrollBar::handle:vertical {{ background: {border}; min-height: 32px; border-radius: 5px; }}
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {{ height: 0px; }}
+QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {{ background: transparent; }}
+QStatusBar {{ background: {bg_deep}; color: {fg_dim}; font-size: {caption}px; }}
+QStatusBar::item {{ border: none; }}
+QToolTip {{ background: {bg_alt}; color: {fg}; border: 1px solid {border}; padding: {sm}px; }}
+/* Border is the Qt Widgets focus indicator; outline also documents the focus contract. */
+QPushButton:focus, QLineEdit:focus, QComboBox:focus,
+QSpinBox:focus, QDoubleSpinBox:focus, QCheckBox:focus, QRadioButton:focus,
+QListWidget:focus, QTreeWidget:focus, QTableWidget:focus, QTabBar::tab:focus {{
+    border: 2px solid {accent_warm}; outline: 2px solid {accent_warm};
 }}
 """

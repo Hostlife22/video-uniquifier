@@ -17,7 +17,6 @@ from PyQt6.QtWidgets import (
     QPushButton,
     QTableWidget,
     QTableWidgetItem,
-    QVBoxLayout,
 )
 
 from video_uniquifier.core.errors import VideoUniquifierError
@@ -27,6 +26,8 @@ from video_uniquifier.gui.paths import profiles_dir
 from video_uniquifier.gui.screens.base import ScreenBase
 from video_uniquifier.gui.state import AppState
 from video_uniquifier.gui.widgets.encoder_selector import EncoderSelector
+from video_uniquifier.gui.widgets.file_picker import PathLabel
+from video_uniquifier.gui.widgets.surfaces import FieldGrid
 from video_uniquifier.gui.workers.batch_worker import BatchWorker
 
 PROFILES_DIR = profiles_dir()
@@ -42,21 +43,18 @@ class BatchScreen(ScreenBase):
         self._build_ui()
 
     def _build_ui(self) -> None:
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(16, 16, 16, 16)
-        layout.setSpacing(10)
-
-        title = QLabel("Batch")
-        title.setObjectName("title")
-        layout.addWidget(title)
+        layout = self.page_layout(
+            'Batch processing',
+            'Process a folder of videos with one profile and track each result.',
+        )
 
         # Input dir
         row1 = QHBoxLayout()
-        row1.addWidget(QLabel("Input directory:"))
-        self.input_label = QLabel("(none)")
+        row1.addWidget(QLabel(self.tr("Input directory:")))
+        self.input_label = PathLabel(self.tr("Not selected"))
         self.input_label.setObjectName("path")
         row1.addWidget(self.input_label, stretch=1)
-        b1 = QPushButton("&Browse…")
+        b1 = QPushButton(self.tr("&Browse…"))
         b1.clicked.connect(self._pick_input)
         mark(b1, "Browse input directory",
              "Pick the directory containing source videos to batch-process.")
@@ -65,11 +63,11 @@ class BatchScreen(ScreenBase):
 
         # Output dir
         row2 = QHBoxLayout()
-        row2.addWidget(QLabel("Output directory:"))
-        self.output_label = QLabel("(none)")
+        row2.addWidget(QLabel(self.tr("Output directory:")))
+        self.output_label = PathLabel(self.tr("Not selected"))
         self.output_label.setObjectName("path")
         row2.addWidget(self.output_label, stretch=1)
-        b2 = QPushButton("Bro&wse…")
+        b2 = QPushButton(self.tr("Bro&wse…"))
         b2.clicked.connect(self._pick_output)
         mark(b2, "Browse output directory",
              "Pick the destination directory for the uniquified outputs.")
@@ -77,34 +75,35 @@ class BatchScreen(ScreenBase):
         layout.addLayout(row2)
 
         # Pattern + profile + encoder + continue-on-error
-        row3 = QHBoxLayout()
-        row3.addWidget(QLabel("Pattern:"))
+        row3 = FieldGrid()
         self.pattern_edit = QLineEdit("*.mp4")
         self.pattern_edit.textChanged.connect(self._refresh_preview)
         mark(self.pattern_edit, "Glob pattern",
              "File glob applied inside the input directory.")
-        row3.addWidget(self.pattern_edit)
-        row3.addWidget(QLabel("Profile:"))
+        row3.add_field("File pattern", self.pattern_edit)
         self.profile_combo = QComboBox()
         for p in sorted(PROFILES_DIR.glob("*.yaml")):
             self.profile_combo.addItem(p.stem, str(p))
+        preferred = self.state.profile_path or PROFILES_DIR / "soft.yaml"
+        index = self.profile_combo.findData(str(preferred))
+        if index >= 0:
+            self.profile_combo.setCurrentIndex(index)
         mark(self.profile_combo, "Profile",
              "Transform profile applied to every file in the batch.")
-        row3.addWidget(self.profile_combo, stretch=1)
-        row3.addWidget(QLabel("Encoder:"))
+        row3.add_field("Profile", self.profile_combo)
         self.encoder_selector = EncoderSelector(self.state)
-        row3.addWidget(self.encoder_selector, stretch=1)
-        self.continue_check = QCheckBox("&Continue on error")
+        row3.add_field("Encoder", self.encoder_selector)
+        self.continue_check = QCheckBox(self.tr("&Continue on error"))
         self.continue_check.setChecked(True)
         mark(self.continue_check, "Continue on error",
              "If checked, a failed file logs to Notes and the batch keeps going.")
-        row3.addWidget(self.continue_check)
-        layout.addLayout(row3)
+        row3.add_field("When a file fails", self.continue_check)
+        layout.addWidget(row3)
 
         # Table
         self.table = QTableWidget(0, 4)
         self.table.setHorizontalHeaderLabels(
-            ["File", "Status", "Output", "Notes"],
+            [self.tr("File"), self.tr("Status"), self.tr("Output"), self.tr("Notes")],
         )
         self.table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.table.setSelectionBehavior(
@@ -122,7 +121,7 @@ class BatchScreen(ScreenBase):
 
         # Controls
         controls = QHBoxLayout()
-        self.run_btn = QPushButton("▶ &Run batch")
+        self.run_btn = QPushButton(self.tr("&Run batch"))
         self.run_btn.setObjectName("run")
         self.run_btn.setEnabled(False)
         self.run_btn.clicked.connect(self._on_run)
@@ -130,7 +129,7 @@ class BatchScreen(ScreenBase):
              "Start the batch encode over every matched file.",
              shortcut="Ctrl+R")
         controls.addWidget(self.run_btn)
-        self.cancel_btn = QPushButton("Cance&l")
+        self.cancel_btn = QPushButton(self.tr("Cance&l"))
         self.cancel_btn.setObjectName("cancel")
         self.cancel_btn.setEnabled(False)
         self.cancel_btn.clicked.connect(self._on_cancel)
@@ -141,7 +140,7 @@ class BatchScreen(ScreenBase):
         self.status_label.setObjectName("status")
         controls.addWidget(self.status_label)
         controls.addStretch(1)
-        layout.addLayout(controls)
+        self.add_action_bar(controls)
 
     # ---- handlers ----
     def _pick_input(self) -> None:

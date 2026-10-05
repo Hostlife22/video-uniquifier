@@ -13,43 +13,49 @@ video-uniq-gui
 
 The first launch shows a one-time **Local telemetry** dialog
 (off-by-default; see [Telemetry](telemetry.md)). The main window
-opens on the **Run** screen.
+opens on the **Process video** screen.
 
 ## Sidebar
 
 Ten screens, navigable via Ctrl+1..Ctrl+0:
 
-| #  | Screen          | Use                                                      |
-|----|-----------------|----------------------------------------------------------|
-| 1  | Run             | Drive one encode, watch live divergence sparkline        |
-| 2  | Batch           | Folder-scan, queue, encode many                          |
-| 3  | Calibrate       | Auto-tune profile params against a quality target        |
-| 4  | QA Viewer       | Open any `<out>.qa.html` produced by a past run          |
-| 5  | Profile Editor  | Edit YAML profiles inline + **Browse community…** dialog |
-| 6  | History         | Past runs with status + open-in-finder + re-run          |
-| 7  | Corpus          | Manage the local fingerprint corpus (R2 SQLite store)    |
-| 8  | Queue           | Lease-based queue (shared-FS distributed batch)          |
-| 9  | Validation      | Real-CID validation harness for regression               |
-| 10 | Settings        | Theme, language, default profile, telemetry, webhooks    |
+| # | Screen | Use |
+|---|--------|-----|
+| 1 | Process video | Choose source/destination, apply a profile and inspect results |
+| 2 | Batch processing | Process a folder and track each file |
+| 3 | Auto-tune | Search profile settings against quality and similarity constraints |
+| 4 | Quality reports | Open a report or compare an input/output pair |
+| 5 | Profiles | Edit effects, inspect YAML and browse community profiles |
+| 6 | History | Find past jobs and open their videos/reports |
+| 7 | Reference library | Manage your own local fingerprint references |
+| 8 | Processing queue | Organize pending work and control background workers |
+| 9 | Experiments | Generate owned/licensed variants and record observations |
+| 10 | Settings | Theme, language, default profile and optional integrations |
+
+On Process video, follow **Source & destination → Processing → Progress & result**.
+The destination is suggested automatically. Start with `soft` for an initial quality
+comparison, or use a saved profile. Expand Advanced settings only when you need
+encoder selection, profile editing or auto-tuning. The Activity log opens on errors.
 
 ## Keyboard shortcuts (Run screen)
 
 | Shortcut    | Action                  |
 |-------------|-------------------------|
-| `Ctrl+R`    | Run                     |
+| `Ctrl+R`    | Start processing        |
 | `Ctrl+T`    | Auto-tune profile       |
 | `Space`     | Pause / Resume          |
 | `Esc`       | Cancel                  |
 | `Ctrl+S`    | Save preferences        |
-| `Ctrl+Q`    | Quit                    |
+| `Ctrl+P`    | Check video             |
+| `Ctrl+Q`    | Open quality report     |
 | `Ctrl+1..0` | Jump to sidebar screen  |
 
 ## Settings → Language (v0.9 R5)
 
 Switching the language is hot — the translator re-installs and
-the choice persists to `state.json`. Open screens keep their
-already-painted strings; close-and-reopen, or restart the app,
-for a full refresh. Coverage matrix and contributor guide at
+the choice persists to `state.json`. Navigation, page headings and the main
+processing workflow update immediately. Some secondary dialogs and technical
+messages retain their original strings until restart; Coverage matrix and contributor guide at
 [Localization](i18n.md).
 
 ## Accessibility (v1.0.0 R6)
@@ -64,11 +70,10 @@ statement + screen-reader manual test guide:
 
 ## Screenshots
 
-Screenshots live under `docs/screenshots/`. A future revision
-of this page will embed them inline alongside the screen
-descriptions; the artwork is intentionally separate from the
-docs commit so a UI cosmetic tweak does not need a docs round.
+Reviewed visual baselines live under `tests/visual/__snapshots__/`, with the
+capture platform recorded in `host.json`. Native font rendering differs between
+macOS and Linux; use `make test-visual-update` only for an intentional change and
+review the images on that host. `make test-visual` compares the reviewed baseline.
 
-Video walkthroughs (one ~90-second clip per major screen) are
-deferred to a v1.x docs sprint. They will land here as embedded
-YouTube links once recorded.
+The layout and behavior suite separately checks all ten pages at 980×640 in both
+themes, including keyboard disclosures, source preservation and encoder selection.

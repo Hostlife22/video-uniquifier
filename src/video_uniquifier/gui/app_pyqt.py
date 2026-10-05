@@ -15,20 +15,24 @@ from pathlib import Path
 from types import TracebackType
 from typing import cast
 
-from PyQt6.QtGui import QCloseEvent, QKeySequence, QShortcut
+from PyQt6.QtCore import QEvent, Qt, QTimer
+from PyQt6.QtGui import QCloseEvent, QFontDatabase, QKeySequence, QShortcut
 from PyQt6.QtWidgets import (
     QApplication,
     QHBoxLayout,
+    QLabel,
     QListWidget,
     QListWidgetItem,
     QMainWindow,
     QMessageBox,
     QStackedWidget,
     QStatusBar,
+    QVBoxLayout,
     QWidget,
 )
 
 from video_uniquifier import __version__
+from video_uniquifier.gui.design import Metrics, Space
 from video_uniquifier.gui.screens.base import ScreenBase
 from video_uniquifier.gui.screens.batch import BatchScreen
 from video_uniquifier.gui.screens.calibrate import CalibrateScreen
@@ -41,7 +45,9 @@ from video_uniquifier.gui.screens.run import RunScreen
 from video_uniquifier.gui.screens.settings import SettingsScreen
 from video_uniquifier.gui.screens.validation import ValidationScreen
 from video_uniquifier.gui.state import CONFIG_DIR, AppState
-from video_uniquifier.gui.theme import ThemeName, qss_for
+from video_uniquifier.gui.theme import ThemeName, qss_for, tokens_for
+from video_uniquifier.gui.widgets.activity_banner import ActivityBanner
+from video_uniquifier.gui.widgets.navigation import NAV_LABELS, NavigationDelegate, outline_icon
 
 _log = logging.getLogger(__name__)
 
@@ -167,8 +173,10 @@ def _build_screen(label: str, lands_in: str, state: AppState) -> QWidget:
 class MainWindow(QMainWindow):
     def __init__(self) -> None:
         super().__init__()
-        self.setWindowTitle("video-uniquifier")
-        self.resize(1100, 720)
+        self.setWindowTitle("Video Uniquifier")
+        self.resize(Metrics.WINDOW_WIDTH, Metrics.WINDOW_HEIGHT)
+        self.setMinimumSize(Metrics.MIN_WINDOW_WIDTH, Metrics.MIN_WINDOW_HEIGHT)
+        self.setFont(QFontDatabase.systemFont(QFontDatabase.SystemFont.GeneralFont))
 
         self.state = AppState()
         self.setStyleSheet(qss_for(cast(ThemeName, self.state.theme)))
@@ -182,10 +190,28 @@ class MainWindow(QMainWindow):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
 
-        # Sidebar
+        # Brand, grouped navigation and quiet footer share one sidebar surface.
+        shell = QWidget()
+        shell.setObjectName("sidebar_shell")
+        shell.setFixedWidth(Metrics.SIDEBAR_WIDTH)
+        sidebar_layout = QVBoxLayout(shell)
+        sidebar_layout.setContentsMargins(0, Space.XL, 0, Space.LG)
+        sidebar_layout.setSpacing(Space.LG)
+        brand = QHBoxLayout()
+        brand.setContentsMargins(Space.LG, 0, Space.LG, 0)
+        self.brand_icon = QLabel()
+        self._update_brand_icon()
+        brand.addWidget(self.brand_icon)
+        brand_name = QLabel("Video\nUniquifier")
+        brand_name.setObjectName("brand")
+        brand.addWidget(brand_name, stretch=1)
+        sidebar_layout.addLayout(brand)
         self.sidebar = QListWidget()
         self.sidebar.setObjectName("sidebar")
-        self.sidebar.setFixedWidth(180)
+        self.sidebar.setMouseTracking(True)
+        self.sidebar.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.nav_delegate = NavigationDelegate(self.sidebar, self.state.theme)
+        self.sidebar.setItemDelegate(self.nav_delegate)
         self.sidebar.setAccessibleName("Main navigation")
         self.sidebar.setAccessibleDescription(
             "Switch between Run, Batch, Calibrate, QA Viewer, "
@@ -194,15 +220,36 @@ class MainWindow(QMainWindow):
             "to jump directly.",
         )
         for label, _lands_in in SIDEBAR_ITEMS:
-            QListWidgetItem(label, self.sidebar)
-        layout.addWidget(self.sidebar)
+            item = QListWidgetItem(self.tr(NAV_LABELS[label]), self.sidebar)
+            item.setData(Qt.ItemDataRole.UserRole, label)
+            item.setToolTip(self.tr(NAV_LABELS[label]))
+        sidebar_layout.addWidget(self.sidebar, stretch=1)
+        self.sidebar_note = QLabel(self.tr("Local processing") + f"  ·  v{__version__}")
+        self.sidebar_note.setObjectName("eyebrow")
+        self.sidebar_note.setContentsMargins(Space.XL, 0, Space.SM, 0)
+        sidebar_layout.addWidget(self.sidebar_note)
+        layout.addWidget(shell)
 
         # Stacked content
         self.stack = QStackedWidget()
         for label, lands_in in SIDEBAR_ITEMS:
             screen = _build_screen(label, lands_in, self.state)
+            if isinstance(screen, ScreenBase):
+                screen.navigate_requested.connect(self._navigate_to)
             self.stack.addWidget(screen)
-        layout.addWidget(self.stack, stretch=1)
+        content = QWidget()
+        column = QVBoxLayout(content)
+        column.setContentsMargins(0, 0, 0, 0)
+        column.setSpacing(0)
+        self.activity_banner = ActivityBanner()
+        self.activity_banner.requested.connect(self.sidebar.setCurrentRow)
+        column.addWidget(self.activity_banner)
+        column.addWidget(self.stack, stretch=1)
+        layout.addWidget(content, stretch=1)
+        self.activity_timer = QTimer(self)
+        self.activity_timer.setInterval(250)
+        self.activity_timer.timeout.connect(self._refresh_activity)
+        self.activity_timer.start()
 
         self.sidebar.currentRowChanged.connect(self._on_nav)
         self.sidebar.setCurrentRow(0)
@@ -218,7 +265,60 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(root)
         bar = QStatusBar()
         self.setStatusBar(bar)
-        bar.showMessage("Ready.")
+        bar.showMessage(self.tr("Ready"))
+
+    def _navigate_to(self, label: str) -> None:
+        for index, (source, _version) in enumerate(SIDEBAR_ITEMS):
+            if source == label:
+                self.sidebar.setCurrentRow(index)
+                return
+
+    def _refresh_activity(self) -> None:
+        tasks: list[tuple[int, str, str, float | None]] = []
+        for index, (label, _version) in enumerate(SIDEBAR_ITEMS):
+            screen = self.stack.widget(index)
+            if isinstance(screen, RunScreen):
+                if not any(worker is not None for worker in (
+                    screen.run_worker, screen._sample_worker,
+                    screen._save_worker, screen._tune_worker,
+                )):
+                    continue
+                details = screen.status_label.text()
+                if (screen._save_worker is None and screen._tune_worker is None
+                        and screen.processing_status.phase is not None):
+                    details += "  ·  " + screen.processing_status.time_label.text()
+                fraction = (screen.progress_bar.value() / 1000
+                            if screen.progress_bar.maximum() > 0
+                            and screen._tune_worker is None else None)
+                tasks.append((index, self.tr(NAV_LABELS[label]), details, fraction))
+            elif isinstance(screen, (BatchScreen, CalibrateScreen, QueueScreen)):
+                worker = screen.drain_worker if isinstance(screen, QueueScreen) else screen.worker
+                if worker is None:
+                    continue
+                progress = screen.progress_bar
+                maximum = progress.maximum()
+                fraction = progress.value() / maximum if maximum > 0 else None
+                title = self.tr(NAV_LABELS[label])
+                tasks.append((index, title, title, fraction))
+        self.activity_banner.set_tasks(tasks)
+
+    def _update_brand_icon(self) -> None:
+        icon = outline_icon("brand", tokens_for(self.state.theme)["accent"], 40)
+        self.brand_icon.setPixmap(icon.pixmap(40, 40))
+
+    def changeEvent(self, event: QEvent | None) -> None:
+        if (event is not None and event.type() == QEvent.Type.LanguageChange
+                and hasattr(self, "sidebar")):
+            for index, (label, _version) in enumerate(SIDEBAR_ITEMS):
+                item = self.sidebar.item(index)
+                if item is not None:
+                    item.setText(self.tr(NAV_LABELS[label]))
+                    item.setToolTip(self.tr(NAV_LABELS[label]))
+            self.sidebar_note.setText(self.tr("Local processing") + f"  ·  v{__version__}")
+            viewport = self.sidebar.viewport()
+            if viewport is not None:
+                viewport.update()
+        super().changeEvent(event)
 
     def _on_nav(self, idx: int) -> None:
         self.stack.setCurrentIndex(idx)
@@ -228,6 +328,11 @@ class MainWindow(QMainWindow):
 
     def _on_theme_changed(self, theme: str) -> None:
         self.setStyleSheet(qss_for(cast(ThemeName, theme)))
+        self.nav_delegate.theme = theme
+        viewport = self.sidebar.viewport()
+        if viewport is not None:
+            viewport.update()
+        self._update_brand_icon()
 
     def closeEvent(self, event: QCloseEvent | None) -> None:
         """Cancel and join every running worker before the window closes.
@@ -251,6 +356,7 @@ class MainWindow(QMainWindow):
                 all_stopped = screen.shutdown_workers() and all_stopped
         if event is not None:
             if all_stopped:
+                self.activity_timer.stop()
                 event.accept()
             else:
                 _log.warning("close deferred: one or more GUI workers are still running")

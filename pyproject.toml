@@ -1,6 +1,6 @@
 [project]
 name = "video-uniquifier"
-version = "2.0.0"
+version = "2.1.0"
 description = "Production-grade re-encoder with controlled micro-transforms for owned/licensed video content."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -169,6 +169,7 @@ packages = ["src/video_uniquifier"]
 [tool.hatch.build]
 include = [
     "src/video_uniquifier/**/*.py",
+    "src/video_uniquifier/gui/assets/*.svg",
     "src/video_uniquifier/profiles/*.yaml",
     "src/video_uniquifier/core/qa/templates/*.j2",
     "src/video_uniquifier/marketplace/*.json",
@@ -200,7 +201,7 @@ addopts = "-ra --strict-markers"
 markers = [
     "integration: tests that invoke real ffmpeg",
     "smoke: minimal CI sanity tests",
-    "visual: GUI screenshot regression (linux-offscreen only)",
+    "visual: GUI screenshot regression on the recorded offscreen baseline host",
     "ml: tests that require the [ml] extra (torch + torchvision)",
 ]
 # v0.7.0 R8 — global per-test cap via pytest-timeout. Three minutes is

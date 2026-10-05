@@ -7,13 +7,14 @@ from typing import Literal
 from PyQt6.QtGui import QColor, QPainter
 from PyQt6.QtWidgets import QWidget
 
+from video_uniquifier.gui.design import Space
+from video_uniquifier.gui.state import AppState
+from video_uniquifier.gui.theme import tokens_for
+
 SegmentStatus = Literal["pending", "in_progress", "done", "failed"]
 
-_COLORS = {
-    "pending":     QColor("#444"),
-    "in_progress": QColor("#3b6ea8"),
-    "done":        QColor("#3ba85c"),
-    "failed":      QColor("#a83b3b"),
+_COLOR_TOKENS = {
+    "pending": "border", "in_progress": "accent", "done": "success", "failed": "danger",
 }
 
 
@@ -26,10 +27,18 @@ class SegmentTimeline(QWidget):
       reset()
     """
 
-    def __init__(self) -> None:
+    def __init__(self, state: AppState | None = None) -> None:
         super().__init__()
+        self._theme = state.theme if state is not None else "dark"
+        if state is not None:
+            state.theme_changed.connect(self._on_theme_changed)
         self._statuses: list[SegmentStatus] = []
-        self.setFixedHeight(24)
+        self.setFixedHeight(Space.SM)
+        self.setAccessibleName("Segment progress")
+
+    def _on_theme_changed(self, theme: str) -> None:
+        self._theme = theme
+        self.update()
 
     def init(self, n_segments: int) -> None:
         self._statuses = ["pending"] * n_segments
@@ -63,7 +72,7 @@ class SegmentTimeline(QWidget):
                 cw = max(2, int(cell_w) - 2 * gap)
                 painter.fillRect(
                     x, gap, cw, h - 2 * gap,
-                    _COLORS.get(status, _COLORS["pending"]),
+                    QColor(tokens_for(self._theme)[_COLOR_TOKENS.get(status, "border")]),
                 )
         finally:
             painter.end()

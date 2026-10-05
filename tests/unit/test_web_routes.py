@@ -175,7 +175,7 @@ def test_list_local_profiles_finds_per_user_yaml(
 
 
 def test_list_community_uses_bootstrap_when_offline(
-    client: TestClient, monkeypatch: pytest.MonkeyPatch
+    client: TestClient, monkeypatch: pytest.MonkeyPatch, tmp_path: Path,
 ) -> None:
     # Simulate a network outage so fetch_catalog falls back to bootstrap.
     from video_uniquifier.core import profile_marketplace as pm
@@ -184,6 +184,7 @@ def test_list_community_uses_bootstrap_when_offline(
         raise OSError("offline")
 
     monkeypatch.setattr(pm.urllib.request, "urlopen", boom)
+    monkeypatch.setattr(pm, "default_cache_dir", lambda: tmp_path / "catalog-cache")
     pm.purge_cache()
     r = client.get("/api/profiles/community")
     assert r.status_code == 200

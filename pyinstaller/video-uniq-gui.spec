@@ -25,7 +25,7 @@ APP_VERSION = version("video-uniquifier")
 # Bundle GUI resources, including the offline catalog and verification keys.
 datas = []
 datas += copy_metadata("video-uniquifier")
-for subdir in ("profiles", "core/qa/templates", "marketplace", "keys"):
+for subdir in ("profiles", "core/qa/templates", "marketplace", "keys", "gui/assets"):
     datas += collect_data_files("video_uniquifier", subdir=subdir, include_py_files=False)
 
 # Transforms self-register on import via core/transforms/__init__.py. The

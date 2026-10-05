@@ -25,3 +25,13 @@ def test_macos_bundle_uses_package_version_metadata() -> None:
 def test_make_build_is_noninteractive_and_repeatable() -> None:
     makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
     assert "PyInstaller pyinstaller/video-uniq-gui.spec --clean --noconfirm" in makefile
+
+
+def test_desktop_and_wheel_include_theme_chevrons() -> None:
+    spec = (ROOT / "pyinstaller" / "video-uniq-gui.spec").read_text(encoding="utf-8")
+    project = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
+    assert '"gui/assets"' in spec
+    assert '"src/video_uniquifier/gui/assets/*.svg"' in project
+    for theme in ("dark", "light"):
+        assert (ROOT / "src" / "video_uniquifier" / "gui" / "assets" /
+                f"chevron-{theme}.svg").is_file()

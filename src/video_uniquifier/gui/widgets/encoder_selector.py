@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from PyQt6.QtCore import pyqtSignal
+from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QCloseEvent, QStandardItem, QStandardItemModel
 from PyQt6.QtWidgets import QComboBox
 
@@ -30,9 +30,12 @@ class EncoderSelector(QComboBox):
     def __init__(self, state: AppState | None = None) -> None:
         super().__init__()
         self.state = state
-        self._model = QStandardItemModel()
+        self._model = QStandardItemModel(self)
         self.setModel(self._model)
+        self.setSizeAdjustPolicy(QComboBox.SizeAdjustPolicy.AdjustToMinimumContentsLengthWithIcon)
+        self.setMinimumContentsLength(14)
         self._detect_worker: EncoderDetectWorker | None = None
+        self._desired_encoder = state.encoder_name if state is not None else None
         self._populate_auto_only()
         self.currentIndexChanged.connect(self._on_changed)
         self.setAccessibleName("Encoder")
@@ -43,10 +46,16 @@ class EncoderSelector(QComboBox):
         )
         self._start_detection()
 
-    def _populate_auto_only(self) -> None:
-        auto = QStandardItem("auto")
-        auto.setData(None)
+    def _populate_auto_only(self, *, show_saved: bool = True) -> None:
+        auto = QStandardItem(self.tr("Automatic (recommended)"))
+        auto.setData(None, Qt.ItemDataRole.UserRole)
         self._model.appendRow(auto)
+        if show_saved and self._desired_encoder is not None:
+            saved = QStandardItem(self._desired_encoder)
+            saved.setData(self._desired_encoder, Qt.ItemDataRole.UserRole)
+            saved.setToolTip(self.tr("Saved encoder; availability is checked before processing."))
+            self._model.appendRow(saved)
+            self.setCurrentIndex(1)
 
     def _start_detection(self) -> None:
         """Kick off detection on a background thread.
@@ -65,12 +74,18 @@ class EncoderSelector(QComboBox):
         if not isinstance(candidates, list):
             self._clear_worker()
             return
+        # Keep an explicit saved choice effective while detection is pending.
+        # Rebuild atomically so a temporary index reset cannot switch the job to auto.
+        selected = self.currentData()
+        previous = self.blockSignals(True)
+        self._model.clear()
+        self._populate_auto_only(show_saved=False)
         for cand in candidates:
             label = f"{cand.name}  ({cand.vendor})"
             if not cand.works:
                 label += "  — unavailable"
             item = QStandardItem(label)
-            item.setData(cand.name if cand.works else None)
+            item.setData(cand.name if cand.works else None, Qt.ItemDataRole.UserRole)
             if not cand.works:
                 item.setEnabled(False)
                 item.setToolTip(
@@ -81,6 +96,12 @@ class EncoderSelector(QComboBox):
                     f"max parallel: {cand.max_parallel}  ·  codec: {cand.codec}",
                 )
             self._model.appendRow(item)
+        if selected is not None:
+            index = self.findData(selected)
+            if index >= 0:
+                self.setCurrentIndex(index)
+        self.blockSignals(previous)
+        self.encoder_changed.emit(self.currentData())
         self._clear_worker()
 
     def shutdown_detection(self, wait_ms: int = 16_000) -> bool:
@@ -126,5 +147,5 @@ class EncoderSelector(QComboBox):
         item = self._model.item(idx)
         if item is None:
             return
-        name = item.data()
+        name = item.data(Qt.ItemDataRole.UserRole)
         self.encoder_changed.emit(name)

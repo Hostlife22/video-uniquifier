@@ -145,7 +145,7 @@ output directory and race on equal stems. Avoid that deployment by:
 ```yaml
 services:
   worker:
-    image: video-uniquifier:2.0.0
+    image: video-uniquifier:2.1.0
     volumes:
       - /mnt/shared:/shared:rw            # NFSv4 noac mount on host
     environment:

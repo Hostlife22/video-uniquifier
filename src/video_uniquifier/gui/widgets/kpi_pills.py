@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 from PyQt6.QtCore import Qt
-from PyQt6.QtWidgets import QHBoxLayout, QLabel, QWidget
+from PyQt6.QtGui import QResizeEvent
+from PyQt6.QtWidgets import QGridLayout, QLabel, QWidget
 
+from video_uniquifier.gui.design import Metrics, Space
 from video_uniquifier.gui.theme import tokens_for
 
 # Threshold bands per KPI: (green_max, yellow_max). Beyond → red.
@@ -69,10 +71,10 @@ class KpiPills(QWidget):
                 sig.connect(self.set_theme)
 
     def _build_ui(self) -> None:
-        self._layout = QHBoxLayout(self)
-        self._layout.setContentsMargins(0, 4, 0, 4)
-        self._layout.setSpacing(8)
-        self._layout.addStretch(1)
+        self._pills: list[QLabel] = []
+        self._layout = QGridLayout(self)
+        self._layout.setContentsMargins(0, Space.XS, 0, Space.XS)
+        self._layout.setSpacing(Space.SM)
 
     def set_theme(self, theme: str) -> None:
         """Repaint pills with the new theme's tokens. Idempotent."""
@@ -83,7 +85,12 @@ class KpiPills(QWidget):
             self.set_qa(self._last_qa)
 
     def clear(self) -> None:
-        while self._layout.count() > 1:  # keep stretch at the tail
+        self._last_qa = None
+        self._clear_pills()
+
+    def _clear_pills(self) -> None:
+        self._pills = []
+        while self._layout.count():
             item = self._layout.takeAt(0)
             if item is None:
                 continue
@@ -94,7 +101,7 @@ class KpiPills(QWidget):
     def set_qa(self, qa: dict[str, object]) -> None:
         """Populate from a QA dict (decoded qa.json)."""
         self._last_qa = qa
-        self.clear()
+        self._clear_pills()
 
         # Compute worst chunk pHash.
         chunks_raw = qa.get("chunk_similarities") or []
@@ -127,8 +134,19 @@ class KpiPills(QWidget):
             ("Similarity max", _opt_float("cid_predict_self"), "cid_predict", "{:.2f}"),
         ]
         for label, value, band_key, fmt in pills:
-            self._layout.insertWidget(self._layout.count() - 1,
-                                       self._pill(label, value, band_key, fmt))
+            self._pills.append(self._pill(label, value, band_key, fmt))
+        self._reflow()
+
+    def _reflow(self) -> None:
+        columns = 4 if self.width() >= Metrics.GRID_WIDE else 2
+        for index, pill in enumerate(self._pills):
+            self._layout.addWidget(pill, index // columns, index % columns)
+        for column in range(4):
+            self._layout.setColumnStretch(column, 1 if column < columns else 0)
+
+    def resizeEvent(self, event: QResizeEvent | None) -> None:
+        super().resizeEvent(event)
+        self._reflow()
 
     def _pill(
         self, label: str, value: float | None, band_key: str, fmt: str,
@@ -143,9 +161,11 @@ class KpiPills(QWidget):
         fg = tokens.get(f"{color_key}_fg", tokens["kpi_fg"])
         text = fmt.format(value) if value is not None else "n/a"
         pill = QLabel(f"<b>{label}</b>  {text}")
+        pill.setAccessibleName(f"{label}: {text}")
         pill.setAlignment(Qt.AlignmentFlag.AlignCenter)
         pill.setStyleSheet(
             f"background: {color}; color: {fg}; "
-            f"padding: 6px 12px; border-radius: 12px; font-weight: 600;"
+            f"padding: {Space.SM}px {Space.MD}px; "
+            f"border-radius: {Metrics.CONTROL_RADIUS}px; font-weight: 600;"
         )
         return pill

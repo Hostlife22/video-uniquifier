@@ -97,7 +97,10 @@ def _make_translator() -> QTranslator:
                 sourceText.decode("utf-8") if isinstance(sourceText, bytes)
                 else sourceText
             )
-            return self._table.get(key, "")
+            # PyQt calls this Python override directly for QObject.tr().
+            # An empty Python string blanks unknown UI labels instead of
+            # behaving like a null QString from a compiled Qt catalogue.
+            return self._table.get(key, key)
 
         def isEmpty(self) -> bool:
             return not self._table

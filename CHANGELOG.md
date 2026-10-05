@@ -12,7 +12,26 @@ the last tag.
 
 ## [Unreleased]
 
+## [2.1.0] — 2026-10-05
+
+### Changed
+
+- Desktop GUI uses a graphite studio theme with a matching light theme, grouped
+  navigation, shared typography/spacing and Retina-ready outline icons.
+- Single-video processing separates source/destination, profile settings and results.
+  Advanced controls and logs expand on demand; errors reveal the log, and primary
+  actions stay available while pages scroll. Fresh sessions start with the soft
+  profile, preserve saved choices and suggest an unused separate output filename.
+- Dense forms wrap into labelled columns; profile editing separates effects and YAML
+  into tabs. Russian workflow labels and descriptions clarify the desktop navigation.
+
 ### Fixed
+
+- GUI encoder overrides now use the combo box's data role and restore saved choices;
+  Qt owns the selector model for its full lifetime. Blocking preflight findings stay
+  active until settings change, and stale checks cannot block a newer selection.
+- Missing runtime translations fall back to readable source labels rather than blank
+  controls. Activity logs and segment progress follow the selected color theme.
 
 - Micro-crop preserves source display proportions for non-square pixels and integer
   crop rounding. Explicit destination canvases retain square pixels and configured
@@ -47,6 +66,18 @@ the last tag.
 
 ### Added
 
+- Desktop source thumbnails, a selectable five-frame filmstrip and timecode sample
+  input; plain-language profile cards preserve custom-profile selection.
+- Draggable SDR comparison divider with keyboard control, shared 50–400% zoom/pan,
+  presentation rotation/mirroring, and native-panel fallback for known HDR frames.
+- Atomic, cancellable sample export with original-file protection, plus a global
+  activity banner with task selection and return navigation across processing screens.
+- Native desktop before/after review with synchronized playback, selectable audio,
+  100% pixel inspection and adjacent-frame navigation using actual timestamps.
+- Selected 10/15/20-second SDR review samples run through the chosen profile and
+  normal QA pipeline against a lossless reference, preserving the full destination.
+- Processing stage indicators, pause-aware elapsed time and conservative per-stage
+  estimates that reset between audio/metric passes and hide when unavailable.
 - Private experimental PCM observations for native-rate sample peaks, DC offset,
   stereo correlation and equal-weight mono cancellation, without a listening verdict.
 - Offline experimental quality/size selector with explicit budgets, pinned SDR

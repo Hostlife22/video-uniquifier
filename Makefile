@@ -107,7 +107,7 @@ test-integration:  ## Run integration tests (real ffmpeg required).
 	$(QT_OFFSCREEN) $(PYTEST) tests/integration/ -q
 
 .PHONY: test-visual
-test-visual:  ## Run GUI screenshot regression (Linux-offscreen only).
+test-visual:  ## Run GUI screenshot regression on the recorded baseline host.
 	$(QT_OFFSCREEN) $(PYTEST) tests/visual/ -m visual -q
 
 .PHONY: test-visual-update

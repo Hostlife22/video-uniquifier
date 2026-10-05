@@ -28,7 +28,7 @@ if TYPE_CHECKING:
 from video_uniquifier.gui.a11y import mark
 from video_uniquifier.gui.screens.base import ScreenBase
 from video_uniquifier.gui.state import AppState
-from video_uniquifier.gui.widgets.file_picker import FilePickerRow
+from video_uniquifier.gui.widgets.file_picker import FilePickerRow, PathLabel
 from video_uniquifier.gui.widgets.log_console import LogConsole
 from video_uniquifier.gui.workers.qa_worker import QaWorker
 
@@ -61,53 +61,48 @@ class QaViewerScreen(ScreenBase):
         self._build_ui()
 
     def _build_ui(self) -> None:
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(16, 16, 16, 16)
-        layout.setSpacing(10)
-
-        title = QLabel("QA Viewer")
-        title.setObjectName("title")
-        layout.addWidget(title)
+        layout = self.page_layout(
+            'Quality reports',
+            'Compare source and output, or open a report from a previous run.',
+        )
 
         # Mode tabs
         self.tabs = QTabWidget()
-        self.tabs.addTab(self._build_open_tab(), "Open existing")
-        self.tabs.addTab(self._build_compute_tab(), "Compute new")
+        self.tabs.addTab(self._build_open_tab(), self.tr("Open existing"))
+        self.tabs.addTab(self._build_compute_tab(), self.tr("Compute new"))
         layout.addWidget(self.tabs)
 
         # Viewer
         if HAS_WEBENGINE and QWebEngineView is not None:
             self.viewer: QWidget = QWebEngineView()
         else:
-            fallback = QLabel(
-                "<p><i>PyQt6-WebEngine is not installed.</i></p>"
-                "<p>Install it with:<br><code>pip install 'video-uniquifier[gui]'</code></p>"
-                "<p>Or click <b>Open in browser</b> below to view in your default browser.</p>",
-            )
+            fallback = QLabel(self.tr(
+                "Open a quality report above, then use Open in browser to view it.",
+            ))
             fallback.setWordWrap(True)
             self.viewer = fallback
         layout.addWidget(self.viewer, stretch=1)
 
         # Footer
         footer = QHBoxLayout()
-        self.open_browser_btn = QPushButton("Open in &browser")
+        self.open_browser_btn = QPushButton(self.tr("Open in &browser"))
         self.open_browser_btn.setEnabled(False)
         self.open_browser_btn.clicked.connect(self._open_in_browser)
         mark(self.open_browser_btn, "Open QA report in browser",
              "Open the loaded .qa.html file in the system default browser.")
         footer.addWidget(self.open_browser_btn)
         footer.addStretch(1)
-        layout.addLayout(footer)
+        self.add_action_bar(footer)
 
     def _build_open_tab(self) -> QWidget:
         w = QWidget()
         layout = QVBoxLayout(w)
         row = QHBoxLayout()
-        row.addWidget(QLabel("QA report (.qa.html):"))
-        self.existing_label = QLabel("(none)")
+        row.addWidget(QLabel(self.tr("QA report (.qa.html):")))
+        self.existing_label = PathLabel(self.tr("Not selected"))
         self.existing_label.setObjectName("path")
         row.addWidget(self.existing_label, stretch=1)
-        b = QPushButton("&Browse…")
+        b = QPushButton(self.tr("&Browse…"))
         b.clicked.connect(self._pick_existing)
         mark(b, "Browse for QA report",
              "Pick an existing .qa.html file from disk.")
@@ -137,7 +132,7 @@ class QaViewerScreen(ScreenBase):
         layout.addWidget(self.compute_output)
 
         controls = QHBoxLayout()
-        self.compute_btn = QPushButton("&Compute QA")
+        self.compute_btn = QPushButton(self.tr("&Compute QA"))
         self.compute_btn.setObjectName("run")
         self.compute_btn.setEnabled(False)
         self.compute_btn.clicked.connect(self._on_compute)
@@ -145,7 +140,7 @@ class QaViewerScreen(ScreenBase):
              "Run the QA pipeline on the selected input/output pair.",
              shortcut="Ctrl+R")
         controls.addWidget(self.compute_btn)
-        self.cancel_btn = QPushButton("Cance&l")
+        self.cancel_btn = QPushButton(self.tr("Cance&l"))
         self.cancel_btn.setObjectName("cancel")
         self.cancel_btn.setEnabled(False)
         self.cancel_btn.clicked.connect(self._on_cancel)
@@ -165,7 +160,7 @@ class QaViewerScreen(ScreenBase):
         self.progress_bar.setVisible(False)
         layout.addWidget(self.progress_bar)
 
-        self.compute_log = LogConsole()
+        self.compute_log = LogConsole(state=self.state)
         layout.addWidget(self.compute_log, stretch=1)
         return w
 

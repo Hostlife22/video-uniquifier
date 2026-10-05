@@ -6,8 +6,12 @@ from dataclasses import dataclass, field
 from typing import cast
 
 from PyQt6.QtCore import QPointF, Qt
-from PyQt6.QtGui import QColor, QPainter, QPen
+from PyQt6.QtGui import QBrush, QColor, QPainter, QPen
 from PyQt6.QtWidgets import QVBoxLayout, QWidget
+
+from video_uniquifier.gui.design import Metrics
+from video_uniquifier.gui.state import AppState
+from video_uniquifier.gui.theme import tokens_for
 
 try:
     from PyQt6.QtCharts import (
@@ -25,6 +29,7 @@ class Series:
     name: str
     color: str                                    # CSS hex e.g. "#3b6ea8"
     points: list[tuple[float, float]] = field(default_factory=list)
+    color_token: str | None = None
 
 
 class ChartWidget(QWidget):
@@ -38,14 +43,49 @@ class ChartWidget(QWidget):
       clear()                    — drop all series.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, state: AppState | None = None) -> None:
         super().__init__()
+        self._theme = state.theme if state is not None else "dark"
+        if state is not None:
+            state.theme_changed.connect(self.set_theme)
         self._series: list[Series] = []
         self._lines: dict[str, object] = {}  # name → QLineSeries (qtcharts only)
         self.setMinimumHeight(200)
         self._chart: object | None = None
         if HAS_QTCHARTS:
             self._build_qtcharts()
+        self.set_theme(self._theme)
+
+    def _series_color(self, series: Series) -> str:
+        return (tokens_for(self._theme)[series.color_token]
+                if series.color_token is not None else series.color)
+
+    def set_theme(self, theme: str) -> None:
+        self._theme = theme
+        self._apply_chart_theme()
+        for series in self._series:
+            line = self._lines.get(series.name)
+            if line is not None:
+                pen = QPen(QColor(self._series_color(series)))
+                pen.setWidth(2)
+                cast(QLineSeries, line).setPen(pen)
+        self.update()
+
+    def _apply_chart_theme(self) -> None:
+        if not HAS_QTCHARTS or self._chart is None:
+            return
+        tokens = tokens_for(self._theme)
+        chart = cast(QChart, self._chart)
+        chart.setBackgroundBrush(QBrush(QColor(tokens["bg_alt"])))
+        chart.setBackgroundRoundness(Metrics.RADIUS)
+        chart.setTitleBrush(QBrush(QColor(tokens["fg"])))
+        legend = chart.legend()
+        if legend is not None:
+            legend.setLabelColor(QColor(tokens["fg_dim"]))
+        for axis in chart.axes():
+            axis.setLabelsColor(QColor(tokens["fg_dim"]))
+            axis.setLinePenColor(QColor(tokens["border"]))
+            axis.setGridLineColor(QColor(tokens["border"]))
 
     def set_series(self, series: list[Series]) -> None:
         self._series = list(series)
@@ -63,7 +103,8 @@ class ChartWidget(QWidget):
         """
         existing = next((s for s in self._series if s.name == name), None)
         if existing is None:
-            existing = Series(name=name, color="#3b6ea8", points=[])
+            existing = Series(name=name, color=tokens_for(self._theme)["accent"],
+                              color_token="accent")
             self._series.append(existing)
         existing.points.append((x, y))
 
@@ -72,7 +113,7 @@ class ChartWidget(QWidget):
             if line is None:
                 line = QLineSeries()
                 line.setName(name)
-                pen = QPen(QColor(existing.color))
+                pen = QPen(QColor(self._series_color(existing)))
                 pen.setWidth(2)
                 line.setPen(pen)
                 chart = cast(QChart, self._chart)
@@ -81,6 +122,7 @@ class ChartWidget(QWidget):
                 # Re-create default axes on first point of a new series
                 # so the line is rendered with proper scales.
                 chart.createDefaultAxes()
+                self._apply_chart_theme()
             cast(QLineSeries, line).append(QPointF(x, y))
         else:
             self.update()  # paintEvent fallback
@@ -117,7 +159,7 @@ class ChartWidget(QWidget):
             for s in self._series:
                 line = QLineSeries()
                 line.setName(s.name)
-                pen = QPen(QColor(s.color))
+                pen = QPen(QColor(self._series_color(s)))
                 pen.setWidth(2)
                 line.setPen(pen)
                 for x, y in s.points:
@@ -125,6 +167,7 @@ class ChartWidget(QWidget):
                 chart.addSeries(line)
                 self._lines[s.name] = line
             chart.createDefaultAxes()
+            self._apply_chart_theme()
         else:
             self.update()  # triggers paintEvent (fallback)
 
@@ -155,7 +198,7 @@ class ChartWidget(QWidget):
         span_y = max_y - min_y or 1.0
 
         # Axes.
-        axis_pen = QPen(QColor("#555"))
+        axis_pen = QPen(QColor(tokens_for(self._theme)["fg_dim"]))
         painter.setPen(axis_pen)
         painter.drawLine(margin, h - margin, w - margin, h - margin)
         painter.drawLine(margin, margin, margin, h - margin)
@@ -164,7 +207,7 @@ class ChartWidget(QWidget):
         for s in self._series:
             if not s.points:
                 continue
-            pen = QPen(QColor(s.color))
+            pen = QPen(QColor(self._series_color(s)))
             pen.setWidth(2)
             painter.setPen(pen)
             prev_pt: tuple[float, float] | None = None
@@ -177,10 +220,10 @@ class ChartWidget(QWidget):
                 prev_pt = (px, py)
 
         # Mini legend top-right.
-        painter.setPen(QPen(QColor("#9b9ba8")))
+        painter.setPen(QPen(QColor(tokens_for(self._theme)["fg_dim"])))
         for i, s in enumerate(self._series):
             painter.fillRect(
-                w - margin - 80, margin + i * 14, 10, 10, QColor(s.color),
+                w - margin - 80, margin + i * 14, 10, 10, QColor(self._series_color(s)),
             )
             painter.drawText(w - margin - 65, margin + i * 14 + 10, s.name)
 

@@ -48,6 +48,9 @@ class RunWorker(WorkerBase):
     # `request_pause()` / `request_resume()` is called so the Run screen
     # can flip the button label without polling the token directly.
     paused_changed = pyqtSignal(bool)
+    # Private desktop presentation signal; public core events stay unchanged.
+    # Unknown work is represented by None, never an invented global percent.
+    stage_progress = pyqtSignal(str, object)
     # Marshal history writes back onto the GUI thread. `AppState` is a
     # QObject owned by the GUI thread; mutating its `_history` list and
     # emitting `history_changed` from the worker `run()` body would race
@@ -72,13 +75,8 @@ class RunWorker(WorkerBase):
         self.state = state
         self._total_us = max(int(plan.source.duration_sec * 1_000_000), 1)
         self._seg_us: dict[int, int] = {}
-        # Audio finalize progress tracked separately from video segments
-        # so the main bar can show "video complete" while the audio bar
-        # advances through loudnorm. `_audio_us` is the latest seen
-        # out_time_us from phase=main_audio events; if it goes backwards
-        # (ffmpeg may run analysis pass then encode pass as separate
-        # subprocess invocations) we bump `_audio_pass` to count progress
-        # cumulatively across passes.
+        # Track each observed audio subprocess separately. Encoding, peak
+        # analysis and delivery retries do not have a fixed total pass count.
         self._audio_us: int = 0
         self._audio_pass: int = 1
         # ThreadPoolExecutor inside orchestrator.process_video_segments_parallel
@@ -92,6 +90,8 @@ class RunWorker(WorkerBase):
         # phases pass through immediately; subsequent log events in the
         # same phase wait for _LOG_THROTTLE_SEC.
         self._last_log_emit: dict[str, float] = {}
+        self._current_stage: str | None = None
+        self._stage_lock = threading.Lock()
         # v0.7 R6 / F5 — owned by the worker (lifecycle matches the
         # encode run); the Run screen toggles via request_pause/resume
         # so the GUI never holds a reference to the token directly.
@@ -114,6 +114,7 @@ class RunWorker(WorkerBase):
 
     def run(self) -> None:  # noqa: D401 - Qt override
         try:
+            self.stage_progress.emit("prepare", None)
             summary = run_full(
                 self.plan,
                 self.options,
@@ -137,10 +138,20 @@ class RunWorker(WorkerBase):
         qa_html: Path | None = None
         if self.run_qa:
             try:
+                self.stage_progress.emit("quality:report", None)
                 qa_html = self._build_qa(summary)
             except Exception as exc:
+                if self.cancel_token.is_cancelled():
+                    self._push_history("cancelled")
+                    self.cancelled.emit()
+                    return
                 self.log.emit(f"QA failed: {exc}")
                 qa_html = None
+
+        if self.cancel_token.is_cancelled():
+            self._push_history("cancelled")
+            self.cancelled.emit()
+            return
 
         self._push_history("done", qa_html)
         self.finished_ok.emit(
@@ -190,6 +201,7 @@ class RunWorker(WorkerBase):
             return
         if ev.kind == "log":
             phase = str(ev.payload.get("phase", ""))
+            self._emit_stage(phase, None)
             now = time.monotonic()
             last = self._last_log_emit.get(phase, 0.0)
             if now - last >= _LOG_THROTTLE_SEC:
@@ -215,18 +227,16 @@ class RunWorker(WorkerBase):
         # bypass _seg_us so the main bar stays at its segments-derived
         # value and dedicate audio_progress to this stream.
         if phase == "main_audio":
-            # Detect pass boundary: ffmpeg may invoke a measurement pass
-            # then an encode pass as two separate subprocess runs, in
-            # which case out_time_us resets to 0. Cumulate across passes
-            # so the audio bar advances monotonically.
+            # An output-time reset identifies another observed subprocess.
             if out_us < self._audio_us:
                 self._audio_pass += 1
             self._audio_us = out_us
-            cumulative_us = (self._audio_pass - 1) * self._total_us + out_us
-            # Two-pass loudnorm total work ≈ 2 × duration; clamp at 1.0
-            audio_fraction = min(cumulative_us / (2 * self._total_us), 1.0)
-            pass_label = f"loudnorm pass {self._audio_pass}/2"
+            audio_fraction = min(max(out_us / self._total_us, 0.0), 1.0)
+            pass_label = f"pass {self._audio_pass}"
             self.audio_progress.emit(audio_fraction, pass_label)
+            self.stage_progress.emit(
+                f"audio:pass{self._audio_pass}", audio_fraction,
+            )
             # Also keep the main status meaningful instead of stale.
             self.progress.emit(
                 min(sum(self._seg_us.values()) / self._total_us, 1.0),
@@ -241,6 +251,7 @@ class RunWorker(WorkerBase):
         if isinstance(seg, int):
             self.segment_progress.emit(seg, "in_progress")
         fraction = min(total / self._total_us, 1.0)
+        self._emit_stage(phase, fraction if isinstance(seg, int) else None)
         # `seg` is an int while a video segment is encoding; None for
         # post-segment events that aren't main_audio (concat, sanitize).
         if isinstance(seg, int):
@@ -255,6 +266,19 @@ class RunWorker(WorkerBase):
             label = "preparing"
         msg = f"{int(fraction * 100)}% — {label}"
         self.progress.emit(fraction, msg)
+
+    def _emit_stage(self, phase: str, fraction: float | None) -> None:
+        stage = {
+            "preflight": "prepare", "plan": "prepare", "resume": "prepare",
+            "segment": "video", "main_audio": "audio", "concat": "save",
+            "mux": "save", "sanitize": "save", "validation": "quality:decode",
+        }.get(phase)
+        if stage is not None:
+            with self._stage_lock:
+                if fraction is None and stage == self._current_stage:
+                    return
+                self._current_stage = stage
+                self.stage_progress.emit(stage, fraction)
 
     @staticmethod
     def _extract_out_time_us(ev: RunEvent) -> int:
@@ -284,9 +308,14 @@ class RunWorker(WorkerBase):
             # run_full already performed the mandatory complete A/V decode.
             verify_decode=False,
             decode_evidence=summary.decode_evidence,
+            progress=lambda phase, fraction: self.stage_progress.emit(
+                f"quality:{phase}", fraction,
+            ),
+            cancel_token=self.cancel_token,
         )
         json_path = summary.output.with_suffix(summary.output.suffix + ".qa.json")
         html_path = summary.output.with_suffix(summary.output.suffix + ".qa.html")
+        self.stage_progress.emit("quality:report", None)
         write_json(report, json_path)
         render_html(report, summary.plan, html_path)
         return html_path

@@ -18,19 +18,100 @@ label + "Open in browser" button.
 
 ## Screen overview
 
-The left sidebar has 10 entries. Click to switch; navigation calls each
-screen's `on_show()` hook so state stays fresh.
+The left sidebar groups its ten screens into Workspace, Tuning & Quality,
+Library and Tools. Each page has a title and explanation. Dark studio is the
+fresh-session default; the light theme shares the same component system. Page
+content scrolls in small windows without pushing primary actions off-screen.
+Existing preferences remain in effect. Navigation calls each screen's `on_show()`
+hook so state stays fresh.
 
-### 1. Run
+### 1. Process video (Run)
 
 Single-file uniquification.
 
-Flow: drop input → auto-probe (codec / resolution / fps / HDR) → pick
-profile + encoder → optional "Run preflight" → ▶ Run → segment timeline
-animates while the orchestrator processes → KPI pills appear with the
-QA verdict → "Open QA report" opens the HTML in your browser.
+The **Process video** page has three sections:
 
-KPI pills colour-code per band:
+1. **Source & destination** — choose or drop a local video. The GUI reads its
+   codec, dimensions, frame rate, duration and HDR flag in the background. It
+   shows a source thumbnail and suggests `<source>.processed.mp4` next to the input, with a suffix
+   if that file exists. Choosing a destination manually preserves that choice
+   when the source changes. Source and output cannot be the same path.
+2. **Processing** — select a Gentle, Balanced or Pronounced card. Each explains
+   the picture and audio effects of the shipped soft, medium or aggressive profile.
+   A fresh session starts with `soft`; a saved profile wins. The selector below
+   the cards also supports custom profiles. **Advanced settings** contains
+   encoder selection, a working **Edit profile** link and auto-tuning.
+3. **Progress & result** — follow video/audio progress and segment status.
+   Completed runs expose **Open processed video** and **Open quality report**.
+   The page scrolls to these actions when processing finishes. **Measured
+   metrics** is a separate collapsed block for the diagnostic values.
+   The video action keeps the completed path even if the next destination changes.
+
+The fixed action bar explains what is missing and provides **Check video** and
+**Start processing** (`Ctrl+P` / `Ctrl+R`). Checks are also enforced by the
+processing pipeline. A blocking finding stays active until input/profile/encoder
+changes; results from older settings are discarded. During processing the input
+controls are disabled and **Pause** / **Cancel** become available.
+
+**Preview original** opens an embedded player without processing the source.
+Its **Use this time for sample** button selects the current playback position.
+Expand **Test a short fragment**, choose the start on the thumbnail filmstrip or
+enter `HH:MM:SS.cc`, select a 10, 15 or 20-second length, then click **Process sample**.
+The filmstrip decodes five small frames in a cancellable background worker;
+click or drag to select a start, or use arrow keys to move by a second.
+The selection is shortened at
+the end of a shorter source. A lossless FFV1/PCM reference is processed through
+the selected profile and the normal processing/QA pipeline. The full destination
+and run history stay unchanged. **Save sample…** copies the processed MP4 to a
+chosen location; saved copies remain available after the application closes.
+Saving is cancellable and atomic, and cannot overwrite the original source or
+temporary review files, including aliases via symlinks or hardlinks. Unsaved
+samples are temporary: creating another sample or closing the application removes
+them. HDR samples are disabled because this
+reference format cannot guarantee preservation of all HDR metadata; full-file
+processing remains available.
+
+![Sample selection and saved result on macOS](screenshots/sample-screen.png)
+
+When a sample finishes, **Before / after** opens automatically. Completed full
+runs expose **Compare before / after**. Both players share play/pause and a
+timeline; only the selected soundtrack is heard. Choose side-by-side, original
+or result, or **Draggable divider**. The divider overlays two SDR frames on the
+same canvas: drag its handle or use Left/Right, Home and End. It shows the source
+on the left and the result on the right; crop/rotation differences remain visible.
+Known PQ/HLG HDR frames use the native video panels instead of the raster divider.
+Choose fit-to-window, 50%, **100%**, 200% or 400% (100% is one decoded pixel per
+physical screen pixel). Drag zoomed pictures to pan; the divider shares the same
+offset for both images, while side-by-side panels synchronize scroll fractions.
+Frame buttons pause and use nearby decoded timestamps,
+including variable-rate frames. **Sync by time** uses the common time range;
+**Sync by duration** also maps times and playback rates for constant tempo
+changes. These modes do not register matching scenes after arbitrary edits.
+If a codec is unavailable in the native player, its error appears in the window;
+the existing **Open processed video** action still opens the system player.
+
+![Native before/after review on macOS](screenshots/review-screen.png)
+
+Processing identifies preparation, video, audio, saving and quality-check stages.
+The percentage describes the current stage or observed audio pass, rather than
+an invented percentage of the entire job. Elapsed time excludes pauses. The
+remaining-time estimate applies to the current stage and appears only after
+several advancing measurements; it resets for new stages, metric passes and
+retries, and disappears when progress stalls or has no measurable fraction.
+
+A global activity banner stays above the page when a run, sample, sample save,
+auto-tune, batch or queue worker is active. Navigate freely and use **Return to
+task** to reopen its screen. When several workflows are active, select the task
+in the banner. Unknown progress uses an indeterminate bar, and completed tasks
+leave the banner automatically.
+
+![Task progress while viewing Settings](screenshots/activity-screen.png)
+
+**Activity log** is collapsed initially and opens automatically when an error is
+logged. It can also be expanded with the keyboard. Automatic encoder selection
+remains available; a manual choice is passed to the existing core API.
+
+The expanded metrics use responsive KPI pills colour-coded per band:
 - **pHash worst chunk** — green < 0.75, yellow < 0.85, red ≥ 0.85
 - **VMAF mean** — green ≥ 85, yellow ≥ 75, red < 75
 - **Audio FP Hamming** — green ≥ 18 bits, yellow ≥ 10 bits, red < 10
@@ -39,7 +120,7 @@ KPI pills colour-code per band:
 These colors are local diagnostic display bands, not probabilities, human quality
 bands or predicted Content ID outcomes. Missing measurements display `n/a`.
 
-### 2. Batch
+### 2. Batch processing
 
 Directory-of-files iterator. Pick input dir + output dir + glob
 pattern (default `*.mp4`) + profile + encoder. The matched files preview
@@ -49,7 +130,7 @@ in a table; click ▶ Run batch and each row updates its status
 "Continue on error" keeps the batch going past per-file failures (the
 default); uncheck to stop on the first failure.
 
-### 3. Calibrate
+### 3. Auto-tune (Calibrate)
 
 Search profile intensity against a target self-match. Pick source +
 base profile + target self-match (default 0.2) + min quality (default
@@ -63,7 +144,7 @@ profile is the lowest-violation candidate seen, but it did not pass both
 constraints. Inspect the reported VMAF/SSIM backend and candidates before
 changing the clip budget, base profile, or threshold.
 
-### 4. QA Viewer
+### 4. Quality reports (QA Viewer)
 
 Two modes:
 - **Open existing** — pick any `.qa.html` and render it embedded.
@@ -71,7 +152,7 @@ Two modes:
   inline. Output paths are written next to the output file as
   `<output>.mp4.qa.json` / `.qa.html`.
 
-### 5. Profile Editor
+### 5. Profiles (Profile Editor)
 
 Inline YAML profile editing. Pick a profile from the dropdown; the
 transforms table loads with three columns:
@@ -79,8 +160,8 @@ transforms table loads with three columns:
 - enabled checkbox
 - params as JSON (editable)
 
-Top-level `seed_strategy` selector below. Live YAML preview on the
-right. "Save" overwrites with a `.yaml.bak` backup; "Save as…" prompts
+Top-level `seed_strategy` selector below. Effects and live YAML preview occupy
+separate tabs, keeping the editor readable in a narrow window. "Save" overwrites with a `.yaml.bak` backup; "Save as…" prompts
 for a new path.
 
 Invalid JSON in any params cell prevents save and shows a QMessageBox
@@ -129,8 +210,8 @@ loop.
 
 - **Theme** — dark / light / system (system falls back to dark in MVP);
   live-applies via state.theme_changed signal.
-- **Default profile** — pre-selected on the Run / Batch / Calibrate
-  screens.
+- **Default profile** — pre-selected on Process video and Batch processing
+  at startup. Auto-tune has its own base-profile selector.
 - **Maintenance** — Reset encoder cache (deletes
   `~/.cache/video_uniquifier/encoders.json`), Open log dir, Open config dir.
 

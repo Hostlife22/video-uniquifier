@@ -18,9 +18,9 @@ from PyQt6.QtWidgets import (
     QMessageBox,
     QPlainTextEdit,
     QPushButton,
-    QSplitter,
     QTableWidget,
     QTableWidgetItem,
+    QTabWidget,
     QVBoxLayout,
     QWidget,
 )
@@ -64,69 +64,69 @@ class ProfileEditorScreen(ScreenBase):
         self._populate_profile_combo()
 
     def _build_ui(self) -> None:
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(16, 16, 16, 16)
-        layout.setSpacing(10)
-
-        title = QLabel("Profile Editor")
-        title.setObjectName("title")
-        layout.addWidget(title)
+        layout = self.page_layout(
+            'Profiles',
+            'Adjust processing recipes and inspect their settings before saving.',
+        )
 
         # Top bar
         bar = QHBoxLayout()
-        bar.addWidget(QLabel("Profile:"))
+        bar.addWidget(QLabel(self.tr("Profile:")))
         self.profile_combo = QComboBox()
         self.profile_combo.currentIndexChanged.connect(self._on_profile_select)
         mark(self.profile_combo, "Profile to edit",
              "Choose which YAML profile to load into the editor.")
         bar.addWidget(self.profile_combo, stretch=1)
 
-        self.save_btn = QPushButton("&Save")
+        layout.addLayout(bar)
+        bar = QHBoxLayout()
+        self.save_btn = QPushButton(self.tr("&Save"))
         self.save_btn.clicked.connect(self._on_save)
         mark(self.save_btn, "Save profile",
              "Overwrite the loaded YAML file with the current edits (creates .bak backup).",
              shortcut="Ctrl+S")
         bar.addWidget(self.save_btn)
 
-        self.save_as_btn = QPushButton("Save &as…")
+        self.save_as_btn = QPushButton(self.tr("Save &as…"))
         self.save_as_btn.clicked.connect(self._on_save_as)
         mark(self.save_as_btn, "Save profile as",
              "Save the current edits as a new YAML file.",
              shortcut="Ctrl+Shift+S")
         bar.addWidget(self.save_as_btn)
 
-        self.reload_btn = QPushButton("&Reload list")
+        self.reload_btn = QPushButton(self.tr("&Reload list"))
         self.reload_btn.clicked.connect(self._populate_profile_combo)
         mark(self.reload_btn, "Reload profile list",
              "Rescan the profiles directory and refresh the dropdown.")
         bar.addWidget(self.reload_btn)
 
         # v0.9.0 R1 / F9 — community profile marketplace entry point.
-        self.browse_community_btn = QPushButton("&Browse community…")
+        self.browse_community_btn = QPushButton(self.tr("&Browse community…"))
         self.browse_community_btn.clicked.connect(self._on_browse_community)
         mark(self.browse_community_btn, "Browse community profiles",
              "Fetch the community profile catalog and install one into "
              "your per-user profiles directory.")
         bar.addWidget(self.browse_community_btn)
-        layout.addLayout(bar)
+        self.add_action_bar(bar)
 
         # Split: transforms table | YAML preview
-        splitter = QSplitter(Qt.Orientation.Horizontal)
+        splitter = QTabWidget()
 
         self.table = QTableWidget(0, 3)
-        self.table.setHorizontalHeaderLabels(["Transform", "Enabled", "Params (JSON)"])
+        self.table.setHorizontalHeaderLabels([
+            self.tr("Transform"), self.tr("Enabled"), self.tr("Params (JSON)"),
+        ])
         header = self.table.horizontalHeader()
         if header is not None:
             header.setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
             header.setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
             header.setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)
-        splitter.addWidget(self.table)
+        splitter.addTab(self.table, self.tr("Transform settings"))
 
         right = QPlainTextEdit()
         right.setReadOnly(True)
         self.yaml_preview = right
-        splitter.addWidget(right)
-        splitter.setSizes([700, 400])
+        splitter.addTab(right, self.tr("YAML preview"))
         layout.addWidget(splitter, stretch=1)
 
         # Top-level fields row
@@ -161,6 +161,16 @@ class ProfileEditorScreen(ScreenBase):
         # Force load of whatever is now selected.
         if self.profile_combo.count() > 0:
             self._on_profile_select(self.profile_combo.currentIndex())
+
+    def on_show(self) -> None:
+        if self.state.profile_path is None:
+            return
+        index = self.profile_combo.findData(str(self.state.profile_path))
+        if index < 0:
+            self._populate_profile_combo()
+            index = self.profile_combo.findData(str(self.state.profile_path))
+        if index >= 0:
+            self.profile_combo.setCurrentIndex(index)
 
     def _on_profile_select(self, _idx: int) -> None:
         path_str = self.profile_combo.currentData()

@@ -17,7 +17,6 @@ from PyQt6.QtWidgets import (
     QPlainTextEdit,
     QPushButton,
     QSpinBox,
-    QVBoxLayout,
     QWidget,
 )
 
@@ -25,6 +24,7 @@ from video_uniquifier.gui.a11y import mark
 from video_uniquifier.gui.paths import profiles_dir
 from video_uniquifier.gui.screens.base import ScreenBase
 from video_uniquifier.gui.state import AppState
+from video_uniquifier.gui.widgets.surfaces import Disclosure
 from video_uniquifier.gui.workers.notifications_test_worker import NotificationsTestWorker
 
 PROFILES_DIR = profiles_dir()
@@ -38,23 +38,30 @@ class SettingsScreen(ScreenBase):
         self._load_notifications_into_form()
         self._load_telemetry_into_form()
         self._refresh_telemetry_status()
+        self.state.theme_changed.connect(self._sync_theme)
+
+    def _sync_theme(self, theme: str) -> None:
+        previous = self.theme_combo.blockSignals(True)
+        self.theme_combo.setCurrentIndex(max(0, self.theme_combo.findData(theme)))
+        self.theme_combo.blockSignals(previous)
 
     def _build_ui(self) -> None:
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(16, 16, 16, 16)
-        layout.setSpacing(10)
-
-        title = QLabel(self.tr("Settings"))
-        title.setObjectName("title")
-        layout.addWidget(title)
+        layout = self.page_layout(
+            'Settings',
+            'Personalize appearance, defaults and optional integrations.',
+        )
 
         # Appearance
         appear = QGroupBox(self.tr("Appearance"))
         f = QFormLayout(appear)
         self.theme_combo = QComboBox()
-        self.theme_combo.addItems(["dark", "light", "system"])
-        self.theme_combo.setCurrentText(self.state.theme)
-        self.theme_combo.currentTextChanged.connect(self._on_theme_change)
+        for label, value in (("Dark studio", "dark"), ("Light", "light"),
+                             ("System (dark)", "system")):
+            self.theme_combo.addItem(self.tr(label), value)
+        self.theme_combo.setCurrentIndex(max(0, self.theme_combo.findData(self.state.theme)))
+        self.theme_combo.currentIndexChanged.connect(
+            lambda _index: self._on_theme_change(str(self.theme_combo.currentData())),
+        )
         mark(self.theme_combo, "Theme",
              "Switch between dark, light, and system color schemes.")
         f.addRow(self.tr("Theme") + ":", self.theme_combo)
@@ -67,8 +74,10 @@ class SettingsScreen(ScreenBase):
         # finishes in the original language.
         from video_uniquifier.gui.i18n import available_locales
         self.language_combo = QComboBox()
+        names = {"en_US": "English", "ru_RU": "Русский", "zh_CN": "简体中文",
+                 "es": "Español", "pt_BR": "Português (Brasil)"}
         for loc in available_locales():
-            self.language_combo.addItem(loc, loc)
+            self.language_combo.addItem(names.get(loc, loc), loc)
         idx = self.language_combo.findData(self.state.locale)
         if idx >= 0:
             self.language_combo.setCurrentIndex(idx)
@@ -80,7 +89,7 @@ class SettingsScreen(ScreenBase):
         layout.addWidget(appear)
 
         # Defaults
-        defaults = QGroupBox("Defaults")
+        defaults = QGroupBox(self.tr("Defaults"))
         f2 = QFormLayout(defaults)
         self.default_profile_combo = QComboBox()
         for p in sorted(PROFILES_DIR.glob("*.yaml")):
@@ -89,9 +98,13 @@ class SettingsScreen(ScreenBase):
             idx = self.default_profile_combo.findData(str(self.state.profile_path))
             if idx >= 0:
                 self.default_profile_combo.setCurrentIndex(idx)
+        else:
+            index = self.default_profile_combo.findText("soft")
+            if index >= 0:
+                self.default_profile_combo.setCurrentIndex(index)
         mark(self.default_profile_combo, "Default profile",
              "Profile pre-selected on Run / Batch / Calibrate screens at start.")
-        f2.addRow("Default profile:", self.default_profile_combo)
+        f2.addRow(self.tr("Default profile:"), self.default_profile_combo)
 
         self.recents_cap_spin = QSpinBox()
         self.recents_cap_spin.setRange(5, 100)
@@ -114,24 +127,26 @@ class SettingsScreen(ScreenBase):
         mark(self.history_cap_spin, "History cap",
              "Maximum number of past runs to keep in the History screen.")
         f2.addRow("History cap:", self.history_cap_spin)
+        f2.setRowVisible(self.recents_cap_spin, False)
+        f2.setRowVisible(self.history_cap_spin, False)
         layout.addWidget(defaults)
 
         # Maintenance
-        maint = QGroupBox("Maintenance")
+        maint = QGroupBox(self.tr("Maintenance"))
         h = QHBoxLayout(maint)
-        self.reset_enc_btn = QPushButton("&Reset encoder cache")
+        self.reset_enc_btn = QPushButton(self.tr("&Reset encoder cache"))
         self.reset_enc_btn.clicked.connect(self._reset_encoder_cache)
         mark(
             self.reset_enc_btn, "Reset encoder cache",
             "Delete the cached ffmpeg-encoder detection so they are re-probed on next run.",
         )
         h.addWidget(self.reset_enc_btn)
-        self.open_logs_btn = QPushButton("Open &log dir")
+        self.open_logs_btn = QPushButton(self.tr("Open &log dir"))
         self.open_logs_btn.clicked.connect(self._open_log_dir)
         mark(self.open_logs_btn, "Open log directory",
              "Reveal the ~/.cache/video_uniquifier/logs folder in the system file browser.")
         h.addWidget(self.open_logs_btn)
-        self.open_config_btn = QPushButton("Open &config dir")
+        self.open_config_btn = QPushButton(self.tr("Open &config dir"))
         self.open_config_btn.clicked.connect(self._open_config_dir)
         mark(
             self.open_config_btn, "Open config directory",
@@ -139,12 +154,14 @@ class SettingsScreen(ScreenBase):
         )
         h.addWidget(self.open_config_btn)
         h.addStretch(1)
-        layout.addWidget(maint)
+        maintenance = Disclosure("Maintenance", "Expand cache and diagnostic tools.")
+        maintenance.body.addWidget(maint)
+        layout.addWidget(maintenance)
 
         # v0.7 R5 / F4 — Post-job notifications.  Persists into
         # ``state.notifications`` (state.json) and is read by RunWorker
         # when constructing RunOptions for each encode.
-        notif = QGroupBox("Post-job notifications (webhook + SMTP)")
+        notif = QGroupBox(self.tr("Post-job notifications (webhook + SMTP)"))
         nf = QFormLayout(notif)
 
         self.webhook_url_edit = QLineEdit()
@@ -236,12 +253,14 @@ class SettingsScreen(ScreenBase):
         self.notif_status_label.setWordWrap(True)
         nf.addRow("", self.notif_status_label)
 
-        layout.addWidget(notif)
+        notifications = Disclosure("Notifications", "Expand optional notification settings.")
+        notifications.body.addWidget(notif)
+        layout.addWidget(notifications)
 
         # v0.9 R3 — Local telemetry (opt-in, off by default, never
         # network egress). Persists into ``state.telemetry``; the
         # orchestrator reads it via RunOptions.telemetry.
-        tele = QGroupBox("Local telemetry (opt-in)")
+        tele = QGroupBox(self.tr("Local telemetry (opt-in)"))
         tf = QFormLayout(tele)
 
         self.telemetry_enabled_check = QCheckBox(
@@ -288,17 +307,20 @@ class SettingsScreen(ScreenBase):
         tele_actions.addStretch(1)
         tf.addRow("", self._row_widget(tele_actions))
 
-        layout.addWidget(tele)
+        telemetry = Disclosure("Local telemetry (opt-in)", "Expand optional local event recording.")
+        telemetry.body.addWidget(tele)
+        layout.addWidget(telemetry)
 
         # Save
         save_row = QHBoxLayout()
         save_row.addStretch(1)
         self.save_btn = QPushButton(self.tr("&Save"))
+        self.save_btn.setProperty("variant", "primary")
         self.save_btn.clicked.connect(self._on_save)
         mark(self.save_btn, "Save settings",
              "Persist preferences to state.json.", shortcut="Ctrl+S")
         save_row.addWidget(self.save_btn)
-        layout.addLayout(save_row)
+        self.add_action_bar(save_row)
         layout.addStretch(1)
 
         self.status_label = QLabel("")

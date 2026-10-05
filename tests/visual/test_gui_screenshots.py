@@ -1,8 +1,8 @@
 """Visual regression: PNG snapshots of every screen at a fixed size.
 
 Marker: `visual`. Excluded from default CI because font/widget renders
-diverge across macOS/Linux/Wayland — only meaningful on a stable host
-(Linux + QT_QPA_PLATFORM=offscreen, the canonical baseline).
+diverge across macOS/Linux/Wayland — only meaningful on a stable host.
+The reviewed host is recorded alongside the offscreen baselines.
 
 First run writes baselines under `tests/visual/__snapshots__/`. Update
 baselines intentionally with `UPDATE_VISUAL_BASELINES=1`.
@@ -10,7 +10,9 @@ baselines intentionally with `UPDATE_VISUAL_BASELINES=1`.
 
 from __future__ import annotations
 
+import json
 import os
+import sys
 from pathlib import Path
 
 import pytest
@@ -18,6 +20,7 @@ from PyQt6.QtCore import QSize
 from PyQt6.QtWidgets import QApplication
 
 from video_uniquifier.gui.widgets.chart_widget import HAS_QTCHARTS
+from video_uniquifier.gui.widgets.file_picker import PathLabel
 
 pytestmark = pytest.mark.visual
 
@@ -40,17 +43,41 @@ SCREENS = {
 
 
 @pytest.fixture(scope="module")
-def main_window():
+def main_window(tmp_path_factory):
+    from video_uniquifier.core.qa import corpus
+    from video_uniquifier.gui import state
     from video_uniquifier.gui.app_pyqt import MainWindow
+    from video_uniquifier.gui.i18n import active_locale, install_translator
 
     app = QApplication.instance() or QApplication([])
-    win = MainWindow()
-    win.resize(1100, 720)
-    win.show()
-    app.processEvents()
-    yield win
-    win.close()
-    app.processEvents()
+    previous_locale = active_locale()
+    config = tmp_path_factory.mktemp("visual_config")
+    # Module fixtures run before function-scoped state isolation. Never
+    # construct snapshots from the user's actual preferences or history.
+    with pytest.MonkeyPatch.context() as patch:
+        patch.setattr(state, "CONFIG_DIR", config)
+        patch.setattr(state, "STATE_PATH", config / "state.json")
+        patch.setattr(state, "HISTORY_PATH", config / "history.json")
+        patch.setattr(corpus, "DEFAULT_CORPUS_DIR", config / "corpus")
+        install_translator(app, "en_US")
+        win = MainWindow()
+        # Show a stable example path while the real test DB stays in its
+        # isolated temp directory; neither user paths nor random temp IDs
+        # belong in a byte-compared baseline.
+        for path_label in win.stack.widget(SCREENS["Corpus"]).findChildren(PathLabel):
+            path_label.setText("/example/reference-library")
+        win.state.set_theme("dark")
+        win.resize(1100, 720)
+        win.show()
+        app.processEvents()
+        if os.environ.get("UPDATE_VISUAL_BASELINES") == "1":
+            (BASELINE_DIR / "host.json").write_text(
+                json.dumps({"platform": sys.platform, "theme": "dark", "locale": "en_US"}),
+            )
+        yield win
+        win.close()
+        app.processEvents()
+        install_translator(app, previous_locale)
 
 
 def _baseline_path(label: str) -> Path:
@@ -77,6 +104,14 @@ def test_screen_snapshot(main_window, label: str) -> None:
 
     baseline = _baseline_path(label)
     update = os.environ.get("UPDATE_VISUAL_BASELINES") == "1"
+    host_path = BASELINE_DIR / "host.json"
+    if host_path.exists() and not update:
+        host = json.loads(host_path.read_text())
+        if host["platform"] != sys.platform:
+            pytest.skip(
+                f"Baselines were reviewed on {host['platform']}; "
+                "refresh and review on this host before comparing native fonts",
+            )
 
     if not baseline.exists() or update:
         pix.save(str(baseline), "PNG")

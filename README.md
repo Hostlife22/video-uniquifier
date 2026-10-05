@@ -9,7 +9,7 @@ New release assets, Pages and GHCR names take effect when their workflows publis
 this revision; historical binaries and benchmark evidence retain their names.
 
 > Production-grade re-encoder with controlled, calibrated micro-transforms for
-> owned or licensed video content. **Current source version: v2.0.0** — stable API
+> owned or licensed video content. **Current source version: v2.1.0** — stable API
 > under SemVer, signed-ready Linux AppImage + unsigned macOS / Windows
 > bundles, WCAG 2.1 AA desktop GUI, optional FastAPI web UI + Docker image,
 > third-party plugin system, community profile marketplace, opt-in local
@@ -17,7 +17,15 @@ this revision; historical binaries and benchmark evidence retain their names.
 
 📚 **Live docs**: <https://hostlife22.github.io/video-uniquifier/> — mkdocs-material site, auto-deployed on every `v*` tag.
 
-![video-uniquifier Run screen](./docs/screenshots/run-screen.png)
+![Video Uniquifier — dark studio desktop interface](./docs/screenshots/run-screen.png)
+
+The desktop workspace guides you through source selection, processing settings and
+results. Advanced controls and logs expand on demand; primary actions stay visible.
+Preview a selected 10–20-second SDR fragment before processing the full video,
+choose its start on a thumbnail timeline and save the processed sample separately.
+Profile cards explain the changes; comparison includes a draggable divider and
+shared zoom/pan. A global task banner keeps progress visible while navigating.
+See the [GUI guide](./docs/gui.md).
 
 ## What it does
 
@@ -89,7 +97,7 @@ this is the wrong tool, and I won't help you wire it up.
 
 Requires Python 3.11+ and `ffmpeg` / `ffprobe` on `PATH`.
 
-### Pre-built installers (v2.0.0)
+### Pre-built installers (v2.1.0)
 
 | OS      | Format       | Signing                       | Where                                          |
 |---------|--------------|-------------------------------|------------------------------------------------|

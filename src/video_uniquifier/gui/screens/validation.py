@@ -29,8 +29,9 @@ from video_uniquifier.gui.paths import profiles_dir
 from video_uniquifier.gui.screens.base import ScreenBase
 from video_uniquifier.gui.state import AppState
 from video_uniquifier.gui.widgets.encoder_selector import EncoderSelector
-from video_uniquifier.gui.widgets.file_picker import FilePickerRow
+from video_uniquifier.gui.widgets.file_picker import FilePickerRow, PathLabel
 from video_uniquifier.gui.widgets.log_console import LogConsole
+from video_uniquifier.gui.widgets.surfaces import FieldGrid
 from video_uniquifier.gui.workers.correlate_worker import CorrelateWorker
 from video_uniquifier.gui.workers.generate_variants_worker import GenerateVariantsWorker
 
@@ -76,13 +77,10 @@ class ValidationScreen(ScreenBase):
         self._build_ui()
 
     def _build_ui(self) -> None:
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(16, 16, 16, 16)
-        layout.setSpacing(10)
-
-        title = QLabel("Validation")
-        title.setObjectName("title")
-        layout.addWidget(title)
+        layout = self.page_layout(
+            'Experiments',
+            'Generate variants of owned or licensed videos and record observations.',
+        )
 
         self.step_label = QLabel("<b>Step 1 of 3 — Generate variants</b>")
         layout.addWidget(self.step_label)
@@ -106,7 +104,7 @@ class ValidationScreen(ScreenBase):
         mark(self.next_btn, "Next step",
              "Advance to the next validation wizard step.")
         nav.addWidget(self.next_btn)
-        layout.addLayout(nav)
+        self.add_action_bar(nav)
 
     # ---- Step 1: generate ----
     def _build_generate_step(self) -> QWidget:
@@ -121,8 +119,7 @@ class ValidationScreen(ScreenBase):
         self.gen_picker.path_changed.connect(self._on_input_changed)
         layout.addWidget(self.gen_picker)
 
-        row = QHBoxLayout()
-        row.addWidget(QLabel("Profile:"))
+        row = FieldGrid()
         self.gen_profile = QComboBox()
         for p in sorted(PROFILES_DIR.glob("*.yaml")):
             self.gen_profile.addItem(p.stem, str(p))
@@ -131,32 +128,30 @@ class ValidationScreen(ScreenBase):
             self.gen_profile.setCurrentIndex(idx)
         mark(self.gen_profile, "Variants profile",
              "Profile used to generate the validation variants.")
-        row.addWidget(self.gen_profile, stretch=1)
-        row.addWidget(QLabel("Encoder:"))
+        row.add_field("Profile", self.gen_profile)
         self.gen_encoder = EncoderSelector(self.state)
-        row.addWidget(self.gen_encoder, stretch=1)
-        row.addWidget(QLabel("N:"))
+        row.add_field("Encoder", self.gen_encoder)
         self.gen_n = QSpinBox()
         self.gen_n.setRange(1, 50)
         self.gen_n.setValue(5)
         mark(self.gen_n, "Variant count",
              "How many variants to generate from this source.")
-        row.addWidget(self.gen_n)
-        layout.addLayout(row)
+        row.add_field("Variant count", self.gen_n)
+        layout.addWidget(row)
 
         out_row = QHBoxLayout()
-        out_row.addWidget(QLabel("Out dir:"))
-        self.gen_out_label = QLabel("(none)")
+        out_row.addWidget(QLabel(self.tr("Out dir:")))
+        self.gen_out_label = PathLabel(self.tr("Not selected"))
         self.gen_out_label.setObjectName("path")
         out_row.addWidget(self.gen_out_label, stretch=1)
-        b = QPushButton("&Browse…")
+        b = QPushButton(self.tr("&Browse…"))
         b.clicked.connect(self._pick_gen_out)
         mark(b, "Browse output directory",
              "Pick where generated variants should be written.")
         out_row.addWidget(b)
         layout.addLayout(out_row)
 
-        self.gen_btn = QPushButton("▶ &Generate")
+        self.gen_btn = QPushButton(self.tr("Generate variants"))
         self.gen_btn.setObjectName("run")
         self.gen_btn.setEnabled(False)
         self.gen_btn.clicked.connect(self._on_generate)
@@ -173,7 +168,7 @@ class ValidationScreen(ScreenBase):
         self.gen_progress_bar.setFormat("Variants: %v / %m")
         layout.addWidget(self.gen_progress_bar)
 
-        self.gen_log = LogConsole()
+        self.gen_log = LogConsole(state=self.state)
         layout.addWidget(self.gen_log, stretch=1)
         return w
 
@@ -210,7 +205,7 @@ class ValidationScreen(ScreenBase):
         w = QWidget()
         layout = QVBoxLayout(w)
         layout.addWidget(QLabel(f"CSV path: <code>{DEFAULT_CSV}</code>"))
-        self.run_corr_btn = QPushButton("▶ Run &correlation analysis")
+        self.run_corr_btn = QPushButton(self.tr("Analyze observations"))
         self.run_corr_btn.setObjectName("run")
         self.run_corr_btn.clicked.connect(self._on_correlate)
         mark(self.run_corr_btn, "Run correlation analysis",

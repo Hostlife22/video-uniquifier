@@ -6,9 +6,17 @@ from pathlib import Path
 from time import monotonic, sleep
 from unittest.mock import Mock, patch
 
+import pytest
+
 from video_uniquifier.core.models import Profile, TransformConfig
 from video_uniquifier.gui.workers.queue_status_worker import QueueStatusWorker
 from video_uniquifier.gui.workers.queue_worker import QueueWorker
+
+
+@pytest.fixture(scope="module", autouse=True)
+def _application(qapp):
+    """Keep QApplication alive while synchronous Qt worker signals are exercised."""
+    yield qapp
 
 
 def _profile() -> Profile:

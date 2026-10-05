@@ -150,8 +150,7 @@ def test_kpi_pills_set_qa_populates_pills(app: QApplication) -> None:
         "cid_predict_self": 0.15,
         "chunk_similarities": [],
     })
-    # 4 pills + 1 stretch = 5 layout items.
-    assert pills._layout.count() >= 5
+    assert pills._layout.count() == 4
 
 
 def test_unavailable_phash_is_not_a_green_zero(app: QApplication) -> None:

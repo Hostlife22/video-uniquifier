@@ -14,7 +14,6 @@ from PyQt6.QtWidgets import (
     QProgressBar,
     QPushButton,
     QSpinBox,
-    QVBoxLayout,
 )
 
 from video_uniquifier.core.calibration.loop import (
@@ -30,6 +29,7 @@ from video_uniquifier.gui.state import AppState
 from video_uniquifier.gui.widgets.chart_widget import ChartWidget, Series
 from video_uniquifier.gui.widgets.file_picker import FilePickerRow
 from video_uniquifier.gui.widgets.log_console import LogConsole
+from video_uniquifier.gui.widgets.surfaces import FieldGrid
 from video_uniquifier.gui.workers.calibrate_worker import CalibrateWorker
 
 PROFILES_DIR = profiles_dir()
@@ -44,13 +44,10 @@ class CalibrateScreen(ScreenBase):
         self._build_ui()
 
     def _build_ui(self) -> None:
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(16, 16, 16, 16)
-        layout.setSpacing(10)
-
-        title = QLabel("Calibrate")
-        title.setObjectName("title")
-        layout.addWidget(title)
+        layout = self.page_layout(
+            'Auto-tune',
+            'Find profile settings that balance visual change and measured quality.',
+        )
 
         self.input_picker = FilePickerRow(
             "Source video:", "input",
@@ -62,7 +59,7 @@ class CalibrateScreen(ScreenBase):
 
         # Base profile
         row_p = QHBoxLayout()
-        row_p.addWidget(QLabel("Base profile:"))
+        row_p.addWidget(QLabel(self.tr("Base profile:")))
         self.profile_combo = QComboBox()
         for p in sorted(PROFILES_DIR.glob("*.yaml")):
             self.profile_combo.addItem(p.stem, str(p))
@@ -76,56 +73,50 @@ class CalibrateScreen(ScreenBase):
         layout.addLayout(row_p)
 
         # Knobs
-        knobs = QHBoxLayout()
-        knobs.addWidget(QLabel("Target self-match (max):"))
+        knobs = FieldGrid()
         self.target_spin = QDoubleSpinBox()
         self.target_spin.setRange(0.05, 0.8)
         self.target_spin.setSingleStep(0.05)
         self.target_spin.setValue(0.2)
         mark(self.target_spin, "Target self-match (max)",
              "Upper bound on fingerprint similarity that calibration aims for.")
-        knobs.addWidget(self.target_spin)
+        knobs.add_field('Maximum similarity', self.target_spin)
 
-        knobs.addWidget(QLabel("Min quality (0..100):"))
         self.quality_spin = QDoubleSpinBox()
         self.quality_spin.setRange(60.0, 100.0)
         self.quality_spin.setSingleStep(1.0)
         self.quality_spin.setValue(88.0)
         mark(self.quality_spin, "Minimum quality",
              "Hard floor on VMAF / SSIM — calibration backs off if quality drops below this.")
-        knobs.addWidget(self.quality_spin)
+        knobs.add_field('Minimum quality (0–100)', self.quality_spin)
 
-        knobs.addWidget(QLabel("Iterations:"))
         self.iter_spin = QSpinBox()
         self.iter_spin.setRange(1, 15)
         self.iter_spin.setValue(5)
         mark(self.iter_spin, "Iterations",
              "Maximum bounded-search trials before selecting the best measured profile.")
-        knobs.addWidget(self.iter_spin)
+        knobs.add_field('Search iterations', self.iter_spin)
 
-        knobs.addWidget(QLabel("Test clip (s):"))
         self.clip_spin = QSpinBox()
         self.clip_spin.setRange(10, 600)
         self.clip_spin.setValue(60)
         mark(self.clip_spin, "Test clip duration",
              "Total seconds sampled across source start, middle, and end.")
-        knobs.addWidget(self.clip_spin)
+        knobs.add_field('Sample duration (seconds)', self.clip_spin)
 
-        knobs.addWidget(QLabel("Metric:"))
         self.metric_combo = QComboBox()
         self.metric_combo.addItem("chromaprint", "chromaprint")
         self.metric_combo.addItem("sscd", "sscd")
         mark(self.metric_combo, "Similarity metric",
              "chromaprint = v0.5 audio-fingerprint predictor; "
              "sscd = SSCD copy-detection embedding (needs [ml] extra).")
-        knobs.addWidget(self.metric_combo)
+        knobs.add_field('Similarity metric', self.metric_combo)
 
-        knobs.addStretch(1)
-        layout.addLayout(knobs)
+        layout.addWidget(knobs)
 
         # Controls
         controls = QHBoxLayout()
-        self.run_btn = QPushButton("▶ &Calibrate")
+        self.run_btn = QPushButton(self.tr("&Calibrate"))
         self.run_btn.setObjectName("run")
         self.run_btn.setEnabled(False)
         self.run_btn.clicked.connect(self._on_run)
@@ -133,14 +124,14 @@ class CalibrateScreen(ScreenBase):
              "Search intensity against independent similarity and quality constraints.",
              shortcut="Ctrl+R")
         controls.addWidget(self.run_btn)
-        self.cancel_btn = QPushButton("Cance&l")
+        self.cancel_btn = QPushButton(self.tr("Cance&l"))
         self.cancel_btn.setObjectName("cancel")
         self.cancel_btn.setEnabled(False)
         self.cancel_btn.clicked.connect(self._on_cancel)
         mark(self.cancel_btn, "Cancel calibration",
              "Abort the search at the next safe boundary.", shortcut="Esc")
         controls.addWidget(self.cancel_btn)
-        self.save_btn = QPushButton("&Save tuned profile as…")
+        self.save_btn = QPushButton(self.tr("&Save tuned profile as…"))
         self.save_btn.setEnabled(False)
         self.save_btn.clicked.connect(self._on_save)
         mark(self.save_btn, "Save tuned profile",
@@ -148,7 +139,7 @@ class CalibrateScreen(ScreenBase):
              shortcut="Ctrl+S")
         controls.addWidget(self.save_btn)
         controls.addStretch(1)
-        layout.addLayout(controls)
+        self.add_action_bar(controls)
 
         # Iteration progress bar — max is set on _on_run from iter_spin.
         self.progress_bar = QProgressBar()
@@ -159,16 +150,16 @@ class CalibrateScreen(ScreenBase):
         layout.addWidget(self.progress_bar)
 
         # Chart
-        self.chart = ChartWidget()
+        self.chart = ChartWidget(self.state)
         self.chart.set_series([
-            Series(name="intensity_factor", color="#d18b3b"),
-            Series(name="self_match",       color="#a83b3b"),
-            Series(name="quality / 100",    color="#3ba85c"),
+            Series(name="intensity_factor", color="", color_token="chart_intensity"),
+            Series(name="self_match", color="", color_token="chart_similarity"),
+            Series(name="quality / 100", color="", color_token="chart_quality"),
         ])
         layout.addWidget(self.chart)
 
         # Log
-        self.log = LogConsole()
+        self.log = LogConsole(state=self.state)
         layout.addWidget(self.log, stretch=1)
 
     # ---- handlers ----
@@ -195,9 +186,9 @@ class CalibrateScreen(ScreenBase):
         )
 
         self.chart.set_series([
-            Series(name="intensity_factor", color="#d18b3b"),
-            Series(name="self_match",       color="#a83b3b"),
-            Series(name="quality / 100",    color="#3ba85c"),
+            Series(name="intensity_factor", color="", color_token="chart_intensity"),
+            Series(name="self_match", color="", color_token="chart_similarity"),
+            Series(name="quality / 100", color="", color_token="chart_quality"),
         ])
         self.log.clear()
 

@@ -13,6 +13,6 @@ from importlib.metadata import version as _pkg_version
 try:
     __version__ = _pkg_version("video-uniquifier")
 except PackageNotFoundError:  # source checkout, never installed
-    __version__ = "2.0.0+source"
+    __version__ = "2.1.0+source"
 
 __all__ = ["__version__"]

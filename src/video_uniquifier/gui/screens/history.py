@@ -15,7 +15,6 @@ from PyQt6.QtWidgets import (
     QPushButton,
     QTableWidget,
     QTableWidgetItem,
-    QVBoxLayout,
     QWidget,
 )
 
@@ -33,24 +32,21 @@ class HistoryScreen(ScreenBase):
         self._on_history_changed(self.state.history)
 
     def _build_ui(self) -> None:
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(16, 16, 16, 16)
-        layout.setSpacing(10)
-
-        title = QLabel("History")
-        title.setObjectName("title")
-        layout.addWidget(title)
+        layout = self.page_layout(
+            'History',
+            'Find completed jobs, open their videos and revisit quality reports.',
+        )
 
         # Filter
         row = QHBoxLayout()
-        row.addWidget(QLabel("Filter:"))
+        row.addWidget(QLabel(self.tr("Filter:")))
         self.filter_edit = QLineEdit()
         self.filter_edit.setPlaceholderText("filename / profile / encoder / status")
         self.filter_edit.textChanged.connect(self._refresh)
         mark(self.filter_edit, "History filter",
              "Substring filter applied to source, profile, encoder, and status columns.")
         row.addWidget(self.filter_edit)
-        self.clear_btn = QPushButton("&Clear all")
+        self.clear_btn = QPushButton(self.tr("&Clear all"))
         self.clear_btn.clicked.connect(self._clear_history)
         mark(self.clear_btn, "Clear history",
              "Remove every entry from the run history after confirmation.")
@@ -60,7 +56,8 @@ class HistoryScreen(ScreenBase):
         # Table
         self.table = QTableWidget(0, 7)
         self.table.setHorizontalHeaderLabels([
-            "Date", "Source", "Profile", "Encoder", "Status", "Output", "Actions",
+            self.tr("Date"), self.tr("Source"), self.tr("Profile"), self.tr("Encoder"),
+            self.tr("Status"), self.tr("Output"), self.tr("Actions"),
         ])
         self.table.setSelectionBehavior(
             QAbstractItemView.SelectionBehavior.SelectRows,
@@ -72,7 +69,13 @@ class HistoryScreen(ScreenBase):
         if header is not None:
             header.setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
             header.setSectionResizeMode(5, QHeaderView.ResizeMode.Stretch)
-        layout.addWidget(self.table)
+        self.empty_label = QLabel(self.tr(
+            "No matching jobs. Process a video or change the search to find previous results.",
+        ))
+        self.empty_label.setObjectName("hint")
+        self.empty_label.setWordWrap(True)
+        layout.addWidget(self.empty_label)
+        layout.addWidget(self.table, stretch=1)
 
     def _on_history_changed(self, entries: list[HistoryEntry]) -> None:
         self._all_entries = list(entries)
@@ -89,6 +92,7 @@ class HistoryScreen(ScreenBase):
             if filter_text and filter_text not in haystack:
                 continue
             self._append_row(entry)
+        self.empty_label.setVisible(self.table.rowCount() == 0)
 
     def _append_row(self, entry: HistoryEntry) -> None:
         r = self.table.rowCount()
@@ -109,7 +113,7 @@ class HistoryScreen(ScreenBase):
         h = QHBoxLayout(w)
         h.setContentsMargins(4, 0, 4, 0)
         h.setSpacing(4)
-        btn_out = QPushButton("Open output")
+        btn_out = QPushButton(self.tr("Open output"))
         btn_out.clicked.connect(
             lambda: self._open_path(entry.output_path),
         )

@@ -2,10 +2,20 @@
 
 from __future__ import annotations
 
-from PyQt6.QtCore import Qt, QThread
-from PyQt6.QtGui import QCloseEvent
-from PyQt6.QtWidgets import QLabel, QVBoxLayout, QWidget
+from PyQt6.QtCore import QEvent, Qt, QThread, pyqtSignal
+from PyQt6.QtGui import QCloseEvent, QShowEvent
+from PyQt6.QtWidgets import (
+    QComboBox,
+    QFrame,
+    QHBoxLayout,
+    QLabel,
+    QScrollArea,
+    QTableWidget,
+    QVBoxLayout,
+    QWidget,
+)
 
+from video_uniquifier.gui.design import Metrics, Space
 from video_uniquifier.gui.state import AppState
 
 
@@ -17,9 +27,72 @@ class ScreenBase(QWidget):
     user navigates to it (called by MainWindow on tab switch).
     """
 
+    navigate_requested = pyqtSignal(str)
+
     def __init__(self, state: AppState) -> None:
         super().__init__()
         self.state = state
+        self._page_strings: tuple[str, str] | None = None
+
+    def page_layout(self, title: str, description: str) -> QVBoxLayout:
+        """Scrollable page chrome so dense screens cannot enlarge the whole window."""
+        self._page_strings = (title, description)
+        self.outer_layout = QVBoxLayout(self)
+        self.outer_layout.setContentsMargins(0, 0, 0, 0)
+        self.outer_layout.setSpacing(0)
+        self.page_scroll = QScrollArea()
+        self.page_scroll.setWidgetResizable(True)
+        self.page_scroll.setFrameShape(QFrame.Shape.NoFrame)
+        self.page_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.page_scroll.setAccessibleName(self.tr(title))
+        content = QWidget()
+        self.page_scroll.setWidget(content)
+        self.outer_layout.addWidget(self.page_scroll)
+        layout = QVBoxLayout(content)
+        layout.setContentsMargins(Space.PAGE, Space.PAGE, Space.PAGE, Space.PAGE)
+        layout.setSpacing(Space.LG)
+        self.page_title = QLabel(self.tr(title))
+        self.page_title.setObjectName("title")
+        layout.addWidget(self.page_title)
+        self.page_subtitle = QLabel(self.tr(description))
+        self.page_subtitle.setObjectName("subtitle")
+        self.page_subtitle.setWordWrap(True)
+        layout.addWidget(self.page_subtitle)
+        return layout
+
+    def changeEvent(self, event: QEvent | None) -> None:
+        if (event is not None and event.type() == QEvent.Type.LanguageChange
+                and self._page_strings is not None):
+            title, description = self._page_strings
+            self.page_title.setText(self.tr(title))
+            self.page_subtitle.setText(self.tr(description))
+        super().changeEvent(event)
+
+    def add_action_bar(self, actions: QHBoxLayout) -> None:
+        bar = QWidget()
+        bar.setObjectName("action_bar")
+        actions.setContentsMargins(Space.PAGE, Space.MD, Space.PAGE, Space.MD)
+        actions.setSpacing(Space.SM)
+        bar.setLayout(actions)
+        self.outer_layout.addWidget(bar)
+
+    def showEvent(self, event: QShowEvent | None) -> None:
+        for combo in self.findChildren(QComboBox):
+            combo.setSizeAdjustPolicy(
+                QComboBox.SizeAdjustPolicy.AdjustToMinimumContentsLengthWithIcon,
+            )
+            combo.setMinimumContentsLength(14)
+        for table in self.findChildren(QTableWidget):
+            if table.property("studioTable"):
+                continue
+            table.setProperty("studioTable", True)
+            table.setAlternatingRowColors(True)
+            table.setShowGrid(False)
+            table.setMinimumHeight(Metrics.TABLE_HEIGHT)
+            header = table.verticalHeader()
+            if header is not None:
+                header.setDefaultSectionSize(Metrics.CONTROL_HEIGHT + Space.SM)
+        super().showEvent(event)
 
     def on_show(self) -> None:  # pragma: no cover - default no-op
         """Hook for screens that need to refresh on navigation. Override."""

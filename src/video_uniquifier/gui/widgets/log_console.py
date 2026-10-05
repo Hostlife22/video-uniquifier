@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections import deque
 from typing import Literal
 
+from PyQt6.QtCore import pyqtSignal
 from PyQt6.QtGui import QGuiApplication
 from PyQt6.QtWidgets import (
     QComboBox,
@@ -16,23 +17,28 @@ from PyQt6.QtWidgets import (
 )
 
 from video_uniquifier.gui.a11y import mark
+from video_uniquifier.gui.design import Space
+from video_uniquifier.gui.state import AppState
+from video_uniquifier.gui.theme import tokens_for
 
 LogLevel = Literal["info", "progress", "log", "error"]
 
 # Subset of common color names; specific palette tuned per theme.
-_LEVEL_COLOR = {
-    "info":     "#c8c8d0",
-    "progress": "#3b6ea8",
-    "log":      "#9b9ba8",
-    "error":    "#c44f4f",
+_LEVEL_TOKEN = {
+    "info": "fg", "progress": "fg", "log": "fg_dim", "error": "danger_hover",
 }
 
 
 class LogConsole(QWidget):
     """Appendable log with level filter and copy-to-clipboard."""
 
-    def __init__(self, max_lines: int = 2000) -> None:
+    error_logged = pyqtSignal(str)
+
+    def __init__(self, max_lines: int = 2000, state: AppState | None = None) -> None:
         super().__init__()
+        self._theme = state.theme if state is not None else "dark"
+        if state is not None:
+            state.theme_changed.connect(self.set_theme)
         self.max_lines = max_lines
         # deque(maxlen=…) drops the oldest entry in O(1) once the cap is
         # reached. The previous `list[-max:]` slice was O(N) per append
@@ -44,7 +50,7 @@ class LogConsole(QWidget):
     def _build_ui(self) -> None:
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(4)
+        layout.setSpacing(Space.SM)
 
         # Toolbar
         bar = QHBoxLayout()
@@ -56,12 +62,12 @@ class LogConsole(QWidget):
              "Show only log lines at this severity.")
         bar.addWidget(self.filter_combo)
         bar.addStretch(1)
-        self.copy_btn = QPushButton("&Copy")
+        self.copy_btn = QPushButton(self.tr("&Copy"))
         self.copy_btn.clicked.connect(self._copy_all)
         mark(self.copy_btn, "Copy log",
              "Copy every line in the buffer to the clipboard.")
         bar.addWidget(self.copy_btn)
-        self.clear_btn = QPushButton("C&lear")
+        self.clear_btn = QPushButton(self.tr("C&lear"))
         self.clear_btn.clicked.connect(self.clear)
         mark(self.clear_btn, "Clear log",
              "Empty the log console.")
@@ -70,17 +76,24 @@ class LogConsole(QWidget):
 
         self.text = QTextEdit()
         self.text.setReadOnly(True)
+        self.text.setPlaceholderText(self.tr("Processing messages will appear here."))
         self.text.setAccessibleName("Log output")
         self.text.setAccessibleDescription(
             "Streaming log of pipeline events, ffmpeg output, and errors.",
         )
         layout.addWidget(self.text, stretch=1)
 
+    def set_theme(self, theme: str) -> None:
+        self._theme = theme
+        self._refresh()
+
     def log(self, line: str, level: LogLevel = "info") -> None:
         self._lines.append((level, line))  # deque handles FIFO cap
         # Append-only refresh if filter allows; else just don't show.
         if self._allows(level):
             self._append_html(level, line)
+        if level == "error":
+            self.error_logged.emit(line)
 
     def clear(self) -> None:
         self._lines.clear()
@@ -100,7 +113,7 @@ class LogConsole(QWidget):
                 self._append_html(level, line)
 
     def _append_html(self, level: LogLevel, line: str) -> None:
-        color = _LEVEL_COLOR.get(level, "#c8c8d0")
+        color = tokens_for(self._theme)[_LEVEL_TOKEN.get(level, "fg")]
         safe = (
             line.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
         )

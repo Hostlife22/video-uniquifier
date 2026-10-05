@@ -27,7 +27,9 @@ from video_uniquifier.gui.paths import profiles_dir
 from video_uniquifier.gui.screens.base import ScreenBase
 from video_uniquifier.gui.state import AppState
 from video_uniquifier.gui.widgets.encoder_selector import EncoderSelector
+from video_uniquifier.gui.widgets.file_picker import PathLabel
 from video_uniquifier.gui.widgets.log_console import LogConsole
+from video_uniquifier.gui.widgets.surfaces import FieldGrid
 from video_uniquifier.gui.workers.queue_io_worker import QueueIoWorker
 from video_uniquifier.gui.workers.queue_status_worker import QueueStatusWorker
 from video_uniquifier.gui.workers.queue_worker import QueueWorker
@@ -46,26 +48,23 @@ class QueueScreen(ScreenBase):
         self._build_ui()
 
     def _build_ui(self) -> None:
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(16, 16, 16, 16)
-        layout.setSpacing(10)
-
-        title = QLabel("Queue / Worker")
-        title.setObjectName("title")
-        layout.addWidget(title)
+        layout = self.page_layout(
+            'Processing queue',
+            'Organize pending videos and control background workers.',
+        )
 
         # Queue root + init
         row = QHBoxLayout()
-        row.addWidget(QLabel("Queue root:"))
-        self.root_label = QLabel("(none)")
+        row.addWidget(QLabel(self.tr("Queue root:")))
+        self.root_label = PathLabel(self.tr("Not selected"))
         self.root_label.setObjectName("path")
         row.addWidget(self.root_label, stretch=1)
-        self.pick_root_btn = QPushButton("&Browse…")
+        self.pick_root_btn = QPushButton(self.tr("&Browse…"))
         self.pick_root_btn.clicked.connect(self._pick_root)
         mark(self.pick_root_btn, "Browse queue root",
              "Pick the shared-filesystem directory used as the queue layout root.")
         row.addWidget(self.pick_root_btn)
-        self.init_btn = QPushButton("&Init queue here")
+        self.init_btn = QPushButton(self.tr("&Init queue here"))
         self.init_btn.setEnabled(False)
         self.init_btn.clicked.connect(self._init_queue)
         mark(self.init_btn, "Init queue layout",
@@ -124,24 +123,21 @@ class QueueScreen(ScreenBase):
         w = QWidget()
         layout = QVBoxLayout(w)
 
-        cfg = QHBoxLayout()
-        cfg.addWidget(QLabel("Profile:"))
+        cfg = FieldGrid()
         self.profile_combo = QComboBox()
         for p in sorted(PROFILES_DIR.glob("*.yaml")):
             self.profile_combo.addItem(p.stem, str(p))
         mark(self.profile_combo, "Profile",
              "Transform profile applied by this worker to every leased file.")
-        cfg.addWidget(self.profile_combo, stretch=1)
-        cfg.addWidget(QLabel("Encoder:"))
+        cfg.add_field('Profile', self.profile_combo)
         self.encoder_selector = EncoderSelector(self.state)
-        cfg.addWidget(self.encoder_selector, stretch=1)
-        cfg.addWidget(QLabel("Workers:"))
+        cfg.add_field('Encoder', self.encoder_selector)
         self.workers_spin = QSpinBox()
         self.workers_spin.setRange(1, 16)
         self.workers_spin.setValue(2)
         mark(self.workers_spin, "Parallel workers",
              "Number of segments encoded in parallel inside this worker process.")
-        cfg.addWidget(self.workers_spin)
+        cfg.add_field('Parallel workers', self.workers_spin)
         self.stop_when_empty_check = QCheckBox("E&xit when queue empty")
         self.stop_when_empty_check.setToolTip(
             "Unchecked = daemon mode (keep polling for new files).\n"
@@ -149,15 +145,15 @@ class QueueScreen(ScreenBase):
         )
         mark(self.stop_when_empty_check, "Exit when queue empty",
              "Daemon vs one-shot mode for the drainer process.")
-        cfg.addWidget(self.stop_when_empty_check)
-        layout.addLayout(cfg)
+        cfg.add_field('When the queue is empty', self.stop_when_empty_check)
+        layout.addWidget(cfg)
 
         out_row = QHBoxLayout()
-        out_row.addWidget(QLabel("Output dir:"))
-        self.out_label = QLabel("(none)")
+        out_row.addWidget(QLabel(self.tr("Output dir:")))
+        self.out_label = PathLabel(self.tr("Not selected"))
         self.out_label.setObjectName("path")
         out_row.addWidget(self.out_label, stretch=1)
-        b = QPushButton("Bro&wse…")
+        b = QPushButton(self.tr("Bro&wse…"))
         b.clicked.connect(self._pick_out)
         mark(b, "Browse output directory",
              "Pick where the worker should write completed outputs.")
@@ -165,7 +161,7 @@ class QueueScreen(ScreenBase):
         layout.addLayout(out_row)
 
         controls = QHBoxLayout()
-        self.start_btn = QPushButton("▶ &Start worker")
+        self.start_btn = QPushButton(self.tr("Start worker"))
         self.start_btn.setObjectName("run")
         self.start_btn.setEnabled(False)
         self.start_btn.clicked.connect(self._start_worker)
@@ -184,7 +180,7 @@ class QueueScreen(ScreenBase):
         controls.addStretch(1)
         layout.addLayout(controls)
 
-        self.worker_log = LogConsole()
+        self.worker_log = LogConsole(state=self.state)
         layout.addWidget(self.worker_log, stretch=1)
         return w
 

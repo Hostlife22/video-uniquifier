@@ -16,13 +16,13 @@ from PyQt6.QtWidgets import (
     QPushButton,
     QTableWidget,
     QTableWidgetItem,
-    QVBoxLayout,
 )
 
 from video_uniquifier.core.qa.corpus import Corpus
 from video_uniquifier.gui.a11y import mark
 from video_uniquifier.gui.screens.base import ScreenBase
 from video_uniquifier.gui.state import AppState
+from video_uniquifier.gui.widgets.file_picker import PathLabel
 from video_uniquifier.gui.workers.corpus_list_worker import CorpusListWorker
 from video_uniquifier.gui.workers.corpus_worker import CorpusWorker
 
@@ -37,18 +37,15 @@ class CorpusScreen(ScreenBase):
         self._refresh()
 
     def _build_ui(self) -> None:
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(16, 16, 16, 16)
-        layout.setSpacing(10)
-
-        title = QLabel("Corpus")
-        title.setObjectName("title")
-        layout.addWidget(title)
+        layout = self.page_layout(
+            'Reference library',
+            'Manage your own reference videos for local similarity comparisons.',
+        )
 
         # Root info
         header = QHBoxLayout()
-        header.addWidget(QLabel("Corpus root:"))
-        root_lbl = QLabel(str(self.corpus.root))
+        header.addWidget(QLabel(self.tr("Corpus root:")))
+        root_lbl = PathLabel(str(self.corpus.root))
         root_lbl.setObjectName("path")
         header.addWidget(root_lbl, stretch=1)
         layout.addLayout(header)
@@ -56,7 +53,7 @@ class CorpusScreen(ScreenBase):
         # Table
         self.table = QTableWidget(0, 5)
         self.table.setHorizontalHeaderLabels(
-            ["ID", "Path", "Added", "Samples", "Audio FP"],
+            ["ID", self.tr("Path"), self.tr("Added"), self.tr("Samples"), self.tr("Audio FP")],
         )
         self.table.setSelectionBehavior(
             QAbstractItemView.SelectionBehavior.SelectRows,
@@ -67,27 +64,33 @@ class CorpusScreen(ScreenBase):
         header2 = self.table.horizontalHeader()
         if header2 is not None:
             header2.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
+        self.empty_label = QLabel(self.tr(
+            "Add your own reference videos to compare similarity with future outputs.",
+        ))
+        self.empty_label.setObjectName("hint")
+        self.empty_label.setWordWrap(True)
+        layout.addWidget(self.empty_label)
         layout.addWidget(self.table, stretch=1)
 
         # Actions
         controls = QHBoxLayout()
-        self.add_btn = QPushButton("&Add file…")
+        self.add_btn = QPushButton(self.tr("&Add file…"))
         self.add_btn.clicked.connect(self._on_add)
         mark(self.add_btn, "Add file to corpus",
              "Pick a video and add its fingerprint to the reference corpus.")
         controls.addWidget(self.add_btn)
-        self.remove_btn = QPushButton("&Remove selected")
+        self.remove_btn = QPushButton(self.tr("&Remove selected"))
         self.remove_btn.clicked.connect(self._on_remove)
         mark(self.remove_btn, "Remove selected entry",
              "Delete the highlighted corpus entry after confirmation.")
         controls.addWidget(self.remove_btn)
-        self.refresh_btn = QPushButton("Re&fresh")
+        self.refresh_btn = QPushButton(self.tr("Re&fresh"))
         self.refresh_btn.clicked.connect(self._refresh)
         mark(self.refresh_btn, "Refresh corpus list",
              "Reload entries from disk.")
         controls.addWidget(self.refresh_btn)
         controls.addStretch(1)
-        layout.addLayout(controls)
+        self.add_action_bar(controls)
 
         self.status_label = QLabel("")
         self.status_label.setObjectName("status")
@@ -124,6 +127,7 @@ class CorpusScreen(ScreenBase):
         if not isinstance(entries, list):
             entries = []
         self.table.setRowCount(0)
+        self.empty_label.setVisible(not entries)
         for e in entries:
             r = self.table.rowCount()
             self.table.insertRow(r)

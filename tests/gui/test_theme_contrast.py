@@ -77,6 +77,11 @@ _PAIRS: list[tuple[str, str, str]] = [
     ("fg",            "bg_deep",       "body text on log-console / sidebar"),
     ("fg_dim",        "bg",            "secondary text (status, path label)"),
     ("fg_dim",        "bg_deep",       "sidebar item idle state"),
+    ("accent_fg", "accent", "primary action"),
+    ("accent_fg", "accent_hover", "primary action hover"),
+    ("selected_fg", "selected_bg", "selected navigation / table row"),
+    ("fg_dim", "bg_alt", "secondary text on cards"),
+    ("danger_hover", "bg_deep", "error text in the activity log"),
     # status badges (E4 — preflight_panel + kpi_pills)
     ("badge_fail_fg", "badge_fail_bg", "preflight FAIL badge"),
     ("badge_warn_fg", "badge_warn_bg", "preflight WARN badge"),

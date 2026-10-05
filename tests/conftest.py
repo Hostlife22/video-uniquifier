@@ -116,3 +116,7 @@ def _isolated_gui_state(
     monkeypatch.setattr(state_mod, "CONFIG_DIR", cfg)
     monkeypatch.setattr(state_mod, "STATE_PATH", cfg / "state.json")
     monkeypatch.setattr(state_mod, "HISTORY_PATH", cfg / "history.json")
+    # CorpusScreen opens SQLite during construction. Its WAL/SHM files must
+    # stay alongside test state rather than touch the operator's own corpus.
+    from video_uniquifier.core.qa import corpus
+    monkeypatch.setattr(corpus, "DEFAULT_CORPUS_DIR", cfg / "corpus")

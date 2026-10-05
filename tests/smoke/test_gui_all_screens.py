@@ -54,17 +54,25 @@ EXPECTED_WIDGETS: dict[str, list[str]] = {
 
 
 @pytest.fixture(scope="module")
-def main_window():
+def main_window(tmp_path_factory):
     """One MainWindow shared by every screen test in this module."""
+    from video_uniquifier.core.qa import corpus
+    from video_uniquifier.gui import state
     from video_uniquifier.gui.app_pyqt import MainWindow
 
     app = QApplication.instance() or QApplication([])
-    win = MainWindow()
-    win.show()
-    app.processEvents()
-    yield win
-    win.close()
-    app.processEvents()
+    config = tmp_path_factory.mktemp("smoke_gui_config")
+    with pytest.MonkeyPatch.context() as patch:
+        patch.setattr(state, "CONFIG_DIR", config)
+        patch.setattr(state, "STATE_PATH", config / "state.json")
+        patch.setattr(state, "HISTORY_PATH", config / "history.json")
+        patch.setattr(corpus, "DEFAULT_CORPUS_DIR", config / "corpus")
+        win = MainWindow()
+        win.show()
+        app.processEvents()
+        yield win
+        win.close()
+        app.processEvents()
 
 
 @pytest.mark.parametrize("label", list(SCREEN_INDEX.keys()))

@@ -67,7 +67,7 @@ def test_settings_theme_switch_emits_signal(
     received: list[str] = []
     state.theme_changed.connect(received.append)
     screen = SettingsScreen(state)
-    screen.theme_combo.setCurrentText("light")
+    screen.theme_combo.setCurrentIndex(screen.theme_combo.findData("light"))
     assert "light" in received
 
 
@@ -76,7 +76,7 @@ def test_settings_save_persists_theme(
 ) -> None:
     state = _isolate(tmp_path, monkeypatch)
     screen = SettingsScreen(state)
-    screen.theme_combo.setCurrentText("light")
+    screen.theme_combo.setCurrentIndex(screen.theme_combo.findData("light"))
     screen._on_save()
     # Re-load from disk.
     state2 = AppState()

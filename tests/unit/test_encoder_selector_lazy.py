@@ -47,7 +47,8 @@ def test_encoder_selector_starts_worker_not_synchronous_probe(
     sel = EncoderSelector()
     # 'auto' must be rendered immediately (synchronously in __init__).
     assert sel.count() == 1
-    assert sel.itemText(0) == "auto"
+    assert sel.currentData() is None
+    assert sel.itemText(0)
     # Detection must run on a background worker, not block __init__.
     assert len(started) == 1, (
         "EncoderSelector must hand detection to an EncoderDetectWorker "

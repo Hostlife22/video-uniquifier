@@ -1,0 +1,56 @@
+"""Shared desktop design metrics; Qt sizes are device-independent pixels."""
+
+from __future__ import annotations
+
+
+class Space:
+    XS = 4
+    SM = 8
+    MD = 12
+    LG = 16
+    XL = 24
+    PAGE = 28
+    XXL = 32
+
+
+class Type:
+    CAPTION = 12
+    BODY = 13
+    LABEL = 14
+    SECTION = 16
+    BRAND = 18
+    TITLE = 28
+
+
+class Metrics:
+    WINDOW_WIDTH = 1180
+    WINDOW_HEIGHT = 800
+    MIN_WINDOW_WIDTH = 980
+    MIN_WINDOW_HEIGHT = 640
+    SIDEBAR_WIDTH = 228
+    NAV_ROW_HEIGHT = 44
+    NAV_SECTION_HEIGHT = 30
+    ICON = 20
+    CONTROL_HEIGHT = 40
+    RADIUS = 12
+    CONTROL_RADIUS = 8
+    LOG_HEIGHT = 200
+    TABLE_HEIGHT = 280
+    GRID_WIDE = 840
+    REVIEW_WIDTH = 1100
+    REVIEW_HEIGHT = 720
+    REVIEW_MIN_WIDTH = 760
+    REVIEW_MIN_HEIGHT = 540
+    REVIEW_VIDEO_HEIGHT = 180
+    REVIEW_SYNC_INTERVAL_MS = 100
+    REVIEW_SYNC_TOLERANCE_MS = 80
+    ETA_MIN_SECONDS = 3
+    ETA_STALE_SECONDS = 8
+    FILMSTRIP_HEIGHT = 112
+    FILMSTRIP_LABEL_HEIGHT = 28
+    SOURCE_THUMB_WIDTH = 160
+    SOURCE_THUMB_HEIGHT = 90
+    PROFILE_CARD_HEIGHT = 192
+    WIPE_HANDLE_RADIUS = 9
+    WIPE_HANDLE_TARGET = 20
+    WIPE_REFRESH_MS = 67

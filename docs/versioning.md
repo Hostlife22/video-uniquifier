@@ -4,7 +4,7 @@ The project follows
 [Semantic Versioning 2.0.0](https://semver.org/) for every contract
 listed in [API Contracts](api-contracts.md). The public API is
 **stable**: code that imports `video_uniquifier.core` or invokes
-`video-uniq` from a shell script can pin `video-uniquifier~=2.0` and
+`video-uniq` from a shell script can pin `video-uniquifier~=2.1` and
 expect non-breaking upgrades within the 2.x line. Version 2.0.0 introduces
 the new package, import, command and environment names; update integrations
 when migrating from the previous major version.
@@ -127,8 +127,8 @@ misinterpretation.
 
 | Use case | Recommended pin |
 |---|---|
-| Application that calls `video-uniq` from a shell script | `video-uniquifier~=2.0` (MINOR-stable) |
-| Library that imports `video_uniquifier.core` and uses `stable` surface only | `video-uniquifier~=2.0` |
-| Library that uses any `experimental` surface | `video-uniquifier==2.0.*` (PATCH-stable) |
-| Reproducible research artifact / paper | exact pin, e.g. `video-uniquifier==2.0.0` |
+| Application that calls `video-uniq` from a shell script | `video-uniquifier~=2.1` (MINOR-stable) |
+| Library that imports `video_uniquifier.core` and uses `stable` surface only | `video-uniquifier~=2.1` |
+| Library that uses any `experimental` surface | `video-uniquifier==2.1.*` (PATCH-stable) |
+| Reproducible research artifact / paper | exact pin, e.g. `video-uniquifier==2.1.0` |
 | Editable install for development | `pip install -e ".[dev,gui]"` from a checkout |
