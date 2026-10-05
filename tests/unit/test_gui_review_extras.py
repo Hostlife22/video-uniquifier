@@ -22,6 +22,7 @@ from video_uniquifier.gui.state import AppState
 from video_uniquifier.gui.theme import qss_for
 from video_uniquifier.gui.widgets.activity_banner import ActivityBanner
 from video_uniquifier.gui.widgets.encoder_selector import EncoderSelector
+from video_uniquifier.gui.widgets.profile_cards import ProfileCards
 from video_uniquifier.gui.widgets.sample_timeline import SampleTimeline, TimecodeSpinBox, timecode
 from video_uniquifier.gui.widgets.video_compare import VideoCompareDialog
 from video_uniquifier.gui.widgets.wipe_compare import WipeCompare
@@ -219,6 +220,47 @@ def test_profile_card_descriptions_fit_small_russian_window(qtbot, qapp, theme, 
             assert not label.isHidden() and label.height() > 0
             assert button.rect().contains(label.geometry())
             assert label.height() >= label.heightForWidth(label.width())
+
+
+@pytest.mark.parametrize("theme", ["dark", "light"])
+@pytest.mark.parametrize("font_size", [16, 20, 24])
+def test_profile_cards_reflow_when_font_changes_in_an_open_window(
+    qtbot, qapp, theme, font_size,
+):
+    install_translator(qapp, "ru_RU")
+    cards = ProfileCards()
+    qtbot.addWidget(cards)
+    cards.setStyleSheet(qss_for(theme))
+    cards.resize(660, 192)
+    cards.show()
+    qapp.processEvents()
+    for labels in cards.labels.values():
+        for label in labels:
+            label.setStyleSheet(f"font-size: {font_size}px;")
+
+    def text_fits():
+        return all(
+            button.rect().contains(label.geometry())
+            and label.height() >= label.heightForWidth(label.width())
+            for key, button in cards.buttons.items()
+            for label in cards.labels[key]
+        )
+
+    qtbot.waitUntil(text_fits, timeout=3000)
+    expanded = [sum(label.height() for label in labels) for labels in cards.labels.values()]
+    for labels in cards.labels.values():
+        for label in labels:
+            label.setStyleSheet("font-size: 12px;")
+    qtbot.waitUntil(
+        lambda: all(sum(label.height() for label in labels) < previous
+                    for labels, previous in zip(
+            cards.labels.values(), expanded, strict=True,
+        )),
+        timeout=3000,
+    )
+    qtbot.waitUntil(text_fits, timeout=3000)
+    qtbot.wait(25)
+    assert not cards._fit_timer.isActive()
 
 
 def test_old_thumbnail_results_are_discarded_and_latest_request_is_queued(qtbot, tmp_path):

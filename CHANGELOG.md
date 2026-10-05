@@ -14,6 +14,10 @@ the last tag.
 
 ### Fixed
 
+- Profile cards measure each wrapped label after Qt font/style polish and react
+  to later font changes. Label heights shrink again when text needs less space,
+  and deferred layout requests settle without repeatedly resizing the cards.
+
 - Queue instructions wrap and experiment CSV paths elide without widening the
   desktop workspace on Linux or Windows. Profile cards grow with their wrapped
   descriptions instead of clipping text with larger system fonts.
