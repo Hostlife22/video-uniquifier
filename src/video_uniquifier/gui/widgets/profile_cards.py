@@ -15,6 +15,8 @@ PRESETS = {
     "aggressive": ("Pronounced", "Stronger changes plus a slight rotation. Review picture quality.",
                    "Audio: pitch, equalizer and loudness normalization."),
 }
+SHORT_TITLES = {"soft": "Gentle", "medium": "Medium", "aggressive": "Strong"}
+SHORT_HINTS = {"soft": "Subtle", "medium": "Moderate", "aggressive": "Intense"}
 
 
 class ProfileCards(QWidget):
@@ -29,7 +31,11 @@ class ProfileCards(QWidget):
         self._fit_timer = QTimer(self)
         self._fit_timer.setSingleShot(True)
         self._fit_timer.timeout.connect(self._fit_card_text)
-        row = QHBoxLayout(self)
+        self._selected_key = "soft"
+        outer = QVBoxLayout(self)
+        outer.setContentsMargins(0, 0, 0, 0)
+        outer.setSpacing(Space.MD)
+        row = QHBoxLayout()
         row.setContentsMargins(0, 0, 0, 0)
         row.setSpacing(Space.SM)
         for key in PRESETS:
@@ -42,10 +48,10 @@ class ProfileCards(QWidget):
             column.setContentsMargins(Space.MD, Space.MD, Space.MD, Space.MD)
             column.setSpacing(Space.SM)
             labels = []
-            for index in range(3):
+            for index in range(2):
                 label = QLabel()
                 label.setWordWrap(True)
-                label.setObjectName("section_title" if index == 0 else "hint")
+                label.setObjectName("field_label" if index == 0 else "eyebrow")
                 label.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
                 label.installEventFilter(self)
                 column.addWidget(label)
@@ -55,21 +61,34 @@ class ProfileCards(QWidget):
             row.addWidget(button, stretch=1)
             self.buttons[key] = button
             self.labels[key] = labels
+        outer.addLayout(row)
+        self.details = QLabel()
+        self.details.setObjectName("hint")
+        self.details.setWordWrap(True)
+        outer.addWidget(self.details)
         self._translate()
 
     def set_selected(self, key: str) -> None:
+        self._selected_key = key
         for preset, button in self.buttons.items():
             button.setChecked(preset == key)
+        self.details.setVisible(key in PRESETS)
+        if key in PRESETS:
+            sources = PRESETS[key]
+            self.details.setText(self.tr(sources[1]) + "\n" + self.tr(sources[2]))
 
     def _translate(self) -> None:
         for key, sources in PRESETS.items():
-            for label, source in zip(self.labels[key], sources, strict=True):
+            for label, source in zip(
+                self.labels[key], (SHORT_TITLES[key], SHORT_HINTS[key]), strict=True,
+            ):
                 label.setText(self.tr(source))
             self.buttons[key].setAccessibleName(self.tr(sources[0]))
             self.buttons[key].setAccessibleDescription(
                 self.tr(sources[1]) + " " + self.tr(sources[2]),
             )
         self._fit_card_text()
+        self.set_selected(self._selected_key)
 
     def _fit_card_text(self) -> None:
         if self._fitting_cards:

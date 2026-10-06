@@ -63,7 +63,7 @@ def test_batch_screen_two_files(app, qtbot, tiny_clip: Path, tmp_path: Path) -> 
 
 
 def test_batch_screen_no_files_shows_status(app, qtbot, tmp_path: Path) -> None:
-    """Empty input dir → BatchWorker emits failed → status_label updates."""
+    """An empty matched preview cannot start an empty batch."""
     in_dir = tmp_path / "in"
     in_dir.mkdir()
     out_dir = tmp_path / "out"
@@ -80,14 +80,14 @@ def test_batch_screen_no_files_shows_status(app, qtbot, tmp_path: Path) -> None:
     screen.input_label.setText(str(in_dir))
     screen.output_label.setText(str(out_dir))
     _select_profile(screen.profile_combo, "soft")
+    screen._refresh_preview()
     screen._refresh_run_btn()
     app.processEvents()
 
     screen._on_run()
     app.processEvents()
-    if screen.worker is None:
-        pytest.skip("BatchScreen refused to start (run_btn disabled)")
-    qtbot.waitUntil(lambda: screen.worker is None, timeout=5_000)
-
-    # No files matched; failed handler runs.
+    assert screen.worker is None
+    assert not screen.run_btn.isEnabled()
+    assert not screen.run_selected_btn.isEnabled()
     assert screen.table.rowCount() == 0
+    assert "0 files matched" in screen.status_label.text()

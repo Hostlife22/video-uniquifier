@@ -190,7 +190,7 @@ class MainWindow(QMainWindow):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
 
-        # Brand, grouped navigation and quiet footer share one sidebar surface.
+        # Brand and grouped navigation share one sidebar surface.
         shell = QWidget()
         shell.setObjectName("sidebar_shell")
         shell.setFixedWidth(Metrics.SIDEBAR_WIDTH)
@@ -224,10 +224,6 @@ class MainWindow(QMainWindow):
             item.setData(Qt.ItemDataRole.UserRole, label)
             item.setToolTip(self.tr(NAV_LABELS[label]))
         sidebar_layout.addWidget(self.sidebar, stretch=1)
-        self.sidebar_note = QLabel(self.tr("Local processing") + f"  ·  v{__version__}")
-        self.sidebar_note.setObjectName("eyebrow")
-        self.sidebar_note.setContentsMargins(Space.XL, 0, Space.SM, 0)
-        sidebar_layout.addWidget(self.sidebar_note)
         layout.addWidget(shell)
 
         # Stacked content
@@ -267,8 +263,16 @@ class MainWindow(QMainWindow):
 
         self.setCentralWidget(root)
         bar = QStatusBar()
+        bar.setSizeGripEnabled(False)
+        bar.setMinimumHeight(Space.XXL)
         self.setStatusBar(bar)
-        bar.showMessage(self.tr("Ready"))
+        self.status_note = QLabel(self._footer_text())
+        self.status_note.setObjectName("hint")
+        self.status_note.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        bar.addPermanentWidget(self.status_note, stretch=1)
+
+    def _footer_text(self) -> str:
+        return "  ·  ".join((self.tr("Ready"), self.tr("Local processing"), f"v{__version__}"))
 
     def _toggle_page_guide(self) -> None:
         screen = self.stack.currentWidget()
@@ -322,7 +326,8 @@ class MainWindow(QMainWindow):
                 if item is not None:
                     item.setText(self.tr(NAV_LABELS[label]))
                     item.setToolTip(self.tr(NAV_LABELS[label]))
-            self.sidebar_note.setText(self.tr("Local processing") + f"  ·  v{__version__}")
+            if hasattr(self, "status_note"):
+                self.status_note.setText(self._footer_text())
             viewport = self.sidebar.viewport()
             if viewport is not None:
                 viewport.update()

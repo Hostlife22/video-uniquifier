@@ -20,6 +20,7 @@ from video_uniquifier.gui.design import Metrics, Space
 from video_uniquifier.gui.guides import GUIDES
 from video_uniquifier.gui.state import AppState
 from video_uniquifier.gui.widgets.page_guide import GuidePanel
+from video_uniquifier.gui.widgets.table_selection import install_selection_checkbox
 
 
 class ScreenBase(QWidget):
@@ -133,8 +134,9 @@ class ScreenBase(QWidget):
             combo.setSizeAdjustPolicy(
                 QComboBox.SizeAdjustPolicy.AdjustToMinimumContentsLengthWithIcon,
             )
-            combo.setMinimumContentsLength(14)
+            combo.setMinimumContentsLength(8 if combo.property("compact") else 14)
         for table in self.findChildren(QTableWidget):
+            install_selection_checkbox(table).refresh()
             if table.property("studioTable"):
                 continue
             table.setProperty("studioTable", True)

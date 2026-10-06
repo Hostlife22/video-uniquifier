@@ -126,11 +126,22 @@ def qss_for(theme: str) -> str:
     return _QSS_TEMPLATE.format(
         **tokens_for(theme), body=Type.BODY, caption=Type.CAPTION, label=Type.LABEL,
         title=Type.TITLE, section=Type.SECTION, brand=Type.BRAND,
-        sm=Space.SM, md=Space.MD, lg=Space.LG, xl=Space.XL,
+        xs=Space.XS, sm=Space.SM, md=Space.MD, lg=Space.LG, xl=Space.XL,
         radius=Metrics.RADIUS, control_radius=Metrics.CONTROL_RADIUS,
         profile_card_height=Metrics.PROFILE_CARD_HEIGHT,
+        spin_button_width=Metrics.SPIN_BUTTON_WIDTH,
+        spin_text_padding=Metrics.SPIN_BUTTON_WIDTH + Space.SM,
+        spin_arrow_size=Metrics.SPIN_ARROW_SIZE,
+        spin_corner_radius=Metrics.CONTROL_RADIUS - 2,
+        checkbox_size=Metrics.CHECKBOX_INDICATOR_SIZE,
         arrow=(Path(__file__).parent / "assets" /
                f"chevron-{'light' if theme == 'light' else 'dark'}.svg").as_posix(),
+        up_arrow=(Path(__file__).parent / "assets" /
+                  f"chevron-up-{'light' if theme == 'light' else 'dark'}.svg").as_posix(),
+        checkmark=(Path(__file__).parent / "assets" /
+                   f"check-{'light' if theme == 'light' else 'dark'}.svg").as_posix(),
+        mixedmark=(Path(__file__).parent / "assets" /
+                   f"minus-{'light' if theme == 'light' else 'dark'}.svg").as_posix(),
     )
 
 
@@ -138,8 +149,9 @@ _QSS_TEMPLATE = """
 QWidget {{ background: {bg}; color: {fg}; font-size: {body}px; }}
 QLabel, QCheckBox, QRadioButton {{ background: transparent; }}
 QWidget#disclosure_content {{ background: transparent; }}
+QWidget#form_row {{ background: transparent; }}
 QWidget#sidebar_shell, QListWidget#sidebar {{ background: {bg_deep}; }}
-QWidget#sidebar_shell {{ border-right: 1px solid {border}; }}
+QWidget#sidebar_shell {{ border: none; }}
 QListWidget#sidebar {{ border: none; outline: none; }}
 QListWidget#sidebar::item {{ border: none; }}
 QLabel#brand {{ font-size: {brand}px; font-weight: bold; }}
@@ -158,6 +170,25 @@ QLabel#status_badge {{
 QFrame#section_card {{
     background: {bg_alt}; border: 1px solid {border}; border-radius: {radius}px;
 }}
+QFrame#section_card[variant="flat"] {{
+    background: transparent; border: none; border-bottom: 1px solid {border}; border-radius: 0px;
+}}
+QWidget#video_stage {{ background: {bg_deep}; border-radius: {radius}px; }}
+QSplitter::handle {{ background: transparent; }}
+QPushButton[variant="quiet"], QPushButton#table_action {{
+    background: transparent; border-color: transparent; color: {fg_dim};
+}}
+QPushButton#table_action {{ padding: 0px; }}
+QPushButton#table_action:hover {{ background: {hover}; }}
+QPushButton#table_action:focus {{ border-color: {accent}; }}
+QWidget#table_actions {{ background: transparent; }}
+QSlider::groove:horizontal {{ height: {xs}px; background: {border}; border-radius: 2px; }}
+QSlider::sub-page:horizontal {{ background: {accent}; border-radius: 2px; }}
+QSlider::handle:horizontal {{
+    width: {lg}px; margin: -6px 0; background: {fg_dim}; border-radius: {sm}px;
+}}
+QSlider::handle:horizontal:hover, QSlider::handle:horizontal:focus {{ background: {accent}; }}
+QSlider::handle:horizontal:disabled {{ background: {border}; }}
 QPushButton#profile_card {{
     padding: 0px; text-align: left; min-height: {profile_card_height}px;
 }}
@@ -202,8 +233,33 @@ QComboBox, QLineEdit, QSpinBox, QDoubleSpinBox {{
     border-radius: {control_radius}px; border: 2px solid {border}; min-height: 20px;
     selection-background-color: {selected_bg}; selection-color: {selected_fg};
 }}
-QComboBox:disabled, QLineEdit:disabled, QSpinBox:disabled {{
+QComboBox:disabled, QLineEdit:disabled, QSpinBox:disabled, QDoubleSpinBox:disabled {{
     color: {disabled_fg}; background: {disabled_bg};
+}}
+QSpinBox, QDoubleSpinBox {{ padding-right: {spin_text_padding}px; }}
+QSpinBox::up-button, QDoubleSpinBox::up-button {{
+    subcontrol-origin: padding; subcontrol-position: top right;
+    width: {spin_button_width}px; border: none; background: transparent;
+    border-top-right-radius: {spin_corner_radius}px;
+}}
+QSpinBox::down-button, QDoubleSpinBox::down-button {{
+    subcontrol-origin: padding; subcontrol-position: bottom right;
+    width: {spin_button_width}px; border: none; background: transparent;
+    border-bottom-right-radius: {spin_corner_radius}px;
+}}
+QSpinBox::up-button:hover:!disabled:!off, QDoubleSpinBox::up-button:hover:!disabled:!off,
+QSpinBox::down-button:hover:!disabled:!off, QDoubleSpinBox::down-button:hover:!disabled:!off {{
+    background: {hover};
+}}
+QSpinBox::up-button:pressed:!disabled:!off, QDoubleSpinBox::up-button:pressed:!disabled:!off,
+QSpinBox::down-button:pressed:!disabled:!off, QDoubleSpinBox::down-button:pressed:!disabled:!off {{
+    background: {selected_bg};
+}}
+QSpinBox::up-arrow, QDoubleSpinBox::up-arrow {{
+    image: url("{up_arrow}"); width: {spin_arrow_size}px; height: {spin_arrow_size}px;
+}}
+QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {{
+    image: url("{arrow}"); width: {spin_arrow_size}px; height: {spin_arrow_size}px;
 }}
 QComboBox::drop-down {{ width: 24px; border: none; }}
 QComboBox::down-arrow {{ image: url("{arrow}"); width: 16px; height: 16px; }}
@@ -225,7 +281,7 @@ QTextEdit, QPlainTextEdit {{
 }}
 QTableWidget {{
     background: {bg_alt}; alternate-background-color: {bg}; gridline-color: {border};
-    border: 1px solid {border}; border-radius: {control_radius}px;
+    border: 1px solid {border}; border-radius: {control_radius}px; padding: {sm}px;
     selection-background-color: {selected_bg}; selection-color: {selected_fg};
 }}
 QTableWidget::item {{ padding: {sm}px; }}
@@ -233,7 +289,12 @@ QHeaderView::section {{
     background: {bg_alt}; color: {fg_dim}; padding: {md}px {sm}px;
     border: none; border-bottom: 1px solid {border}; font-weight: bold;
 }}
-QTabWidget::pane {{ border: 1px solid {border}; border-radius: {control_radius}px; }}
+QTableCornerButton::section {{
+    background: {bg_alt}; border: none; border-bottom: 1px solid {border};
+}}
+QTabWidget::pane {{
+    border: 1px solid {border}; border-radius: {control_radius}px; padding: {md}px;
+}}
 QTabBar::tab {{
     background: transparent; padding: {md}px {lg}px; color: {fg_dim};
     border-bottom: 2px solid transparent;
@@ -248,8 +309,28 @@ QGroupBox::title {{
     subcontrol-origin: margin; left: {lg}px; padding: 0 {sm}px;
     color: {fg}; font-size: {section}px; font-weight: bold;
 }}
+QGroupBox[variant="untitled"] {{ margin-top: 0; padding: {lg}px; }}
 QCheckBox, QRadioButton {{ spacing: {sm}px; min-height: 24px; }}
-QCheckBox::indicator {{ width: 18px; height: 18px; }}
+QCheckBox::indicator, QAbstractItemView::indicator {{
+    width: {checkbox_size}px; height: {checkbox_size}px;
+    border: 1px solid {fg_dim}; border-radius: {xs}px; background: {bg};
+}}
+QCheckBox::indicator:checked, QAbstractItemView::indicator:checked {{
+    border-color: {accent}; background: {accent}; image: url("{checkmark}");
+}}
+QCheckBox::indicator:hover, QAbstractItemView::indicator:hover {{ border-color: {accent}; }}
+QCheckBox::indicator:indeterminate, QAbstractItemView::indicator:indeterminate {{
+    border-color: {accent}; background: {accent}; image: url("{mixedmark}");
+}}
+QCheckBox::indicator:disabled, QAbstractItemView::indicator:disabled {{
+    border-color: {border}; background: {bg_alt};
+}}
+QCheckBox::indicator:checked:disabled, QAbstractItemView::indicator:checked:disabled {{
+    border-color: {fg_dim}; background: {fg_dim};
+}}
+QCheckBox::indicator:indeterminate:disabled, QAbstractItemView::indicator:indeterminate:disabled {{
+    border-color: {fg_dim}; background: {fg_dim};
+}}
 QScrollArea, QScrollArea > QWidget > QWidget {{ border: none; background: {bg}; }}
 QScrollBar:vertical {{ background: transparent; width: 10px; margin: 0; }}
 QScrollBar::handle:vertical {{ background: {border}; min-height: 32px; border-radius: 5px; }}

@@ -34,6 +34,7 @@ class BatchWorker(WorkerBase):
         continue_on_error: bool = True,
         work_dir_root: Path | None = None,
         run_qa: bool = False,        # batch QA = expensive; off by default
+        files: list[Path] | None = None,
     ) -> None:
         super().__init__()
         self.input_dir = input_dir
@@ -46,9 +47,12 @@ class BatchWorker(WorkerBase):
             Path.home() / ".cache" / "video_uniquifier" / "batch"
         )
         self.run_qa = run_qa
+        self.files = list(files) if files is not None else None
 
     def run(self) -> None:
-        files = sorted(self.input_dir.glob(self.glob_pattern))
+        files = self.files if self.files is not None else sorted(
+            self.input_dir.glob(self.glob_pattern),
+        )
         if not files:
             self.failed.emit(f"no files matched {self.glob_pattern} in {self.input_dir}")
             return

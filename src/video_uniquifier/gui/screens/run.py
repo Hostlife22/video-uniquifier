@@ -14,11 +14,15 @@ from PyQt6.QtGui import QDesktopServices, QPixmap
 from PyQt6.QtWidgets import (
     QComboBox,
     QFileDialog,
+    QFrame,
+    QGridLayout,
     QHBoxLayout,
     QLabel,
     QMessageBox,
     QProgressBar,
     QPushButton,
+    QScrollArea,
+    QSizePolicy,
     QVBoxLayout,
     QWidget,
 )
@@ -43,6 +47,8 @@ from video_uniquifier.gui.widgets.processing_status import STAGE_LABELS, Process
 from video_uniquifier.gui.widgets.profile_cards import ProfileCards
 from video_uniquifier.gui.widgets.sample_timeline import SampleTimeline, TimecodeSpinBox
 from video_uniquifier.gui.widgets.segment_timeline import SegmentTimeline
+from video_uniquifier.gui.widgets.splitter import StudioSplitter
+from video_uniquifier.gui.widgets.studio_preview import StudioPreview
 from video_uniquifier.gui.widgets.surfaces import Disclosure, SectionCard
 from video_uniquifier.gui.workers.preflight_worker import PreflightWorker
 from video_uniquifier.gui.workers.probe_worker import ProbeWorker
@@ -124,11 +130,20 @@ class RunScreen(ScreenBase):
         self._refresh_run_button()
 
     def _reveal_result(self) -> None:
+        self._show_progress_panel()
         content = self.page_scroll.widget()
         layout = content.layout() if content is not None else None
         if layout is not None:
             layout.activate()
-        self.page_scroll.ensureWidgetVisible(self.result_actions)
+        result = self.progress_scroll.widget()
+        if result is not None:
+            sizes = self.workspace_splitter.sizes()
+            desired = result.minimumSizeHint().height() + Space.SM
+            if desired > sizes[1]:
+                sizes[0] = max(0, sizes[0] - (desired - sizes[1]))
+                sizes[1] = desired
+                self.workspace_splitter.setSizes(sizes)
+        self.progress_scroll.ensureWidgetVisible(self.result_actions)
         if self._sample_mode and self._review_pair is not None:
             self._open_comparison()
 
@@ -138,7 +153,8 @@ class RunScreen(ScreenBase):
             "Choose a video, adjust processing and save the result.",
         )
 
-        source = SectionCard("01  Source & destination")
+        source = SectionCard("Video files")
+        source.heading.hide()
         files = QHBoxLayout()
         files.setSpacing(Space.LG)
         self.input_picker = FilePickerRow(
@@ -153,6 +169,7 @@ class RunScreen(ScreenBase):
         self.source_metadata = QLabel(self.tr("Choose a source video to see its details."))
         self.source_metadata.setObjectName("source_metadata")
         self.source_metadata.setWordWrap(True)
+        self.source_metadata.hide()
         details = QHBoxLayout()
         self.source_thumbnail = QLabel(self.tr("Video preview"))
         self.source_thumbnail.setObjectName("hint")
@@ -166,9 +183,7 @@ class RunScreen(ScreenBase):
         mark(self.preview_source_btn, "Preview original", "View the source without processing it.")
         details.addWidget(self.preview_source_btn)
         source.body.addLayout(details)
-        layout.addWidget(source)
-
-        processing = SectionCard("02  Processing")
+        processing = SectionCard("Processing profile")
         self.profile_cards = ProfileCards()
         self.profile_cards.selected.connect(self._select_profile_card)
         processing.body.addWidget(self.profile_cards)
@@ -188,15 +203,17 @@ class RunScreen(ScreenBase):
             self.profile_combo.setCurrentIndex(idx)
         mark(self.profile_combo, "Profile", "Choose how strongly the video is transformed.")
         row.addWidget(self.profile_combo, stretch=1)
-        processing.body.addLayout(row)
         self.profile_hint = QLabel()
         self.profile_hint.setObjectName("hint")
         self.profile_hint.setWordWrap(True)
         processing.body.addWidget(self.profile_hint)
 
         self.advanced = Disclosure(
-            "Advanced settings", "Expand encoder selection, profile editing and auto-tuning.",
+            "Advanced and custom profiles",
+            "Expand encoder selection, profile editing and auto-tuning.",
+            state=self.state,
         )
+        self.advanced.body.addLayout(row)
         encoder_row = QHBoxLayout()
         self.encoder_label = QLabel(self.tr("Encoder"))
         encoder_row.addWidget(self.encoder_label)
@@ -205,7 +222,7 @@ class RunScreen(ScreenBase):
         self.encoder_selector.encoder_changed.connect(self._on_encoder_changed)
         encoder_row.addWidget(self.encoder_selector, stretch=1)
         self.advanced.body.addLayout(encoder_row)
-        advanced_actions = QHBoxLayout()
+        advanced_actions = QVBoxLayout()
         self.edit_profile_btn = QPushButton(self.tr("Edit profile…"))
         self.edit_profile_btn.clicked.connect(self._open_profile_editor)
         mark(self.edit_profile_btn, "Edit profile", "Open the selected profile in the editor.")
@@ -218,31 +235,41 @@ class RunScreen(ScreenBase):
             shortcut="Ctrl+T",
         )
         advanced_actions.addWidget(self.auto_tune_btn)
-        advanced_actions.addStretch(1)
         self.advanced.body.addLayout(advanced_actions)
-        processing.body.addWidget(self.advanced)
-        self.sample_controls = Disclosure(
-            "Test a short fragment", "Compare a processed sample before starting the full video.",
+        self.profile_details = Disclosure(
+            "What this profile changes", "Expand picture and audio processing details.",
+            state=self.state,
         )
-        sample_options = QHBoxLayout()
+        cards_layout = self.profile_cards.layout()
+        assert cards_layout is not None
+        cards_layout.removeWidget(self.profile_cards.details)
+        self.profile_details.body.addWidget(self.profile_cards.details)
+        processing.body.addWidget(self.profile_details)
+        self.review_card = SectionCard("Try a short sample")
+        self.sample_controls = Disclosure(
+            "Choose sample interval", "Compare a processed sample before starting the full video.",
+            state=self.state,
+        )
+        sample_options = QGridLayout()
         self.sample_start_label = QLabel(self.tr("Start time"))
-        sample_options.addWidget(self.sample_start_label)
+        sample_options.addWidget(self.sample_start_label, 0, 0)
         self.sample_start = TimecodeSpinBox()
         self.sample_start.setDecimals(2)
         self.sample_start.setRange(0, 0)
         mark(self.sample_start, "Sample start", "Choose where the review sample starts.")
-        sample_options.addWidget(self.sample_start)
+        sample_options.addWidget(self.sample_start, 0, 1)
         self.sample_length = QComboBox()
         for seconds in (10, 15, 20):
             self.sample_length.addItem(self.tr("{seconds} s").format(seconds=seconds), seconds)
         self.sample_length.setCurrentIndex(1)
         mark(self.sample_length, "Sample length", "Choose a 10, 15 or 20 second sample.")
-        sample_options.addWidget(self.sample_length)
+        sample_options.addWidget(self.sample_length, 1, 1)
+        self.sample_duration_label = QLabel(self.tr("Duration"))
+        sample_options.addWidget(self.sample_duration_label, 1, 0)
         self.sample_btn = QPushButton(self.tr("Process sample"))
         self.sample_btn.clicked.connect(self._on_sample)
         mark(self.sample_btn, "Process sample",
              "Process only the selected fragment and compare it.")
-        sample_options.addWidget(self.sample_btn)
         self.sample_controls.body.addLayout(sample_options)
         self.sample_timeline = SampleTimeline(self.state)
         self.sample_controls.body.addWidget(self.sample_timeline)
@@ -251,22 +278,17 @@ class RunScreen(ScreenBase):
         )
         self.sample_start.valueChanged.connect(self._sample_selection_changed)
         self.sample_length.currentIndexChanged.connect(self._sample_selection_changed)
-        self.sample_hint = QLabel(self.tr(
-            "Uses the selected profile. The full output destination stays unchanged.",
-        ))
+        self.sample_hint = QLabel(self.tr("Check picture and sound before a full run."))
         self.sample_hint.setObjectName("hint")
         self.sample_hint.setWordWrap(True)
-        self.sample_controls.body.addWidget(self.sample_hint)
-        processing.body.addWidget(self.sample_controls)
-        layout.addWidget(processing)
+        self.review_card.body.addWidget(self.sample_hint)
+        self.review_card.body.addWidget(self.sample_controls)
         self.profile_combo.currentIndexChanged.connect(self._on_profile_changed)
         self._update_profile_hint()
 
         self.preflight_panel = PreflightPanel(self.state)
         self.preflight_panel.has_fail.connect(self._on_has_fail)
-        layout.addWidget(self.preflight_panel)
-
-        result = SectionCard("03  Progress & result")
+        result = SectionCard("Progress & result")
         status_row = QHBoxLayout()
         self.status_label = QLabel(self.tr("Your result will appear here after processing."))
         self.status_label.setObjectName("status")
@@ -302,7 +324,7 @@ class RunScreen(ScreenBase):
         result.body.addWidget(self.divergence_indicator)
         self.kpi_pills = KpiPills(self.state)
         self.metrics_details = Disclosure(
-            "Measured metrics", "Expand quality and similarity values.",
+            "Measured metrics", "Expand quality and similarity values.", state=self.state,
         )
         self.metrics_details.body.addWidget(self.kpi_pills)
         self.result_actions = QWidget()
@@ -337,16 +359,13 @@ class RunScreen(ScreenBase):
         self.result_actions.hide()
         result.body.addWidget(self.metrics_details)
         self.metrics_details.hide()
-        layout.addWidget(result)
-
-        self.log_details = Disclosure("Activity log", "Expand detailed processing messages.")
+        self.log_details = Disclosure(
+            "Activity log", "Expand detailed processing messages.", state=self.state,
+        )
         self.log = LogConsole(state=self.state)
         self.log.setFixedHeight(Metrics.LOG_HEIGHT)
         self.log.error_logged.connect(lambda _message: self.log_details.set_expanded(True))
         self.log_details.body.addWidget(self.log)
-        layout.addWidget(self.log_details)
-        layout.addStretch(1)
-
         # Keep the primary action visible even while the page is scrolled.
         action_bar = QWidget()
         action_bar.setObjectName("action_bar")
@@ -381,7 +400,144 @@ class RunScreen(ScreenBase):
         self.run_btn.clicked.connect(self._on_run)
         mark(self.run_btn, "Run", "Process the selected video.", shortcut="Ctrl+R")
         controls.addWidget(self.run_btn)
+        for button in (self.edit_profile_btn, self.auto_tune_btn, self.open_qa_btn,
+                       self.save_sample_btn, self.preflight_btn):
+            button.setProperty("variant", "quiet")
         self.outer_layout.addWidget(action_bar)
+        self._assemble_workspace(layout, source, processing, result)
+
+    def _assemble_workspace(
+        self, layout: QVBoxLayout, source: SectionCard, processing: SectionCard,
+        result: SectionCard,
+    ) -> None:
+        for section in (processing, self.review_card, result):
+            section.setProperty("variant", "flat")
+            section.body.setContentsMargins(Space.MD, Space.MD, Space.MD, Space.MD)
+        source.setProperty("variant", "flat")
+        source.body.setContentsMargins(Space.MD, Space.SM, Space.MD, Space.SM)
+        self.input_picker.directory_label.hide()
+        self.output_picker.directory_label.hide()
+        layout.addWidget(source)
+        self.source_thumbnail.hide()
+        self.preview_source_btn.hide()
+        self.preview = StudioPreview()
+        # Docked logs may shrink the picture while transport controls stay usable.
+        self.preview.stage.setMinimumHeight(0)
+        policy = self.preview.stage.sizePolicy()
+        policy.setVerticalPolicy(QSizePolicy.Policy.Ignored)
+        self.preview.stage.setSizePolicy(policy)
+        self.preview.sample_selected.connect(self._select_sample_time)
+        self.preview.select_sample.setProperty("variant", "quiet")
+        self.preview.setMinimumWidth(Metrics.PREVIEW_MIN_WIDTH)
+        self.settings_content = QWidget()
+        settings = QVBoxLayout(self.settings_content)
+        settings.setContentsMargins(0, 0, 0, 0)
+        settings.setSpacing(Space.LG)
+        settings.addWidget(processing)
+        settings.addWidget(self.review_card)
+        for disclosure in (self.profile_details, self.sample_controls, self.advanced,
+                           self.metrics_details):
+            disclosure.body.setContentsMargins(Space.SM, Space.SM, Space.SM, Space.SM)
+        extras = QWidget()
+        extras.setObjectName("form_row")
+        extras_layout = QVBoxLayout(extras)
+        extras_layout.setContentsMargins(Space.MD, 0, Space.MD, Space.MD)
+        extras_layout.setSpacing(Space.LG)
+        extras_layout.addWidget(self.advanced)
+        settings.addWidget(self.preflight_panel)
+        self.reset_layout_btn = QPushButton(self.tr("Reset workspace layout"))
+        self.reset_layout_btn.setAccessibleName(self.tr("Reset workspace layout"))
+        self.reset_layout_btn.setProperty("variant", "quiet")
+        self.reset_layout_btn.clicked.connect(self._reset_workspace)
+        extras_layout.addWidget(self.reset_layout_btn)
+        settings.addWidget(extras)
+        settings.addStretch(1)
+        self.settings_scroll = self._panel_scroll(self.settings_content)
+        self.settings_panel = QWidget()
+        inspector = QVBoxLayout(self.settings_panel)
+        inspector.setContentsMargins(0, 0, 0, 0)
+        inspector.setSpacing(Space.MD)
+        inspector.addWidget(self.settings_scroll, stretch=1)
+        sample_actions = QWidget()
+        sample_actions.setObjectName("form_row")
+        sample_actions_layout = QHBoxLayout(sample_actions)
+        sample_actions_layout.setContentsMargins(Space.MD, 0, Space.MD, Space.MD)
+        sample_actions_layout.addWidget(self.sample_btn)
+        inspector.addWidget(sample_actions)
+        self.workspace_top = StudioSplitter(
+            Qt.Orientation.Horizontal, self.state, "run.top.workflow",
+        )
+        self.workspace_top.addWidget(self.preview)
+        self.workspace_top.addWidget(self.settings_panel)
+        self.preview.setMinimumWidth(Metrics.PREVIEW_MIN_WIDTH)
+        self.settings_panel.setMinimumWidth(Metrics.SETTINGS_MIN_WIDTH)
+        self.workspace_top.setSizes(list(Metrics.WORKSPACE_TOP_SIZES))
+        self.workspace_top.setStretchFactor(0, 1)
+        self.workspace_top.setStretchFactor(1, 0)
+        self.progress_scroll = self._panel_scroll(result)
+        self.log.setMinimumHeight(0)
+        self.log.setMaximumHeight(16_777_215)
+        self.log.setSizePolicy(self.preview.sizePolicy())
+        self.workspace_splitter = StudioSplitter(
+            Qt.Orientation.Vertical, self.state, "run.vertical.workflow",
+        )
+        self.workspace_splitter.addWidget(self.workspace_top)
+        self.workspace_splitter.addWidget(self.progress_scroll)
+        self.progress_scroll.hide()
+        self.workspace_splitter.addWidget(self.log_details)
+        self.workspace_splitter.setSizePolicy(
+            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Ignored,
+        )
+        self.log_details.setMinimumHeight(Metrics.CONTROL_HEIGHT)
+        self.log_details.setMaximumHeight(Metrics.CONTROL_HEIGHT)
+        self.workspace_splitter.setSizes(list(Metrics.WORKSPACE_VERTICAL_SIZES))
+        self.log_details.expanded_changed.connect(self._resize_log_panel)
+        layout.addWidget(self.workspace_splitter, stretch=1)
+
+    def _resize_log_panel(self, expanded: bool) -> None:
+        sizes = self.workspace_splitter.sizes()
+        header_height = Metrics.CONTROL_HEIGHT
+        self.log_details.setMaximumHeight(16_777_215 if expanded else header_height)
+        self.log_details.updateGeometry()
+        self.workspace_splitter.refresh()
+        sizes[2] = Metrics.LOG_HEIGHT if expanded else header_height
+        self.workspace_splitter.setSizes(sizes)
+        self.workspace_splitter.remember()
+        if expanded:
+            QTimer.singleShot(0, self._reveal_log_panel)
+
+    def _show_progress_panel(self) -> None:
+        if self.progress_scroll.isHidden():
+            self.progress_scroll.show()
+            self.workspace_splitter.setSizes([
+                self.workspace_top.height(), Metrics.WORKSPACE_VERTICAL_SIZES[1],
+                self.log_details.height(),
+            ])
+
+    def _reveal_log_panel(self) -> None:
+        if self.log_details.toggle.isChecked():
+            self.page_scroll.ensureWidgetVisible(self.log.text, 0, Space.SM)
+
+    @staticmethod
+    def _panel_scroll(widget: QWidget) -> QScrollArea:
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setFrameShape(QFrame.Shape.NoFrame)
+        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        scroll.setWidget(widget)
+        return scroll
+
+    def _reset_workspace(self) -> None:
+        for splitter, sizes in (
+            (self.workspace_top, Metrics.WORKSPACE_TOP_SIZES),
+            (self.workspace_splitter, (
+                *Metrics.WORKSPACE_VERTICAL_SIZES[:2],
+                Metrics.LOG_HEIGHT if self.log_details.toggle.isChecked()
+                else Metrics.CONTROL_HEIGHT,
+            )),
+        ):
+            splitter.setSizes(list(sizes))
+            splitter.remember()
 
     def _update_profile_hint(self) -> None:
         hints = {
@@ -394,6 +550,10 @@ class RunScreen(ScreenBase):
         stem = (path.stem if path is not None and path.parent.resolve() == PROFILES_DIR.resolve()
                 else "")
         self.profile_cards.set_selected(stem)
+        self.profile_hint.setVisible(stem not in {"soft", "medium", "aggressive"})
+        self.profile_details.setVisible(stem in {"soft", "medium", "aggressive"})
+        if stem not in {"soft", "medium", "aggressive"}:
+            self.advanced.set_expanded(True)
         self.profile_hint.setText(self.tr(hints.get(
             stem, "Custom profile · Review its settings in the profile editor.",
         )))
@@ -416,7 +576,7 @@ class RunScreen(ScreenBase):
             return
         self.sample_start.setValue(seconds)
         self.sample_controls.set_expanded(True)
-        self.page_scroll.ensureWidgetVisible(self.sample_start)
+        self.settings_scroll.ensureWidgetVisible(self.sample_start)
 
     def _start_thumbnails(self, meta: SourceMeta) -> None:
         if not meta.path.is_file() or self._shutting_down:
@@ -543,6 +703,8 @@ class RunScreen(ScreenBase):
         if path is not None and not isinstance(path, Path):
             return
         self.state.set_input_path(path)
+        self.preview.set_source(path)
+        self.source_metadata.setVisible(path is not None)
         self._source_meta = None
         self.source_thumbnail.clear()
         self.source_thumbnail.setText(self.tr("Video preview"))
@@ -707,6 +869,7 @@ class RunScreen(ScreenBase):
                 or self.state.input_path.resolve() == self.state.output_path.resolve()):
             self._refresh_run_button()
             return
+        self.preview.pause()
         try:
             profile_path = Path(self.profile_combo.currentData())
             enc_override = self.encoder_selector.currentData()
@@ -817,6 +980,7 @@ class RunScreen(ScreenBase):
 
     def _show_comparison(self, source: Path, candidate: Path | None) -> None:
         from video_uniquifier.gui.widgets.video_compare import VideoCompareDialog
+        self.preview.pause()
         if self._compare_dialog is not None:
             if not self._compare_dialog.close():
                 return
@@ -848,6 +1012,8 @@ class RunScreen(ScreenBase):
                 return
             self._compare_dialog.deleteLater()
             self._compare_dialog = None
+        self.preview.pause()
+        self.preview.set_result(None)
         if self._sample_directory is not None:
             self._sample_directory.cleanup()
         self._sample_directory = TemporaryDirectory(
@@ -905,6 +1071,7 @@ class RunScreen(ScreenBase):
         self._on_cancelled()
 
     def _on_stage_progress(self, phase: str, fraction: object) -> None:
+        self._show_progress_panel()
         self.processing_status.set_phase(phase, fraction)
         stage = phase.split(":", 1)[0]
         self.status_label.setText(self.tr(STAGE_LABELS.get(stage, "Preparation")))
@@ -941,6 +1108,8 @@ class RunScreen(ScreenBase):
         self.processing_status.finish(success=True)
         self.status_label.setToolTip(output)
         self._completed_output_path = Path(output)
+        if self._completed_output_path.is_file():
+            self.preview.set_result(self._completed_output_path)
         if self._review_source is not None:
             self._review_pair = (self._review_source, Path(output))
         self.compare_btn.setEnabled(self._review_pair is not None)
@@ -1037,6 +1206,8 @@ class RunScreen(ScreenBase):
     def _refresh_run_button(self, *, preflight_fail: bool = False) -> None:
         busy = (self.run_worker is not None or self._tune_worker is not None
                 or self._sample_worker is not None or self._save_worker is not None)
+        if busy:
+            self._show_progress_panel()
         same_path = (
             self.state.input_path is not None and self.state.output_path is not None
             and self.state.input_path.resolve() == self.state.output_path.resolve()
@@ -1067,7 +1238,7 @@ class RunScreen(ScreenBase):
         self.sample_hint.setText(self.tr(
             "HDR samples are unavailable; use full processing to preserve HDR metadata."
             if sample_hdr else
-            "Uses the selected profile. The full output destination stays unchanged."
+            "Check picture and sound before a full run."
         ))
         self.sample_btn.setEnabled(
             self._source_meta is not None and self._source_meta.duration_sec > 0
@@ -1119,6 +1290,7 @@ class RunScreen(ScreenBase):
         self._shutting_down = True
         stopped = super().shutdown_workers(wait_ms)
         if stopped:
+            self.preview.shutdown()
             self._result_reveal_timer.stop()
             self.processing_status.timer.stop()
             if self._compare_dialog is not None:
@@ -1146,6 +1318,9 @@ class RunScreen(ScreenBase):
                 widget.setText(self.tr(source))
             self.save_sample_btn.setAccessibleName(self.tr("Save sample"))
             self.sample_start_label.setText(self.tr("Start time"))
+            self.sample_duration_label.setText(self.tr("Duration"))
+            self.reset_layout_btn.setText(self.tr("Reset workspace layout"))
+            self.reset_layout_btn.setAccessibleName(self.tr("Reset workspace layout"))
             for index in range(self.sample_length.count()):
                 self.sample_length.setItemText(index, self.tr("{seconds} s").format(
                     seconds=self.sample_length.itemData(index),

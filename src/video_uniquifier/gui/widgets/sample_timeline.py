@@ -4,7 +4,16 @@ from __future__ import annotations
 import re
 
 from PyQt6.QtCore import QEvent, QRect, Qt
-from PyQt6.QtGui import QColor, QMouseEvent, QPainter, QPaintEvent, QPen, QPixmap, QValidator
+from PyQt6.QtGui import (
+    QColor,
+    QFontDatabase,
+    QMouseEvent,
+    QPainter,
+    QPaintEvent,
+    QPen,
+    QPixmap,
+    QValidator,
+)
 from PyQt6.QtWidgets import QDoubleSpinBox, QSlider
 
 from video_uniquifier.gui.design import Metrics, Space
@@ -23,6 +32,7 @@ def timecode(seconds: float) -> str:
 class TimecodeSpinBox(QDoubleSpinBox):
     def __init__(self) -> None:
         super().__init__()
+        self.setFont(QFontDatabase.systemFont(QFontDatabase.SystemFont.FixedFont))
         self._translate()
 
     def _translate(self) -> None:

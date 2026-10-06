@@ -10,6 +10,53 @@ versioning follows the git tags `v0.1.0`, `v0.2.0`, `v0.3.x`, `v0.4.x`,
 The `[Unreleased]` section, if present, summarises post-tip changes since
 the last tag.
 
+## [2.1.2] — 2026-10-06
+
+### Changed
+
+- Workspace panels, sample actions and disclosure contents share consistent insets;
+  thin resizable dividers leave room around playback controls. All checkboxes use
+  the same themed indicator as Settings, including profile-table items. The sidebar
+  uses its background to separate navigation without partial edge borders.
+- Tab pages and table contents leave room inside rounded frames so child widgets
+  do not cover the top or bottom corners. Table select-all corners share the header
+  background with an explicit select-all checkbox, including partial-selection feedback.
+  The ready status, local-processing note and version share a centered bottom bar.
+- Numeric fields and timecodes use integrated, themed step buttons with matching
+  chevrons and hover/pressed states instead of native arrow panels.
+- Process video places source and destination in a compact top strip, with a large
+  embedded source/result preview and a right-hand profile/sample inspector. The sample
+  action is always visible; interval settings and custom controls expand separately.
+  Full-width progress/results appear when a job starts, with the collapsible log below.
+  Drag or keyboard-resize the splitters;
+  panel sizes and table column layouts survive a restart and can be reset.
+- Three compact profile cards show brief characteristics, with picture/audio details
+  available on demand. Secondary actions are quieter and sections use separators.
+- History, queue and batch tables support sorting, status filters, path search,
+  movable/resizable columns, multiple selection, context menus and file/folder actions.
+  Batch processing can run an explicit snapshot of the selected visible files;
+  filtering alone does not change the full batch scope.
+- Status pills include readable labels, paths have full tooltips and timecodes use
+  the platform's fixed-width font. Panels fade open; Settings can reduce motion.
+  The motion checkbox has a visible indicator and aligns with the other Appearance fields.
+- Settings form labels are vertically centered on their fields and embedded action rows
+  inherit the card background. Telemetry shows recording state and event count separately
+  from its folder path, without repeating the section heading. Save feedback stays in
+  the bottom action bar.
+
+### Fixed
+
+- Disclosure animations disconnect their completion handler when the panel is destroyed,
+  preventing callbacks into a deleted opacity effect.
+- Completed job badges use the existing success palette, fixing a `badge_pass_bg`
+  lookup error when populated history, batch or queue tables are painted.
+- Table updates preserve selection and resolve processing statuses by file identity
+  after sorting. Repeated terminal signals do not inflate batch progress. Queue polls
+  retain identical file lists and ignore snapshots from a previously selected root.
+- Embedded playback pauses when hidden or processing begins, releases media before
+  temporary review files are removed, and reports unsupported media without blocking
+  the processing controls.
+
 ## [2.1.1] — 2026-10-06
 
 ### Added

@@ -191,3 +191,27 @@ def test_queue_worker_periodically_reconciles_even_when_reaper_moves_nothing(
     assert reap_stale.call_count == 1
     assert recover_commits.call_count == 2
     assert any("reconciled 1" in message for message in logs)
+
+
+def test_status_snapshot_covers_buckets_and_ignores_queue_markers(tmp_path: Path) -> None:
+    from video_uniquifier.core.queue.leasing import init_queue
+    init_queue(tmp_path)
+    expected = []
+    for bucket in ("pending", "in_progress", "done", "failed"):
+        directory = tmp_path / bucket
+        if bucket != "pending":
+            directory = directory / "worker"
+            directory.mkdir()
+        source = directory / f"{bucket}.mp4"
+        source.touch()
+        expected.append((str(source), bucket))
+    (tmp_path / "in_progress/worker.alive").touch()
+    (tmp_path / "failed/worker/failed.mp4.err.txt").touch()
+    (tmp_path / "pending/.uploading").touch()
+    worker = QueueStatusWorker(tmp_path, poll_sec=0.1)
+    snapshots = []
+    worker.files.connect(lambda rows: (snapshots.append(rows), worker.request_cancel()))
+    worker.run()
+    assert len(snapshots) == 1
+    assert set(snapshots[0]) == set(expected)
+    assert all(Path(path).is_file() for path, _ in expected)

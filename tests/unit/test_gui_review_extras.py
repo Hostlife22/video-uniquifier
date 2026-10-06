@@ -475,7 +475,7 @@ def test_new_controls_translate_during_an_existing_session(qtbot, qapp):
     qtbot.addWidget(screen)
     install_translator(qapp, "ru_RU")
     qapp.processEvents()
-    assert screen.profile_cards.labels["medium"][0].text() == "Сбалансированная"
+    assert screen.profile_cards.labels["medium"][0].text() == "Средняя"
     assert screen.save_sample_btn.text() == "Сохранить фрагмент…"
     assert screen.sample_start_label.text() == "Начало"
     assert screen.sample_length.itemText(0) == "10 сек."

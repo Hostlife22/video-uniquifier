@@ -3,7 +3,7 @@
 Полный гайд: от чистой системы до работающего CLI / GUI / собранного
 desktop-бинарника.
 
-Имена пакета, команд и файлов ниже относятся к **v2.1.1**. До публикации нового
+Имена пакета, команд и файлов ниже относятся к **v2.1.2**. До публикации нового
 релиза используй установку из исходников или локальную сборку; исторические
 релизы сохраняют прежние имена файлов.
 
@@ -36,8 +36,8 @@ release-архив пока не заявляется.
 
 ```bash
 # 1) Скачать
-curl -LO https://github.com/hostlife22/video-uniquifier/releases/download/v2.1.1/video-uniq-gui-2.1.1-x86_64.AppImage
-curl -LO https://github.com/hostlife22/video-uniquifier/releases/download/v2.1.1/SHA256SUMS
+curl -LO https://github.com/hostlife22/video-uniquifier/releases/download/v2.1.2/video-uniq-gui-2.1.2-x86_64.AppImage
+curl -LO https://github.com/hostlife22/video-uniquifier/releases/download/v2.1.2/SHA256SUMS
 
 # 2) Проверить целостность (заменяет codesign)
 sha256sum -c SHA256SUMS --ignore-missing
@@ -61,8 +61,8 @@ can’t be opened» при апгрейдах OS больше нет. Первы
 
 ```bash
 # 1) Скачать + проверить
-curl -LO https://github.com/hostlife22/video-uniquifier/releases/download/v2.1.1/video-uniq-gui-macOS.zip
-curl -LO https://github.com/hostlife22/video-uniquifier/releases/download/v2.1.1/SHA256SUMS
+curl -LO https://github.com/hostlife22/video-uniquifier/releases/download/v2.1.2/video-uniq-gui-macOS.zip
+curl -LO https://github.com/hostlife22/video-uniquifier/releases/download/v2.1.2/SHA256SUMS
 shasum -a 256 -c SHA256SUMS --ignore-missing
 
 # 2) Распаковать
@@ -104,8 +104,8 @@ warning, дальше тишина.
 
 ```powershell
 # 1) Скачать + проверить (PowerShell 5+)
-Invoke-WebRequest -Uri "https://github.com/hostlife22/video-uniquifier/releases/download/v2.1.1/video-uniq-gui-Windows.zip" -OutFile video-uniq-gui-Windows.zip
-Invoke-WebRequest -Uri "https://github.com/hostlife22/video-uniquifier/releases/download/v2.1.1/SHA256SUMS" -OutFile SHA256SUMS
+Invoke-WebRequest -Uri "https://github.com/hostlife22/video-uniquifier/releases/download/v2.1.2/video-uniq-gui-Windows.zip" -OutFile video-uniq-gui-Windows.zip
+Invoke-WebRequest -Uri "https://github.com/hostlife22/video-uniquifier/releases/download/v2.1.2/SHA256SUMS" -OutFile SHA256SUMS
 Get-FileHash video-uniq-gui-Windows.zip -Algorithm SHA256
 # Сверить с строкой в SHA256SUMS. Любой mismatch = повреждён или
 # подменён → НЕ распаковывать.
@@ -432,7 +432,7 @@ pyinstaller pyinstaller/video-uniq-gui.spec --clean --noconfirm
 одинаково):
 
 ```bash
-pipx install "video-uniquifier[gui] @ git+https://github.com/Hostlife22/video-uniquifier.git@v2.1.1"
+pipx install "video-uniquifier[gui] @ git+https://github.com/Hostlife22/video-uniquifier.git@v2.1.2"
 video-uniq-gui                # доступна из любой shell без активации venv
 ```
 

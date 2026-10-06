@@ -132,3 +132,21 @@ def test_batch_worker_cancel_midway(tmp_path: Path) -> None:
         worker.run()
     # First file processed; second skipped due to cancel check at loop top.
     assert len(started) == 1
+
+
+def test_explicit_file_snapshot_excludes_unselected_and_later_files(tmp_path: Path) -> None:
+    selected = tmp_path / "chosen.mp4"
+    selected.touch()
+    (tmp_path / "unselected.mp4").touch()
+    files = [selected]
+    fake_plan = _make_plan(tmp_path)
+    with (
+        patch("video_uniquifier.gui.workers.batch_worker.build_plan", return_value=fake_plan)
+        as build,
+        patch("video_uniquifier.gui.workers.batch_worker.run_full"),
+    ):
+        worker = BatchWorker(tmp_path, tmp_path / "out", _make_profile(), None, files=files)
+        files.clear()
+        (tmp_path / "arrived_later.mp4").touch()
+        worker.run()
+    assert [call.args[0] for call in build.call_args_list] == [selected]

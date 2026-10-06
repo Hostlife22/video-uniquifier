@@ -5,6 +5,7 @@ from __future__ import annotations
 import webbrowser
 from pathlib import Path
 
+from PyQt6.QtCore import QEvent, Qt
 from PyQt6.QtWidgets import (
     QCheckBox,
     QComboBox,
@@ -21,9 +22,11 @@ from PyQt6.QtWidgets import (
 )
 
 from video_uniquifier.gui.a11y import mark
+from video_uniquifier.gui.design import Metrics, Space
 from video_uniquifier.gui.paths import profiles_dir
 from video_uniquifier.gui.screens.base import ScreenBase
 from video_uniquifier.gui.state import AppState
+from video_uniquifier.gui.widgets.file_picker import PathLabel
 from video_uniquifier.gui.widgets.surfaces import Disclosure
 from video_uniquifier.gui.workers.notifications_test_worker import NotificationsTestWorker
 
@@ -40,6 +43,17 @@ class SettingsScreen(ScreenBase):
         self._refresh_telemetry_status()
         self.state.theme_changed.connect(self._sync_theme)
 
+    def changeEvent(self, event: QEvent | None) -> None:
+        if (event is not None and event.type() == QEvent.Type.LanguageChange
+                and hasattr(self, "reduced_motion_check")):
+            self.reduced_motion_check.setText(self.tr("Reduce interface motion"))
+            self.reduced_motion_check.setAccessibleName(self.tr("Reduce interface motion"))
+            self.motion_label.setText(self.tr("Animations") + ":")
+        if (event is not None and event.type() == QEvent.Type.LanguageChange
+                and hasattr(self, "telemetry_folder_label")):
+            self._refresh_telemetry_status()
+        super().changeEvent(event)
+
     def _sync_theme(self, theme: str) -> None:
         previous = self.theme_combo.blockSignals(True)
         self.theme_combo.setCurrentIndex(max(0, self.theme_combo.findData(theme)))
@@ -53,7 +67,7 @@ class SettingsScreen(ScreenBase):
 
         # Appearance
         appear = QGroupBox(self.tr("Appearance"))
-        f = QFormLayout(appear)
+        f = self._settings_form(appear)
         self.theme_combo = QComboBox()
         for label, value in (("Dark studio", "dark"), ("Light", "light"),
                              ("System (dark)", "system")):
@@ -65,6 +79,12 @@ class SettingsScreen(ScreenBase):
         mark(self.theme_combo, "Theme",
              "Switch between dark, light, and system color schemes.")
         f.addRow(self.tr("Theme") + ":", self.theme_combo)
+        self.reduced_motion_check = QCheckBox(self.tr("Reduce interface motion"))
+        self.reduced_motion_check.setObjectName("reduced_motion")
+        self.reduced_motion_check.setMinimumHeight(Metrics.CONTROL_HEIGHT)
+        self.reduced_motion_check.setAccessibleName(self.tr("Reduce interface motion"))
+        self.reduced_motion_check.setChecked(self.state.reduced_motion)
+        self.reduced_motion_check.toggled.connect(self.state.set_reduced_motion)
 
         # v0.9 R5 — Language combo. Lists every locale with a
         # shipped catalogue (plus the source). Switching is hot:
@@ -86,11 +106,14 @@ class SettingsScreen(ScreenBase):
              "Switch the GUI display language. Unrecognised strings "
              "fall back to English.")
         f.addRow(self.tr("Language") + ":", self.language_combo)
+        self.motion_label = QLabel(self.tr("Animations") + ":")
+        self.motion_label.setBuddy(self.reduced_motion_check)
+        f.addRow(self.motion_label, self.reduced_motion_check)
         layout.addWidget(appear)
 
         # Defaults
         defaults = QGroupBox(self.tr("Defaults"))
-        f2 = QFormLayout(defaults)
+        f2 = self._settings_form(defaults)
         self.default_profile_combo = QComboBox()
         for p in sorted(PROFILES_DIR.glob("*.yaml")):
             self.default_profile_combo.addItem(p.stem, str(p))
@@ -154,7 +177,9 @@ class SettingsScreen(ScreenBase):
         )
         h.addWidget(self.open_config_btn)
         h.addStretch(1)
-        maintenance = Disclosure("Maintenance", "Expand cache and diagnostic tools.")
+        maintenance = Disclosure(
+            "Maintenance", "Expand cache and diagnostic tools.", state=self.state,
+        )
         maintenance.body.addWidget(maint)
         layout.addWidget(maintenance)
 
@@ -162,7 +187,7 @@ class SettingsScreen(ScreenBase):
         # ``state.notifications`` (state.json) and is read by RunWorker
         # when constructing RunOptions for each encode.
         notif = QGroupBox(self.tr("Post-job notifications (webhook + SMTP)"))
-        nf = QFormLayout(notif)
+        nf = self._settings_form(notif)
 
         self.webhook_url_edit = QLineEdit()
         self.webhook_url_edit.setPlaceholderText(
@@ -253,15 +278,18 @@ class SettingsScreen(ScreenBase):
         self.notif_status_label.setWordWrap(True)
         nf.addRow("", self.notif_status_label)
 
-        notifications = Disclosure("Notifications", "Expand optional notification settings.")
-        notifications.body.addWidget(notif)
-        layout.addWidget(notifications)
+        self.notifications_details = Disclosure(
+            "Notifications", "Expand optional notification settings.", state=self.state,
+        )
+        self.notifications_details.body.addWidget(notif)
+        layout.addWidget(self.notifications_details)
 
         # v0.9 R3 — Local telemetry (opt-in, off by default, never
         # network egress). Persists into ``state.telemetry``; the
         # orchestrator reads it via RunOptions.telemetry.
-        tele = QGroupBox(self.tr("Local telemetry (opt-in)"))
-        tf = QFormLayout(tele)
+        tele = QGroupBox()
+        tele.setProperty("variant", "untitled")
+        tf = self._settings_form(tele)
 
         self.telemetry_enabled_check = QCheckBox(
             "Record one anonymous summary event per run",
@@ -285,7 +313,16 @@ class SettingsScreen(ScreenBase):
         self.telemetry_status_label = QLabel("")
         self.telemetry_status_label.setObjectName("status")
         self.telemetry_status_label.setWordWrap(True)
-        tf.addRow("Status:", self.telemetry_status_label)
+        self.telemetry_status_label.setMinimumHeight(Metrics.CONTROL_HEIGHT)
+        tf.addRow(self.tr("Status") + ":", self.telemetry_status_label)
+
+        self.telemetry_folder_label = PathLabel()
+        self.telemetry_folder_label.setObjectName("hint")
+        self.telemetry_folder_label.setMinimumHeight(Metrics.CONTROL_HEIGHT)
+        self.telemetry_folder_label.setTextInteractionFlags(
+            Qt.TextInteractionFlag.TextSelectableByMouse,
+        )
+        tf.addRow(self.tr("Events folder") + ":", self.telemetry_folder_label)
 
         tele_actions = QHBoxLayout()
         self.telemetry_apply_btn = QPushButton("&Apply telemetry")
@@ -307,12 +344,18 @@ class SettingsScreen(ScreenBase):
         tele_actions.addStretch(1)
         tf.addRow("", self._row_widget(tele_actions))
 
-        telemetry = Disclosure("Local telemetry (opt-in)", "Expand optional local event recording.")
-        telemetry.body.addWidget(tele)
-        layout.addWidget(telemetry)
+        self.telemetry_details = Disclosure(
+            "Local telemetry (opt-in)", "Expand optional local event recording.", state=self.state,
+        )
+        self.telemetry_details.body.addWidget(tele)
+        layout.addWidget(self.telemetry_details)
 
         # Save
         save_row = QHBoxLayout()
+        self.status_label = QLabel("")
+        self.status_label.setObjectName("status")
+        self.status_label.setWordWrap(True)
+        save_row.addWidget(self.status_label)
         save_row.addStretch(1)
         self.save_btn = QPushButton(self.tr("&Save"))
         self.save_btn.setProperty("variant", "primary")
@@ -323,9 +366,20 @@ class SettingsScreen(ScreenBase):
         self.add_action_bar(save_row)
         layout.addStretch(1)
 
-        self.status_label = QLabel("")
-        self.status_label.setObjectName("status")
-        layout.addWidget(self.status_label)
+        for form in self.findChildren(QFormLayout):
+            for row in range(form.rowCount()):
+                item = form.itemAt(row, QFormLayout.ItemRole.LabelRole)
+                field_label = item.widget() if item is not None else None
+                if isinstance(field_label, QLabel):
+                    field_label.setAlignment(
+                        Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter,
+                    )
+                    field_label.setMinimumHeight(Metrics.CONTROL_HEIGHT)
+                    form.setAlignment(field_label, Qt.AlignmentFlag.AlignVCenter)
+                field_item = form.itemAt(row, QFormLayout.ItemRole.FieldRole)
+                field = field_item.widget() if field_item is not None else None
+                if field is not None:
+                    form.setAlignment(field, Qt.AlignmentFlag.AlignVCenter)
 
     def _on_theme_change(self, theme: str) -> None:
         """Apply immediately — MainWindow listens to state.theme_changed."""
@@ -361,9 +415,23 @@ class SettingsScreen(ScreenBase):
 
     # ---- helpers --------------------------------------------------------
     @staticmethod
+    def _settings_form(group: QGroupBox) -> QFormLayout:
+        form = QFormLayout(group)
+        form.setLabelAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+        form.setFieldGrowthPolicy(QFormLayout.FieldGrowthPolicy.AllNonFixedFieldsGrow)
+        form.setFormAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
+        form.setVerticalSpacing(Space.SM)
+        form.setHorizontalSpacing(Space.LG)
+        return form
+
+    @staticmethod
     def _row_widget(layout: QHBoxLayout) -> QWidget:
         """Wrap a QHBoxLayout in a QWidget so QFormLayout can host it."""
         w = QWidget()
+        w.setObjectName("form_row")
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(Space.MD)
+        w.setMinimumHeight(Metrics.CONTROL_HEIGHT)
         w.setLayout(layout)
         return w
 
@@ -434,7 +502,9 @@ class SettingsScreen(ScreenBase):
                 if recipients:
                     self.smtp_recipients_edit.setPlainText("\n".join(recipients))
         except Exception as exc:  # noqa: BLE001 — corrupt state is recoverable
-            self.notif_status_label.setText(f"could not load saved config: {exc}")
+            self.notif_status_label.setText(
+                self.tr("Could not load saved config: {error}").format(error=exc),
+            )
 
     def _on_notifications_apply(self) -> None:
         try:
@@ -444,9 +514,9 @@ class SettingsScreen(ScreenBase):
             return
         self.state.set_notifications(cfg)
         if cfg is None:
-            self.notif_status_label.setText("notifications disabled (no webhook + no SMTP)")
+            self.notif_status_label.setText(self.tr("Notifications disabled (no webhook or SMTP)."))
         else:
-            self.notif_status_label.setText("notifications saved.")
+            self.notif_status_label.setText(self.tr("Notifications saved."))
 
     def _on_notifications_test(self) -> None:
         if self._test_worker is not None:
@@ -463,7 +533,7 @@ class SettingsScreen(ScreenBase):
             )
             return
         self.notif_test_btn.setEnabled(False)
-        self.notif_status_label.setText("sending test…")
+        self.notif_status_label.setText(self.tr("Sending test…"))
         worker = NotificationsTestWorker(cfg)  # type: ignore[arg-type]
         self._test_worker = worker
         worker.line.connect(self._on_notifications_test_line)
@@ -480,7 +550,7 @@ class SettingsScreen(ScreenBase):
         self._drop_test_worker()
 
     def _on_notifications_test_failed(self, msg: str) -> None:
-        self.notif_status_label.setText(f"test failed: {msg}")
+        self.notif_status_label.setText(self.tr("Test failed: {error}").format(error=msg))
         self._drop_test_worker()
 
     def _drop_test_worker(self) -> None:
@@ -517,7 +587,7 @@ class SettingsScreen(ScreenBase):
         if profile_data:
             self.state.set_profile_path(Path(profile_data))
         self.state.save()
-        self.status_label.setText("preferences saved")
+        self.status_label.setText(self.tr("Preferences saved."))
 
     # ---- telemetry (v0.9 R3) -------------------------------------------
     def _load_telemetry_into_form(self) -> None:
@@ -537,11 +607,22 @@ class SettingsScreen(ScreenBase):
         try:
             root = default_events_dir()
             count = event_count(root)
+            recording = self.tr("Recording is on") if (
+                bool(getattr(self.state.telemetry, "enabled", False))
+            ) else self.tr("Recording is off")
             self.telemetry_status_label.setText(
-                f"{count} event(s) recorded; dir: {root}",
+                self.tr("{recording} · Saved events: {count}").format(
+                    recording=recording, count=count,
+                ),
             )
+            self.telemetry_status_label.setToolTip(
+                self.tr("Events stay on this device and are never sent over the network."),
+            )
+            self.telemetry_folder_label.setText(str(root))
         except Exception as exc:  # noqa: BLE001 — never crash Settings
-            self.telemetry_status_label.setText(f"(status unavailable: {exc})")
+            self.telemetry_status_label.setText(self.tr("Status unavailable"))
+            self.telemetry_status_label.setToolTip(str(exc))
+            self.telemetry_folder_label.setText("")
 
     def _on_telemetry_apply(self) -> None:
         from video_uniquifier.core.telemetry import (

@@ -151,6 +151,8 @@ class AppState(QObject):
         self._notifications: NotificationConfig | None = None
         self._telemetry: TelemetryConfig | None = None
         self._locale: str = "en_US"
+        self._layout_states: dict[str, str] = {}
+        self._reduced_motion = False
         self._load()
 
     # ---- read-only accessors (test-friendly) ----
@@ -186,6 +188,20 @@ class AppState(QObject):
     def locale(self) -> str:
         """Currently-active GUI locale (e.g. ``en_US`` or ``ru_RU``)."""
         return self._locale
+
+    @property
+    def reduced_motion(self) -> bool:
+        return self._reduced_motion
+
+    def set_reduced_motion(self, enabled: bool) -> None:
+        self._reduced_motion = enabled
+
+    def layout_state(self, key: str) -> str:
+        return self._layout_states.get(key, "")
+
+    def set_layout_state(self, key: str, value: str) -> None:
+        if len(key) <= 100 and len(value) <= 16_384:
+            self._layout_states[key] = value
 
     @property
     def telemetry(self) -> object:
@@ -316,6 +332,14 @@ class AppState(QObject):
             if STATE_PATH.exists():
                 data = json.loads(STATE_PATH.read_text(encoding="utf-8"))
                 self._theme = data.get("theme", "dark")
+                self._reduced_motion = data.get("reduced_motion") is True
+                layouts = data.get("layout_states")
+                if isinstance(layouts, dict):
+                    self._layout_states = {
+                        key: value for key, value in layouts.items()
+                        if isinstance(key, str) and isinstance(value, str)
+                        and len(key) <= 100 and len(value) <= 16_384
+                    }
                 loc = data.get("locale")
                 if isinstance(loc, str) and loc:
                     self._locale = loc
@@ -372,6 +396,8 @@ class AppState(QObject):
             "recents": list(self._recents),
             "profile_path": str(self._profile_path) if self._profile_path else None,
             "encoder_name": self._encoder_name,
+            "layout_states": dict(self._layout_states),
+            "reduced_motion": self._reduced_motion,
         }
         if self._notifications is not None:
             # mode="json" so HttpUrl / Path-style fields serialise as strings.

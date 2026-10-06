@@ -20,10 +20,14 @@ label + "Open in browser" button.
 
 The left sidebar groups its ten screens into Workspace, Tuning & Quality,
 Library and Tools. Each page has a title and explanation. Dark studio is the
-fresh-session default; the light theme shares the same component system. Page
+fresh-session default; the light theme shares the same component system. Expandable
+panels fade in; **Settings → Reduce interface motion** disables these animations.
+Timecodes use a fixed-width system font. Page
 content scrolls in small windows without pushing primary actions off-screen.
 Existing preferences remain in effect. Navigation calls each screen's `on_show()`
 hook so state stays fresh.
+The ready status, local-processing note and application version are centered together
+in the bottom bar.
 
 **How to use** in the header of every page opens an inline quick start: three
 steps, the key terms for that section and a practical tip. Press **F1** to open
@@ -39,21 +43,45 @@ with Process video and review a short sample before processing the full file.
 
 Single-file uniquification.
 
-The **Process video** page has three sections:
+The **Process video** workspace places source and destination side by side at the top,
+a large paused-by-default player on the left and a scrollable settings inspector on the
+right. Full-width progress/results appear below when processing starts; a fresh session
+leaves that space for the preview.
+The activity log sits underneath the result. Its collapsed header occupies a single
+row; expand it to read messages and drag the divider to adjust its height.
+Switch **Original / Processed** to inspect the source or the latest completed output.
+Use play/pause, the seek slider (including keyboard arrows) and **Sound**. The preview
+pauses when its page is hidden or processing starts. Native codec errors appear beside
+the player; they do not disable processing.
 
-1. **Source & destination** — choose or drop a local video. The GUI reads its
+Drag the panel dividers to change panel sizes. Focus a divider with Tab and use
+Left/Right or Up/Down for keyboard resizing. The app saves sizes on exit and restores
+them at the next launch. **Reset workspace layout** at the bottom of the inspector
+restores the default proportions. The fixed bottom action bar remains visible.
+
+![Resizable studio workspace with a synthetic demo clip](screenshots/run-screen.png)
+
+The workflow contains these sections:
+
+1. **Input video / Save result to** — choose or drop a local video in the top strip.
+   Hover over a filename to see its full path. The GUI reads its
    codec, dimensions, frame rate, duration and HDR flag in the background. It
-   shows a source thumbnail and suggests `<source>.processed.mp4` next to the input, with a suffix
+   displays the source in the large player and suggests `<source>.processed.mp4` next to the input, with a suffix
    if that file exists. Choosing a destination manually preserves that choice
    when the source changes. Source and output cannot be the same path.
-2. **Processing** — select a Gentle, Balanced or Pronounced card. Each explains
-   the picture and audio effects of the shipped soft, medium or aggressive profile.
-   A fresh session starts with `soft`; a saved profile wins. The selector below
-   the cards also supports custom profiles. **Advanced settings** contains
-   encoder selection, a working **Edit profile** link and auto-tuning.
-3. **Progress & result** — follow video/audio progress and segment status.
+2. **Processing profile** — select a compact Gentle, Medium or Strong card.
+   Expand **What this profile changes** for the selected recipe's picture/audio details.
+   A fresh session starts with `soft`; a saved profile wins.
+3. **Try a short sample** — **Process sample** stays at the bottom of the inspector
+   while its settings scroll. Review the default
+   sample or expand **Choose sample interval** to change its start and duration.
+   **Advanced and custom profiles** below contains the full profile selector,
+   encoder selection, a working **Edit profile** link and auto-tuning. Selecting
+   a custom recipe reveals these controls automatically.
+4. **Progress & result** — appears when a job starts; follow video/audio progress
+   and segment status.
    Completed runs expose **Open processed video** and **Open quality report**.
-   The page scrolls to these actions when processing finishes. **Measured
+   The result pane reveals these actions when processing finishes. **Measured
    metrics** is a separate collapsed block for the diagnostic values.
    The video action keeps the completed path even if the next destination changes.
 
@@ -63,10 +91,11 @@ processing pipeline. A blocking finding stays active until input/profile/encoder
 changes; results from older settings are discarded. During processing the input
 controls are disabled and **Pause** / **Cancel** become available.
 
-**Preview original** opens an embedded player without processing the source.
-Its **Use this time for sample** button selects the current playback position.
-Expand **Test a short fragment**, choose the start on the thumbnail filmstrip or
-enter `HH:MM:SS.cc`, select a 10, 15 or 20-second length, then click **Process sample**.
+**Set sample start** above the main player selects the current source playback
+position and reveals the sample controls in the inspector.
+To change the sample, expand **Choose sample interval**, choose the start on the
+thumbnail filmstrip or enter `HH:MM:SS.cc`, select a 10, 15 or 20-second length,
+then click **Process sample**.
 The filmstrip decodes five small frames in a cancellable background worker;
 click or drag to select a start, or use arrow keys to move by a second.
 The selection is shortened at
@@ -81,7 +110,7 @@ them. HDR samples are disabled because this
 reference format cannot guarantee preservation of all HDR metadata; full-file
 processing remains available.
 
-![Sample selection and saved result on macOS](screenshots/sample-screen.png)
+![Sample controls in the studio inspector](screenshots/sample-screen.png)
 
 When a sample finishes, **Before / after** opens automatically. Completed full
 runs expose **Compare before / after**. Both players share play/pause and a
@@ -137,8 +166,31 @@ pattern (default `*.mp4`) + profile + encoder. The matched files preview
 in a table; click ▶ Run batch and each row updates its status
 (pending → running → done / failed) as the worker progresses.
 
+Select several rows with Ctrl/Cmd or Shift and use **Process selected** to run only
+those visible files. **Run batch** processes every file in the matched preview,
+including rows hidden by search or a status filter. Both commands capture the file
+list when starting; later arrivals in the folder belong to the next batch. Inputs
+stay disabled during a run, while list search and selection remain available.
+
 "Continue on error" keeps the batch going past per-file failures (the
 default); uncheck to stop on the first failure.
+
+![Batch selection and shared table tools](screenshots/batch-screen.png)
+
+History, batch and queue file tables share **Search** and **All statuses** controls.
+Search includes full paths; queue items cover pending, in-progress, done and failed
+buckets, excluding worker heartbeat/error sidecar files. Click a header to sort, drag
+its edge to resize, or drag the header to reorder columns. Column sizes, order and
+sort settings are saved on exit. Updates preserve selected file identities.
+
+The checkbox in the upper-left table corner selects or clears all visible rows;
+a dash indicates partial selection. It selects rows without changing profile effects.
+Use **Select visible rows** for bulk selection and **Copy paths** for the chosen
+visible files. Hiding a row removes it from the selection. Each row offers file and
+containing-folder buttons; history can also open its QA report. Right-click a row
+for the same file/folder actions, copying selected paths or selecting visible rows.
+Status colors always include text; full paths are available on hover. These selection
+commands do not delete queue files or history records.
 
 ### 3. Auto-tune (Calibrate)
 
@@ -224,6 +276,19 @@ loop.
   at startup. Auto-tune has its own base-profile selector.
 - **Maintenance** — Reset encoder cache (deletes
   `~/.cache/video_uniquifier/encoders.json`), Open log dir, Open config dir.
+- **Notifications** — optional webhook and SMTP configuration. Form labels are
+  centered on their fields; event checkboxes and action buttons share the card background.
+- **Local telemetry** — opt-in recording on this device. **Status** shows the saved
+  recording choice and number of stored events. Changing a checkbox takes effect after
+  **Apply telemetry**. The events folder is shown separately; hover to read the full path.
+  Recording stays local and sends nothing over the network.
+
+Save feedback appears beside the fixed **Save** action, so it remains visible when
+the page is scrolled.
+
+![Aligned notification settings](screenshots/settings-notifications.png)
+
+![Local recording status and separate events folder](screenshots/settings-telemetry.png)
 
 ## Keyboard shortcuts
 

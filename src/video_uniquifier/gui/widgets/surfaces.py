@@ -2,12 +2,21 @@
 
 from __future__ import annotations
 
-from PyQt6.QtCore import QEvent, Qt
+from PyQt6.QtCore import QEasingCurve, QEvent, QPropertyAnimation, Qt, pyqtSignal, pyqtSlot
 from PyQt6.QtGui import QResizeEvent
-from PyQt6.QtWidgets import QFrame, QGridLayout, QLabel, QPushButton, QVBoxLayout, QWidget
+from PyQt6.QtWidgets import (
+    QFrame,
+    QGraphicsOpacityEffect,
+    QGridLayout,
+    QLabel,
+    QPushButton,
+    QVBoxLayout,
+    QWidget,
+)
 
 from video_uniquifier.gui.a11y import mark
 from video_uniquifier.gui.design import Metrics, Space
+from video_uniquifier.gui.state import AppState
 
 
 class FieldGrid(QWidget):
@@ -87,31 +96,59 @@ class SectionCard(QFrame):
 class Disclosure(QWidget):
     """Keyboard-operable disclosure; hidden controls leave the tab order."""
 
-    def __init__(self, title: str, description: str = "") -> None:
+    expanded_changed = pyqtSignal(bool)
+
+    def __init__(
+        self, title: str, description: str = "", *, state: AppState | None = None,
+    ) -> None:
         super().__init__()
         self._title = title
         self._description = description
+        self._state = state
+        self._expanded = False
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(Space.SM)
         self.toggle = QPushButton()
         self.toggle.setObjectName("disclosure")
         self.toggle.setCheckable(True)
-        self.toggle.clicked.connect(self.set_expanded)
+        self.toggle.clicked.connect(lambda value: self.set_expanded(value, animate=True))
         mark(self.toggle, self.tr(title), self.tr(description))
         layout.addWidget(self.toggle, alignment=Qt.AlignmentFlag.AlignLeft)
         self.content = QWidget()
         self.content.setObjectName("disclosure_content")
+        self._fade = QGraphicsOpacityEffect(self.content)
+        self.content.setGraphicsEffect(self._fade)
+        self._fade.setEnabled(False)
+        self._animation = QPropertyAnimation(self._fade, b"opacity", self)
+        self._animation.setDuration(Metrics.DISCLOSURE_DURATION_MS)
+        self._animation.setEasingCurve(QEasingCurve.Type.OutCubic)
+        self._animation.finished.connect(self._finish_animation)
         self.body = QVBoxLayout(self.content)
         self.body.setContentsMargins(0, 0, 0, 0)
         self.body.setSpacing(Space.MD)
         layout.addWidget(self.content)
         self.set_expanded(False)
 
-    def set_expanded(self, expanded: bool) -> None:
+    @pyqtSlot()
+    def _finish_animation(self) -> None:
+        self._fade.setEnabled(False)
+
+    def set_expanded(self, expanded: bool, *, animate: bool = False) -> None:
+        changed = expanded != self._expanded
+        self._expanded = expanded
+        self._animation.stop()
+        self._fade.setEnabled(False)
         self.toggle.setChecked(expanded)
         self.content.setVisible(expanded)
         self._retranslate()
+        if expanded and animate and not (self._state and self._state.reduced_motion):
+            self._fade.setEnabled(True)
+            self._animation.setStartValue(0.0)
+            self._animation.setEndValue(1.0)
+            self._animation.start()
+        if changed:
+            self.expanded_changed.emit(expanded)
 
     def _retranslate(self) -> None:
         expanded = self.toggle.isChecked()

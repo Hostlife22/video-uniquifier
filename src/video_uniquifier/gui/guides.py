@@ -16,8 +16,8 @@ GUIDES: dict[str, PageGuide] = {
     "Process video": PageGuide(
         (
             "Choose a source video and a separate destination for the result.",
-            "Start with Gentle, expand Test a short fragment, choose a sample "
-            "and click Process sample.",
+            "Start with Gentle and click Process sample. Expand Choose sample interval "
+            "if you want to review a different moment.",
             "Compare before / after, listen to the sound, then start full processing.",
         ),
         (

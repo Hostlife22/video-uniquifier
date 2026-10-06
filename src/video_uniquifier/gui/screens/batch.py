@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from PyQt6.QtCore import QEvent
 from PyQt6.QtWidgets import (
-    QAbstractItemView,
     QCheckBox,
     QComboBox,
     QFileDialog,
@@ -15,7 +15,6 @@ from PyQt6.QtWidgets import (
     QMessageBox,
     QProgressBar,
     QPushButton,
-    QTableWidget,
     QTableWidgetItem,
 )
 
@@ -27,6 +26,7 @@ from video_uniquifier.gui.screens.base import ScreenBase
 from video_uniquifier.gui.state import AppState
 from video_uniquifier.gui.widgets.encoder_selector import EncoderSelector
 from video_uniquifier.gui.widgets.file_picker import PathLabel
+from video_uniquifier.gui.widgets.studio_table import StudioTable, TableTools
 from video_uniquifier.gui.widgets.surfaces import FieldGrid
 from video_uniquifier.gui.workers.batch_worker import BatchWorker
 
@@ -39,7 +39,7 @@ class BatchScreen(ScreenBase):
         self.input_dir: Path | None = None
         self.output_dir: Path | None = None
         self.worker: BatchWorker | None = None
-        self._row_index: dict[str, int] = {}
+        self._completed_files: set[str] = set()
         self._build_ui()
 
     def _build_ui(self) -> None:
@@ -58,6 +58,7 @@ class BatchScreen(ScreenBase):
         b1.clicked.connect(self._pick_input)
         mark(b1, "Browse input directory",
              "Pick the directory containing source videos to batch-process.")
+        self.input_browse_btn = b1
         row1.addWidget(b1)
         layout.addLayout(row1)
 
@@ -71,6 +72,7 @@ class BatchScreen(ScreenBase):
         b2.clicked.connect(self._pick_output)
         mark(b2, "Browse output directory",
              "Pick the destination directory for the uniquified outputs.")
+        self.output_browse_btn = b2
         row2.addWidget(b2)
         layout.addLayout(row2)
 
@@ -101,14 +103,14 @@ class BatchScreen(ScreenBase):
         layout.addWidget(row3)
 
         # Table
-        self.table = QTableWidget(0, 4)
-        self.table.setHorizontalHeaderLabels(
-            [self.tr("File"), self.tr("Status"), self.tr("Output"), self.tr("Notes")],
+        self.table = StudioTable(5, self.state, "batch.header", 1)
+        self.table.set_headers(
+            ["File", "Status", "Output", "Notes",
+             "Actions"],
         )
-        self.table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
-        self.table.setSelectionBehavior(
-            QAbstractItemView.SelectionBehavior.SelectRows,
-        )
+        self.table.restore_header()
+        self.table_tools = TableTools(self.table)
+        layout.addWidget(self.table_tools)
         layout.addWidget(self.table, stretch=1)
 
         # Overall progress bar (X of N files complete; updated on file_done)
@@ -116,7 +118,8 @@ class BatchScreen(ScreenBase):
         self.progress_bar.setObjectName("batch_progress")
         self.progress_bar.setRange(0, 100)
         self.progress_bar.setValue(0)
-        self.progress_bar.setFormat("Files: %v / %m (%p%)")
+        self.progress_bar.setFormat(self.tr("Files: %v / %m (%p%)"))
+        self.progress_bar.hide()
         layout.addWidget(self.progress_bar)
 
         # Controls
@@ -129,6 +132,12 @@ class BatchScreen(ScreenBase):
              "Start the batch encode over every matched file.",
              shortcut="Ctrl+R")
         controls.addWidget(self.run_btn)
+        self.run_selected_btn = QPushButton(self.tr("Process selected"))
+        self.run_selected_btn.setAccessibleName(self.tr("Process selected"))
+        self.run_selected_btn.clicked.connect(self._on_run_selected)
+        self.run_selected_btn.setEnabled(False)
+        controls.addWidget(self.run_selected_btn)
+        self.table.itemSelectionChanged.connect(self._refresh_run_btn)
         self.cancel_btn = QPushButton(self.tr("Cance&l"))
         self.cancel_btn.setObjectName("cancel")
         self.cancel_btn.setEnabled(False)
@@ -142,8 +151,18 @@ class BatchScreen(ScreenBase):
         controls.addStretch(1)
         self.add_action_bar(controls)
 
+    def changeEvent(self, event: QEvent | None) -> None:
+        if (event is not None and event.type() == QEvent.Type.LanguageChange
+                and hasattr(self, "run_selected_btn")):
+            self.run_selected_btn.setText(self.tr("Process selected"))
+            self.run_selected_btn.setAccessibleName(self.tr("Process selected"))
+            self.progress_bar.setFormat(self.tr("Files: %v / %m (%p%)"))
+        super().changeEvent(event)
+
     # ---- handlers ----
     def _pick_input(self) -> None:
+        if self.worker is not None:
+            return
         d = QFileDialog.getExistingDirectory(self, "Input directory")
         if d:
             self.input_dir = Path(d)
@@ -152,6 +171,8 @@ class BatchScreen(ScreenBase):
             self._refresh_run_btn()
 
     def _pick_output(self) -> None:
+        if self.worker is not None:
+            return
         d = QFileDialog.getExistingDirectory(self, "Output directory")
         if d:
             self.output_dir = Path(d)
@@ -159,19 +180,30 @@ class BatchScreen(ScreenBase):
             self._refresh_run_btn()
 
     def _refresh_preview(self) -> None:
+        if self.worker is not None:
+            return
+        with self.table.updating():
+            self._populate_preview()
+
+    def _populate_preview(self) -> None:
         self.table.setRowCount(0)
-        self._row_index = {}
         if self.input_dir is None:
             return
         for src in sorted(self.input_dir.glob(self.pattern_edit.text() or "*.mp4")):
+            if not src.is_file():
+                continue
             r = self.table.rowCount()
             self.table.insertRow(r)
-            self.table.setItem(r, 0, QTableWidgetItem(src.name))
-            self.table.setItem(r, 1, QTableWidgetItem("pending"))
+            self.table.setItem(r, 0, self.table.file_item(src.name, str(src), str(src)))
+            self.table.setItem(r, 1, self.table.status_item("pending"))
             self.table.setItem(r, 2, QTableWidgetItem(""))
             self.table.setItem(r, 3, QTableWidgetItem(""))
-            self._row_index[str(src)] = r
-        self.status_label.setText(f"{self.table.rowCount()} file(s) matched")
+            self.table.setCellWidget(r, 4, self.table.row_actions(str(src)))
+        count = self.table.rowCount()
+        self.status_label.setText(self.tr("{count} files matched").format(count=count))
+        self.progress_bar.setRange(0, max(1, count))
+        self.progress_bar.setValue(0)
+        self.progress_bar.setVisible(count > 0)
 
     def _refresh_run_btn(self) -> None:
         ready = (
@@ -181,9 +213,20 @@ class BatchScreen(ScreenBase):
             and self.table.rowCount() > 0
         )
         self.run_btn.setEnabled(ready)
+        self.run_selected_btn.setEnabled(ready and bool(self.table.selected_keys()))
+
+    def _on_run_selected(self) -> None:
+        files = [Path(key) for key in self.table.selected_keys()]
+        if files:
+            self._start_batch(files)
 
     def _on_run(self) -> None:
+        self._start_batch([Path(self.table.row_key(row)) for row in range(self.table.rowCount())])
+
+    def _start_batch(self, files: list[Path]) -> None:
         if self.input_dir is None or self.output_dir is None:
+            return
+        if self.worker is not None or not files:
             return
         try:
             profile = load_profile(Path(self.profile_combo.currentData()))
@@ -191,6 +234,7 @@ class BatchScreen(ScreenBase):
             QMessageBox.critical(self, "Profile error", str(exc))
             return
 
+        self._completed_files.clear()
         self.worker = BatchWorker(
             self.input_dir,
             self.output_dir,
@@ -198,6 +242,7 @@ class BatchScreen(ScreenBase):
             self.encoder_selector.currentData(),
             glob_pattern=self.pattern_edit.text() or "*.mp4",
             continue_on_error=self.continue_check.isChecked(),
+            files=files,
         )
         self.worker.file_started.connect(
             lambda p: self._set_status(p, "running"),
@@ -215,12 +260,20 @@ class BatchScreen(ScreenBase):
         self.worker.failed.connect(self._on_failed)
 
         self.run_btn.setEnabled(False)
+        self.run_selected_btn.setEnabled(False)
+        self._set_inputs_enabled(False)
         self.cancel_btn.setEnabled(True)
         self.status_label.setText("starting…")
         # Reset overall progress: max = number of files matched in the table.
-        self.progress_bar.setRange(0, max(self.table.rowCount(), 1))
+        self.progress_bar.show()
+        self.progress_bar.setRange(0, len(files))
         self.progress_bar.setValue(0)
         self.worker.start()
+
+    def _set_inputs_enabled(self, enabled: bool) -> None:
+        for control in (self.pattern_edit, self.input_browse_btn, self.output_browse_btn,
+                        self.profile_combo, self.encoder_selector, self.continue_check):
+            control.setEnabled(enabled)
 
     def _on_cancel(self) -> None:
         if self.worker is not None:
@@ -231,12 +284,14 @@ class BatchScreen(ScreenBase):
         self.status_label.setText("Done.")
         self._drop_worker()
         self.cancel_btn.setEnabled(False)
+        self._set_inputs_enabled(True)
         self._refresh_run_btn()
 
     def _on_failed(self, msg: str) -> None:
         self.status_label.setText(f"FAILED: {msg}")
         self._drop_worker()
         self.cancel_btn.setEnabled(False)
+        self._set_inputs_enabled(True)
         self._refresh_run_btn()
 
     def _drop_worker(self) -> None:
@@ -257,14 +312,17 @@ class BatchScreen(ScreenBase):
     def _set_status(
         self, path: str, status: str, *, out: str = "", note: str = "",
     ) -> None:
-        row = self._row_index.get(path)
+        row = self.table.find_key(path)
         if row is None:
             return
-        self.table.setItem(row, 1, QTableWidgetItem(status))
-        if out:
-            self.table.setItem(row, 2, QTableWidgetItem(out))
-        if note:
-            self.table.setItem(row, 3, QTableWidgetItem(note))
+        with self.table.updating():
+            self.table.setItem(row, 1, self.table.status_item(status))
+            if out:
+                self.table.setItem(row, 2, self.table.path_item(out))
+                self.table.setCellWidget(row, 4, self.table.row_actions(out))
+            if note:
+                self.table.setItem(row, 3, self.table.path_item(note))
         # Each transition to a terminal status advances the overall bar.
-        if status in {"done", "failed"}:
+        if status in {"done", "failed"} and path not in self._completed_files:
+            self._completed_files.add(path)
             self.progress_bar.setValue(self.progress_bar.value() + 1)

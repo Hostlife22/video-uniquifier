@@ -9,7 +9,7 @@
 
 services:
   video-uniquifier:
-    image: "video-uniquifier:${VIDEO_UNIQ_IMAGE_TAG:-2.1.1}"
+    image: "video-uniquifier:${VIDEO_UNIQ_IMAGE_TAG:-2.1.2}"
     # Use ``build: .`` instead when iterating locally on the
     # Dockerfile. The published image lives at the tag you push to.
     # build: .

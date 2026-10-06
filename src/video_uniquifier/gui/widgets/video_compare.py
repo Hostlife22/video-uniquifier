@@ -6,7 +6,14 @@ import math
 from pathlib import Path
 
 from PyQt6.QtCore import QEvent, QObject, QPointF, QSize, Qt, QTimer, QUrl, pyqtSignal
-from PyQt6.QtGui import QCloseEvent, QImage, QMouseEvent, QStandardItemModel, QTransform
+from PyQt6.QtGui import (
+    QCloseEvent,
+    QFontDatabase,
+    QImage,
+    QMouseEvent,
+    QStandardItemModel,
+    QTransform,
+)
 from PyQt6.QtMultimedia import QAudioOutput, QMediaPlayer, QVideoFrame, QVideoFrameFormat
 from PyQt6.QtMultimediaWidgets import QVideoWidget
 from PyQt6.QtWidgets import (
@@ -204,6 +211,9 @@ class VideoCompareDialog(QDialog):
         self.select_sample_btn.setVisible(candidate is None)
         self.position_label = QLabel()
         self.position_label.setObjectName("hint")
+        self.position_label.setFont(
+            QFontDatabase.systemFont(QFontDatabase.SystemFont.FixedFont),
+        )
         transport.addWidget(self.position_label)
         transport.addStretch(1)
         layout.addLayout(transport)

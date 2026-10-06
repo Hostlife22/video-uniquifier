@@ -12,6 +12,10 @@ from video_uniquifier.gui.theme import tokens_for
 
 # A single outline family: 24-unit grid, rounded strokes, no raster dependencies.
 _PATHS = {
+    "open": '<path d="M14 3h7v7m0-7L10 14M10 3H5a2 2 0 0 0-2 2v14'
+            'a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5"/>',
+    "folder": '<path d="M3 7V5a2 2 0 0 1 2-2h5l2 3h7a2 2 0 0 1 2 2v11'
+              'a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"/>',
     "Run": '<rect x="3" y="4" width="18" height="16" rx="3"/>'
            '<path d="m10 8 6 4-6 4Z"/>',
     "Batch": '<rect x="7" y="7" width="14" height="14" rx="3"/>'

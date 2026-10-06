@@ -130,5 +130,5 @@ misinterpretation.
 | Application that calls `video-uniq` from a shell script | `video-uniquifier~=2.1` (MINOR-stable) |
 | Library that imports `video_uniquifier.core` and uses `stable` surface only | `video-uniquifier~=2.1` |
 | Library that uses any `experimental` surface | `video-uniquifier==2.1.*` (PATCH-stable) |
-| Reproducible research artifact / paper | exact pin, e.g. `video-uniquifier==2.1.1` |
+| Reproducible research artifact / paper | exact pin, e.g. `video-uniquifier==2.1.2` |
 | Editable install for development | `pip install -e ".[dev,gui]"` from a checkout |

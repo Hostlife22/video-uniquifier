@@ -180,7 +180,7 @@ def test_hot_language_switch_updates_main_workflow_without_blank_labels(
     assert screen.page_title.text() == "Обработка видео"
     assert screen.run_btn.text() == "Начать обработку"
     assert screen.profile_label.text() == "Профиль"
-    assert screen.advanced.toggle.text().endswith("Дополнительные настройки")
+    assert screen.advanced.toggle.text().endswith("Дополнительно и свои профили")
     assert QCoreApplication.translate("Unknown", "Uncatalogued label") == "Uncatalogued label"
 
 

@@ -29,6 +29,7 @@ from video_uniquifier.gui.state import AppState
 from video_uniquifier.gui.widgets.encoder_selector import EncoderSelector
 from video_uniquifier.gui.widgets.file_picker import PathLabel
 from video_uniquifier.gui.widgets.log_console import LogConsole
+from video_uniquifier.gui.widgets.studio_table import StudioTable, TableTools
 from video_uniquifier.gui.widgets.surfaces import FieldGrid
 from video_uniquifier.gui.workers.queue_io_worker import QueueIoWorker
 from video_uniquifier.gui.workers.queue_status_worker import QueueStatusWorker
@@ -118,7 +119,14 @@ class QueueScreen(ScreenBase):
         )
         instructions.setWordWrap(True)
         layout.addWidget(instructions)
-        layout.addStretch(1)
+        self.table = StudioTable(4, self.state, "queue.header", 1)
+        self.table.set_headers([
+            "File", "Status", "Path", "Actions",
+        ])
+        self.table.restore_header()
+        self.table_tools = TableTools(self.table)
+        layout.addWidget(self.table_tools)
+        layout.addWidget(self.table, stretch=1)
         return w
 
     def _build_worker_tab(self) -> QWidget:
@@ -192,6 +200,9 @@ class QueueScreen(ScreenBase):
         if not d:
             return
         self.queue_root = Path(d)
+        self._file_snapshot = ()
+        with self.table.updating():
+            self.table.setRowCount(0)
         self.root_label.setText(d)
         self.init_btn.setEnabled(True)
         self.add_files_btn.setEnabled(True)
@@ -299,6 +310,7 @@ class QueueScreen(ScreenBase):
             try:
                 self.status_worker.stats.disconnect()
                 self.status_worker.failed.disconnect()
+                self.status_worker.files.disconnect()
             except TypeError:
                 # PyQt raises TypeError if no connections existed
                 # (e.g. worker failed mid-init). The net effect we want
@@ -311,10 +323,28 @@ class QueueScreen(ScreenBase):
             self.status_worker.wait(1000)
         self.status_worker = QueueStatusWorker(self.queue_root)
         self.status_worker.stats.connect(self._on_stats)
+        root = self.queue_root
+        self.status_worker.files.connect(lambda rows: self._on_files(root, rows))
         self.status_worker.failed.connect(
             lambda msg: self.stats_label.setText(f"stats: {msg}"),
         )
         self.status_worker.start()
+
+    def _on_files(self, root: Path, rows: object) -> None:
+        if root != self.queue_root or not isinstance(rows, tuple):
+            return
+        if rows == getattr(self, "_file_snapshot", None):
+            return
+        self._file_snapshot = rows
+        with self.table.updating():
+            self.table.setRowCount(0)
+            for path, status in rows:
+                row = self.table.rowCount()
+                self.table.insertRow(row)
+                self.table.setItem(row, 0, self.table.file_item(Path(path).name, path, path))
+                self.table.setItem(row, 1, self.table.status_item(status))
+                self.table.setItem(row, 2, self.table.path_item(path))
+                self.table.setCellWidget(row, 3, self.table.row_actions(path))
 
     @pyqtSlot(dict)
     def _on_stats(self, s: dict[str, int]) -> None:

@@ -9,7 +9,7 @@ New release assets, Pages and GHCR names take effect when their workflows publis
 this revision; historical binaries and benchmark evidence retain their names.
 
 > Production-grade re-encoder with controlled, calibrated micro-transforms for
-> owned or licensed video content. **Current source version: v2.1.1** — stable API
+> owned or licensed video content. **Current source version: v2.1.2** — stable API
 > under SemVer, signed-ready Linux AppImage + unsigned macOS / Windows
 > bundles, WCAG 2.1 AA desktop GUI, optional FastAPI web UI + Docker image,
 > third-party plugin system, community profile marketplace, opt-in local
@@ -99,7 +99,7 @@ this is the wrong tool, and I won't help you wire it up.
 
 Requires Python 3.11+ and `ffmpeg` / `ffprobe` on `PATH`.
 
-### Pre-built installers (v2.1.1)
+### Pre-built installers (v2.1.2)
 
 | OS      | Format       | Signing                       | Where                                          |
 |---------|--------------|-------------------------------|------------------------------------------------|

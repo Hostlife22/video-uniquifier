@@ -14,6 +14,7 @@ class QueueStatusWorker(WorkerBase):
     """Long-running poller — emits stats every `poll_sec` until cancelled."""
 
     stats = pyqtSignal(dict)              # {"pending": N, "in_progress": N, ...}
+    files = pyqtSignal(object)             # tuple[(path, bucket)] for presentation only
 
     def __init__(self, root: Path, *, poll_sec: float = 2.0) -> None:
         super().__init__()
@@ -37,6 +38,21 @@ class QueueStatusWorker(WorkerBase):
             try:
                 s = q.stats()
                 self.stats.emit(dict(s))
+                rows: list[tuple[str, str]] = []
+                for bucket in ("pending", "in_progress", "done", "failed"):
+                    directory = getattr(q.layout, bucket)
+                    for path in directory.iterdir():
+                        if self.cancel_token.is_cancelled():
+                            break
+                        candidates = path.iterdir() if path.is_dir() else (path,)
+                        for candidate in candidates:
+                            if self.cancel_token.is_cancelled():
+                                break
+                            if (candidate.is_file() and not candidate.name.startswith(".")
+                                    and not candidate.name.endswith((".alive", ".err.txt"))):
+                                rows.append((str(candidate), bucket))
+                if not self.cancel_token.is_cancelled():
+                    self.files.emit(tuple(sorted(rows)))
             except Exception as exc:
                 self.log.emit(f"stats error: {exc}")
             # cancel_token.wait blocks on the underlying threading.Event,

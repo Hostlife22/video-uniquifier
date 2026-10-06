@@ -513,10 +513,10 @@ _GUIDE_RU = {
     "Guide collapsed. Click to show.": "Подсказка скрыта. Нажмите, чтобы открыть.",
     "Choose a source video and a separate destination for the result.":
         "Выберите исходное видео и отдельный файл для сохранения результата.",
-    "Start with Gentle, expand Test a short fragment, choose a sample "
-    "and click Process sample.":
-        "Начните с мягкой обработки, раскройте «Проверить короткий фрагмент», "
-        "выберите фрагмент и нажмите «Обработать фрагмент».",
+    "Start with Gentle and click Process sample. Expand Choose sample interval "
+    "if you want to review a different moment.":
+        "Начните с мягкой обработки и нажмите «Обработать фрагмент». Раскройте "
+        "«Выбрать интервал», если хотите проверить другой момент.",
     "Compare before / after, listen to the sound, then start full processing.":
         "Сравните «До / после», прослушайте звук и затем запустите обработку всего видео.",
     "Profile — a saved recipe for picture and sound changes.":
@@ -666,3 +666,60 @@ _GUIDE_RU = {
 }
 SOURCE_KEYS = (*SOURCE_KEYS, *(key for key in _GUIDE_RU if key not in SOURCE_KEYS))
 TRANSLATIONS["ru_RU"].update(_GUIDE_RU)
+
+_WORKSPACE_RU = {
+    "Select all visible rows": "Выбрать все видимые строки",
+    "Select or clear all visible rows in this table.":
+        "Выбрать все видимые строки таблицы или снять выделение.",
+    "{count} files matched": "Найдено файлов: {count}",
+    "Files: %v / %m (%p%)": "Файлы: %v / %m (%p%)",
+    "Intense": "Сильно",
+    "Medium": "Средняя", "Strong": "Сильная", "Subtle": "Деликатно", "Moderate": "Заметно",
+    "Duration": "Длительность", "Preview track": "Видео для просмотра",
+    "Preview timeline": "Шкала просмотра", "Sound": "Звук",
+    "Set sample start": "Начать фрагмент",
+    "Choose a video to preview it here.": "Выберите видео для просмотра здесь.",
+    "Preview unavailable: {error}": "Превью недоступно: {error}",
+    "Reset workspace layout": "Сбросить расположение панелей",
+    "Resize panels": "Изменить размеры панелей",
+    "Drag to resize; use arrow keys when focused.":
+        "Перетаскивайте разделитель или используйте стрелки, когда он в фокусе.",
+    "Search files": "Поиск файлов", "Filter by status": "Фильтр статуса",
+    "Search file, path or notes…": "Поиск по файлу, пути или примечаниям…",
+    "All statuses": "Все статусы", "Pending": "Ожидает", "Running": "Обработка",
+    "Completed": "Готово", "Failed": "Ошибка", "Cancelled": "Отменено",
+    "Open file": "Открыть файл", "Open containing folder": "Открыть папку файла",
+    "File unavailable": "Файл недоступен",
+    "Copy selected paths": "Копировать выбранные пути", "Copy paths": "Копировать пути",
+    "Select visible rows": "Выбрать видимые",
+    "{visible} shown · {selected} selected": "Показано: {visible} · Выбрано: {selected}",
+    "Process selected": "Обработать выбранные",
+    "Reduce interface motion": "Уменьшить анимацию интерфейса",
+    "Animations": "Анимация",
+    "Preferences saved.": "Настройки сохранены.",
+    "Notifications saved.": "Настройки уведомлений сохранены.",
+    "Notifications disabled (no webhook or SMTP).":
+        "Уведомления отключены: webhook и SMTP не настроены.",
+    "Sending test…": "Отправка тестового уведомления…",
+    "Test failed: {error}": "Ошибка проверки: {error}",
+    "Could not load saved config: {error}": "Не удалось загрузить настройки: {error}",
+    "Events folder": "Папка событий",
+    "Recording is on": "Запись включена",
+    "Recording is off": "Запись выключена",
+    "{recording} · Saved events: {count}": "{recording} · Сохранено событий: {count}",
+    "Events stay on this device and are never sent over the network.":
+        "События хранятся на этом устройстве и не отправляются по сети.",
+    "Status unavailable": "Статус недоступен",
+    "Video files": "Видеофайлы",
+    "Processing profile": "Профиль обработки",
+    "Advanced and custom profiles": "Дополнительно и свои профили",
+    "What this profile changes": "Что меняет этот профиль",
+    "Expand picture and audio processing details.": "Показать изменения картинки и звука.",
+    "Try a short sample": "Проверка фрагмента",
+    "Choose sample interval": "Выбрать интервал",
+    "Check picture and sound before a full run.":
+        "Проверьте картинку и звук перед обработкой всего видео.",
+    "Progress & result": "Прогресс и результат",
+}
+SOURCE_KEYS = (*SOURCE_KEYS, *(key for key in _WORKSPACE_RU if key not in SOURCE_KEYS))
+TRANSLATIONS["ru_RU"].update(_WORKSPACE_RU)
