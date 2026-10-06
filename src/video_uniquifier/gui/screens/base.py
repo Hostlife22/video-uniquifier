@@ -9,6 +9,7 @@ from PyQt6.QtWidgets import (
     QFrame,
     QHBoxLayout,
     QLabel,
+    QPushButton,
     QScrollArea,
     QTableWidget,
     QVBoxLayout,
@@ -16,7 +17,9 @@ from PyQt6.QtWidgets import (
 )
 
 from video_uniquifier.gui.design import Metrics, Space
+from video_uniquifier.gui.guides import GUIDES
 from video_uniquifier.gui.state import AppState
+from video_uniquifier.gui.widgets.page_guide import GuidePanel
 
 
 class ScreenBase(QWidget):
@@ -33,6 +36,8 @@ class ScreenBase(QWidget):
         super().__init__()
         self.state = state
         self._page_strings: tuple[str, str] | None = None
+        self.help_button: QPushButton | None = None
+        self.guide_panel: GuidePanel | None = None
 
     def page_layout(self, title: str, description: str) -> QVBoxLayout:
         """Scrollable page chrome so dense screens cannot enlarge the whole window."""
@@ -53,12 +58,54 @@ class ScreenBase(QWidget):
         layout.setSpacing(Space.LG)
         self.page_title = QLabel(self.tr(title))
         self.page_title.setObjectName("title")
-        layout.addWidget(self.page_title)
+        self.page_title.setWordWrap(True)
+        header = QHBoxLayout()
+        header.setSpacing(Space.LG)
+        header.addWidget(self.page_title, stretch=1)
+        if title in GUIDES:
+            self.help_button = QPushButton(self.tr("How to use"))
+            self.help_button.setObjectName("page_help")
+            self.help_button.setCheckable(True)
+            self.help_button.setToolTip(self.tr("Show or hide this page's guide (F1)"))
+            self.help_button.setAccessibleName(self.tr("How to use"))
+            self.help_button.toggled.connect(self._set_guide_visible)
+            header.addWidget(self.help_button, alignment=Qt.AlignmentFlag.AlignTop)
+        layout.addLayout(header)
         self.page_subtitle = QLabel(self.tr(description))
         self.page_subtitle.setObjectName("subtitle")
         self.page_subtitle.setWordWrap(True)
         layout.addWidget(self.page_subtitle)
+        if title in GUIDES:
+            self.guide_panel = GuidePanel(GUIDES[title])
+            self.guide_panel.dismissed.connect(self._dismiss_guide)
+            layout.addWidget(self.guide_panel)
+            self._set_guide_visible(False)
         return layout
+
+    def toggle_guide(self) -> None:
+        """Used by the window's F1 shortcut, including when navigation has focus."""
+        if self.help_button is not None:
+            self.help_button.click()
+
+    def _set_guide_visible(self, visible: bool) -> None:
+        if self.guide_panel is not None:
+            self.guide_panel.setVisible(visible)
+            if visible:
+                # Bring the guide header into view even when F1 was pressed
+                # while the user was working farther down the page.
+                scrollbar = self.page_scroll.verticalScrollBar()
+                if scrollbar is not None:
+                    scrollbar.setValue(0)
+        if self.help_button is not None:
+            self.help_button.setAccessibleDescription(self.tr(
+                "Guide expanded. Click to hide." if visible
+                else "Guide collapsed. Click to show.",
+            ))
+
+    def _dismiss_guide(self) -> None:
+        if self.help_button is not None:
+            self.help_button.setChecked(False)
+            self.help_button.setFocus()
 
     def changeEvent(self, event: QEvent | None) -> None:
         if (event is not None and event.type() == QEvent.Type.LanguageChange
@@ -66,6 +113,11 @@ class ScreenBase(QWidget):
             title, description = self._page_strings
             self.page_title.setText(self.tr(title))
             self.page_subtitle.setText(self.tr(description))
+            if self.help_button is not None:
+                self.help_button.setText(self.tr("How to use"))
+                self.help_button.setAccessibleName(self.tr("How to use"))
+                self.help_button.setToolTip(self.tr("Show or hide this page's guide (F1)"))
+                self._set_guide_visible(self.help_button.isChecked())
         super().changeEvent(event)
 
     def add_action_bar(self, actions: QHBoxLayout) -> None:

@@ -175,6 +175,9 @@ QPushButton {{
 }}
 QPushButton:hover:!disabled {{ background: {hover}; }}
 QPushButton:pressed:!disabled {{ background: {selected_bg}; }}
+QPushButton#page_help:checked {{
+    background: {selected_bg}; color: {selected_fg}; border-color: {accent};
+}}
 QPushButton:disabled {{
     background: {disabled_bg}; color: {disabled_fg}; border-color: {disabled_bg};
 }}

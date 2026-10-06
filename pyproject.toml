@@ -1,6 +1,6 @@
 [project]
 name = "video-uniquifier"
-version = "2.1.0"
+version = "2.1.1"
 description = "Production-grade re-encoder with controlled micro-transforms for owned/licensed video content."
 readme = "README.md"
 requires-python = ">=3.11"

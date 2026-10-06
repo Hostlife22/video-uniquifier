@@ -59,7 +59,7 @@ The image deliberately does **not** install the `[ml]` extra
 container, bake your own:
 
 ```dockerfile
-FROM video-uniquifier:2.1.0
+FROM video-uniquifier:2.1.1
 USER root
 RUN pip install --no-cache-dir "video-uniquifier[ml]"
 USER videouniq
@@ -68,7 +68,7 @@ USER videouniq
 ### Build
 
 ```bash
-docker build -t video-uniquifier:2.1.0 .
+docker build -t video-uniquifier:2.1.1 .
 ```
 
 The release workflow publishes one manifest for `linux/amd64` and `linux/arm64`.
@@ -92,7 +92,7 @@ docker run --rm -p 127.0.0.1:8080:8080 \
     -v $PWD/input:/data/input:ro \
     -v $PWD/output:/data/output \
     -v $PWD/work:/data/work \
-    video-uniquifier:2.1.0
+    video-uniquifier:2.1.1
 ```
 
 ### Run behind a same-host TLS reverse proxy
@@ -103,7 +103,7 @@ docker run --rm -p 127.0.0.1:8080:8080 \
     -e VIDEO_UNIQ_WEB_PASS=hunter2 \
     -v $PWD/input:/data/input:ro \
     -v $PWD/output:/data/output \
-    video-uniquifier:2.1.0
+    video-uniquifier:2.1.1
 ```
 
 Configure nginx, Caddy, or Traefik to expose an `https://` endpoint and proxy

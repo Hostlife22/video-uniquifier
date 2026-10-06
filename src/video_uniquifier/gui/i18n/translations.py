@@ -501,3 +501,168 @@ _STUDIO_RU.update({
 })
 SOURCE_KEYS = (*SOURCE_KEYS, *(key for key in _STUDIO_RU if key not in SOURCE_KEYS))
 TRANSLATIONS["ru_RU"].update(_STUDIO_RU)
+
+# Contextual quick starts use the same live translator as the working screens.
+_GUIDE_RU = {
+    "How to use": "Как пользоваться",
+    "Quick start": "Быстрый старт",
+    "Key terms": "Что означают настройки",
+    "Hide guide": "Скрыть подсказку",
+    "Show or hide this page's guide (F1)": "Открыть или скрыть подсказку раздела (F1)",
+    "Guide expanded. Click to hide.": "Подсказка открыта. Нажмите, чтобы скрыть.",
+    "Guide collapsed. Click to show.": "Подсказка скрыта. Нажмите, чтобы открыть.",
+    "Choose a source video and a separate destination for the result.":
+        "Выберите исходное видео и отдельный файл для сохранения результата.",
+    "Start with Gentle, expand Test a short fragment, choose a sample "
+    "and click Process sample.":
+        "Начните с мягкой обработки, раскройте «Проверить короткий фрагмент», "
+        "выберите фрагмент и нажмите «Обработать фрагмент».",
+    "Compare before / after, listen to the sound, then start full processing.":
+        "Сравните «До / после», прослушайте звук и затем запустите обработку всего видео.",
+    "Profile — a saved recipe for picture and sound changes.":
+        "Профиль — сохранённый набор изменений изображения и звука.",
+    "Encoder — how the result is compressed. Start with Automatic (recommended); "
+    "parallel workers can increase speed and memory use.":
+        "Кодировщик — способ сжатия результата. Начните с «Автоматически (рекомендуется)». "
+        "Параллельные потоки могут ускорить обработку и увеличить расход памяти.",
+    "If the picture looks soft, try a gentler profile on the same sample first.":
+        "Если изображение размытое, сначала попробуйте более мягкий профиль "
+        "на том же фрагменте.",
+    "Choose the folder containing your videos and a separate output folder.":
+        "Выберите папку с исходными видео и отдельную папку для результатов.",
+    "Select a profile and encoder that you have already checked on a sample.":
+        "Выберите профиль и кодировщик, которые уже проверили на коротком фрагменте.",
+    "Run the batch and review the status and notes for each file.":
+        "Запустите пакетную обработку и следите за статусом и примечаниями каждого файла.",
+    "One profile is applied to every video in the batch.":
+        "Один профиль применяется ко всем видео в папке.",
+    "Continue on error — process the remaining files if one fails.":
+        "Продолжить при ошибке — обработать остальные файлы, если один завершился с ошибкой.",
+    "Test one representative video in Process video before processing the whole folder.":
+        "Сначала проверьте одно типичное видео в разделе «Обработка видео», "
+        "затем запускайте всю папку.",
+    "Choose a source video and a base profile to adjust.":
+        "Выберите исходное видео и базовый профиль для настройки.",
+    "Keep the initial limits for your first search and click Calibrate.":
+        "Для первого поиска оставьте начальные ограничения "
+        "и нажмите «Подобрать настройки».",
+    "Review the result, save a tuned profile and test it in Process video.":
+        "Изучите результат, сохраните настроенный профиль "
+        "и проверьте его в разделе «Обработка видео».",
+    "Minimum quality — the measured picture-quality floor; higher is stricter.":
+        "Минимальное качество — нижняя граница измеренного качества изображения. "
+        "Чем выше значение, тем строже отбор.",
+    "Maximum similarity — a local fingerprint limit. Iterations control "
+    "the number of trials; longer samples take more time.":
+        "Максимальное сходство — ограничение сходства локальных отпечатков. "
+        "Итерации задают число попыток. Длинные фрагменты требуют больше времени.",
+    "Local scores do not predict platform decisions. Always watch and listen to a sample.":
+        "Локальные оценки не предсказывают решения платформ. "
+        "Всегда просматривайте и прослушивайте фрагмент.",
+    "Open an existing .qa.html report, or switch to Compute new.":
+        "Откройте готовый отчёт .qa.html или перейдите на вкладку «Сравнить видео».",
+    "For a new report, select the matching source and processed video, "
+    "then click Compute QA.":
+        "Для нового отчёта выберите соответствующие исходник и обработанное видео, "
+        "затем нажмите «Сравнить качество».",
+    "Read the report here or open it in your browser; check the videos as well.":
+        "Изучите отчёт здесь или откройте его в браузере. Проверьте также сами видео.",
+    "VMAF / SSIM — picture-quality estimates; higher usually means closer to the source.":
+        "VMAF / SSIM — оценки качества изображения. "
+        "Более высокое значение обычно означает большую близость к исходнику.",
+    "Similarity — how close local fingerprints are, not a quality rating.":
+        "Сходство — близость локальных отпечатков. Это не оценка качества.",
+    "Numbers can miss blur, sound defects and sync problems; compare the actual clips.":
+        "Числа могут не отразить размытость, дефекты звука и рассинхронизацию. "
+        "Сравните сами фрагменты.",
+    "Select an existing profile to see its transforms and settings.":
+        "Выберите готовый профиль, чтобы увидеть его преобразования и настройки.",
+    "Change one setting at a time and check the YAML preview.":
+        "Меняйте по одной настройке и проверяйте предпросмотр YAML.",
+    "Use Save as to create your own copy, then test it on a short sample.":
+        "Нажмите «Сохранить как», чтобы создать свою копию, "
+        "затем проверьте её на коротком фрагменте.",
+    "Enabled — whether this transform is included in processing.":
+        "Включено — применяется ли это преобразование при обработке.",
+    "Params (JSON) — transform settings. YAML preview — the complete profile recipe.":
+        "Параметры (JSON) — настройки преобразования. "
+        "Предпросмотр YAML — полный набор настроек профиля.",
+    "For your first video, use a shipped profile; you can return to editing later.":
+        "Для первого видео используйте готовый профиль. К редактированию можно вернуться позже.",
+    "Use the filter to find a previous processing job.":
+        "Найдите нужную обработку с помощью фильтра.",
+    "Open its output video or quality report from the Actions column.":
+        "Откройте результат или отчёт о качестве через колонку действий.",
+    "Check the recorded profile, encoder and status before comparing results.":
+        "Перед сравнением результатов проверьте записанные профиль, кодировщик и статус.",
+    "Completed means processing finished; it does not replace a quality review.":
+        "Статус «Завершено» означает окончание обработки. Качество нужно проверить отдельно.",
+    "History records point to files on disk; moved or deleted files cannot be opened.":
+        "Записи истории ссылаются на файлы на диске. "
+        "Перемещённые или удалённые файлы открыть не получится.",
+    "Clear all removes history records, not your source or output videos.":
+        "«Очистить историю» удаляет записи истории. "
+        "Исходные и обработанные видео сохраняются.",
+    "Add a video that you own or are licensed to use as a local reference.":
+        "Добавьте своё видео или видео с разрешением на использование как локальный эталон.",
+    "Wait for its samples and fingerprints to be prepared, then refresh the list.":
+        "Дождитесь подготовки фрагментов и отпечатков, затем обновите список.",
+    "Keep the references relevant to the comparisons you want to make.":
+        "Храните эталоны, которые нужны для ваших сравнений.",
+    "Samples — short pieces used to describe the reference video.":
+        "Фрагменты — короткие части, по которым описывается эталонное видео.",
+    "Audio FP — an audio fingerprint used for local similarity comparisons.":
+        "Audio FP — аудиоотпечаток для локального сравнения сходства.",
+    "You can process your first video without adding a reference library.":
+        "Для обработки первого видео не обязательно заполнять библиотеку эталонов.",
+    "Choose a queue folder and initialize it if this is a new queue.":
+        "Выберите папку очереди. Если очередь новая, сначала инициализируйте её.",
+    "Add files, then select a profile, encoder and output folder in the worker tab.":
+        "Добавьте файлы, затем выберите профиль, кодировщик "
+        "и папку результатов на вкладке обработчика.",
+    "Start the worker and follow each file through the queue buckets.":
+        "Запустите обработчик и следите за перемещением файлов между состояниями очереди.",
+    "Pending / leased / done / failed — waiting, assigned to a worker, "
+    "completed or unsuccessful.":
+        "Pending / leased / done / failed — ожидает, назначен обработчику, "
+        "готов или завершился с ошибкой.",
+    "Exit when queue empty — stop after current jobs; unchecked keeps waiting "
+    "for new files.":
+        "Выход при пустой очереди — остановиться после текущих задач. "
+        "Без этой опции обработчик продолжит ждать новые файлы.",
+    "For a one-time folder of videos, Batch processing is the simpler starting point.":
+        "Для разовой обработки папки проще начать с раздела «Пакетная обработка».",
+    "Choose an owned or licensed source, a profile and an output folder; "
+    "generate a small number of variants.":
+        "Выберите свой или лицензированный исходник, профиль и папку результатов. "
+        "Создайте небольшое число вариантов.",
+    "Move to the next step and record your observations with dates and notes.":
+        "Перейдите к следующему шагу и запишите наблюдения с датами и примечаниями.",
+    "Save the CSV, then analyze the recorded observations in the final step.":
+        "Сохраните CSV, затем проанализируйте записанные наблюдения на последнем шаге.",
+    "Variant count — how many processed versions are generated for comparison.":
+        "Число вариантов — сколько обработанных версий будет создано для сравнения.",
+    "CSV — the saved observations table used by the analysis step.":
+        "CSV — сохранённая таблица наблюдений для шага анализа.",
+    "Use this section after sample review; local similarity alone cannot verify "
+    "platform behavior.":
+        "Переходите к экспериментам после проверки фрагмента. "
+        "Одного локального сходства недостаточно для проверки поведения платформ.",
+    "Choose your language and theme in Appearance.":
+        "Выберите язык и тему в блоке «Внешний вид».",
+    "Set a default profile and history limits if needed.":
+        "При необходимости задайте профиль по умолчанию и ограничения истории.",
+    "Click Save to keep the settings for your next session.":
+        "Нажмите «Сохранить», чтобы использовать настройки при следующем запуске.",
+    "Default profile — the starting recipe for future processing sessions.":
+        "Профиль по умолчанию — начальный набор настроек для следующих сеансов обработки.",
+    "Encoder cache — remembered hardware detection; reset it after changing "
+    "hardware or drivers.":
+        "Кэш кодировщиков — сохранённые результаты поиска оборудования. "
+        "Сбросьте его после замены оборудования или драйверов.",
+    "Notifications and local telemetry are optional; leave them off for your first run.":
+        "Уведомления и локальная телеметрия необязательны. "
+        "Для первого запуска оставьте их выключенными.",
+}
+SOURCE_KEYS = (*SOURCE_KEYS, *(key for key in _GUIDE_RU if key not in SOURCE_KEYS))
+TRANSLATIONS["ru_RU"].update(_GUIDE_RU)

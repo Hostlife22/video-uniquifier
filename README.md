@@ -9,7 +9,7 @@ New release assets, Pages and GHCR names take effect when their workflows publis
 this revision; historical binaries and benchmark evidence retain their names.
 
 > Production-grade re-encoder with controlled, calibrated micro-transforms for
-> owned or licensed video content. **Current source version: v2.1.0** — stable API
+> owned or licensed video content. **Current source version: v2.1.1** — stable API
 > under SemVer, signed-ready Linux AppImage + unsigned macOS / Windows
 > bundles, WCAG 2.1 AA desktop GUI, optional FastAPI web UI + Docker image,
 > third-party plugin system, community profile marketplace, opt-in local
@@ -25,6 +25,8 @@ Preview a selected 10–20-second SDR fragment before processing the full video,
 choose its start on a thumbnail timeline and save the processed sample separately.
 Profile cards explain the changes; comparison includes a draggable divider and
 shared zoom/pan. A global task banner keeps progress visible while navigating.
+Every page has a **How to use** quick start with steps and key terms; press **F1**
+to toggle help for the current section in English or Russian.
 See the [GUI guide](./docs/gui.md).
 
 ## What it does
@@ -97,7 +99,7 @@ this is the wrong tool, and I won't help you wire it up.
 
 Requires Python 3.11+ and `ffmpeg` / `ffprobe` on `PATH`.
 
-### Pre-built installers (v2.1.0)
+### Pre-built installers (v2.1.1)
 
 | OS      | Format       | Signing                       | Where                                          |
 |---------|--------------|-------------------------------|------------------------------------------------|

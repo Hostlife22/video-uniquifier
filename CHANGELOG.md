@@ -10,7 +10,13 @@ versioning follows the git tags `v0.1.0`, `v0.2.0`, `v0.3.x`, `v0.4.x`,
 The `[Unreleased]` section, if present, summarises post-tip changes since
 the last tag.
 
-## [Unreleased]
+## [2.1.1] — 2026-10-06
+
+### Added
+
+- Each desktop page has an optional How to use guide with three starting steps,
+  key terms and a contextual tip, available in English and Russian. F1 toggles
+  the current page's guide; inline help keeps controls and background tasks available.
 
 ### Fixed
 

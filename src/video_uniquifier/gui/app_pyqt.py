@@ -262,10 +262,18 @@ class MainWindow(QMainWindow):
             sc = QShortcut(QKeySequence(f"Ctrl+{digit}"), self)
             sc.activated.connect(lambda i=idx: self.sidebar.setCurrentRow(i))
 
+        self.help_shortcut = QShortcut(QKeySequence("F1"), self)
+        self.help_shortcut.activated.connect(self._toggle_page_guide)
+
         self.setCentralWidget(root)
         bar = QStatusBar()
         self.setStatusBar(bar)
         bar.showMessage(self.tr("Ready"))
+
+    def _toggle_page_guide(self) -> None:
+        screen = self.stack.currentWidget()
+        if isinstance(screen, ScreenBase):
+            screen.toggle_guide()
 
     def _navigate_to(self, label: str) -> None:
         for index, (source, _version) in enumerate(SIDEBAR_ITEMS):

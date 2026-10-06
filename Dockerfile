@@ -5,21 +5,21 @@
 # cross-libc copies while retaining native amd64/arm64 package support.
 #
 # Build:
-#   docker build -t video-uniquifier:2.1.0 .
+#   docker build -t video-uniquifier:2.1.1 .
 #
 # Run (LAN-trusted; no auth):
 #   docker run --rm -p 8080:8080 \
 #       -v $PWD/input:/data/input:ro \
 #       -v $PWD/output:/data/output \
 #       -v $PWD/work:/data/work \
-#       video-uniquifier:2.1.0
+#       video-uniquifier:2.1.1
 #
 # Run (with basic auth):
 #   docker run --rm -p 8080:8080 \
 #       -e VIDEO_UNIQ_WEB_USER=alice -e VIDEO_UNIQ_WEB_PASS=hunter2 \
 #       -v $PWD/input:/data/input:ro \
 #       -v $PWD/output:/data/output \
-#       video-uniquifier:2.1.0
+#       video-uniquifier:2.1.1
 #
 # The [ml] / [scene] extras are deliberately NOT installed here —
 # torch alone would push the image past 1 GB. Bake your own image

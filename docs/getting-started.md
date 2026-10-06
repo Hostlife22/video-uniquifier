@@ -6,7 +6,7 @@ pick one and the others will look familiar afterwards.
 ## 1. Install
 
 ```bash
-pip install "video-uniquifier[gui,web] @ git+https://github.com/Hostlife22/video-uniquifier.git@v2.1.0"
+pip install "video-uniquifier[gui,web] @ git+https://github.com/Hostlife22/video-uniquifier.git@v2.1.1"
 ```
 
 Pulls the core CLI, the PyQt6 desktop GUI, and the FastAPI web
@@ -83,7 +83,7 @@ starts.
         -v $PWD/input:/data/input:ro \
         -v $PWD/output:/data/output \
         -v $PWD/work:/data/work \
-        video-uniquifier:2.1.0
+        video-uniquifier:2.1.1
     ```
 
     Open http://127.0.0.1:8080 and fill in the form. Full guide

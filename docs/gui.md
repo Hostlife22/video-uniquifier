@@ -25,6 +25,16 @@ content scrolls in small windows without pushing primary actions off-screen.
 Existing preferences remain in effect. Navigation calls each screen's `on_show()`
 hook so state stays fresh.
 
+**How to use** in the header of every page opens an inline quick start: three
+steps, the key terms for that section and a practical tip. Press **F1** to open
+or close the current page's guide, even when the sidebar has keyboard focus.
+**Hide guide** closes it and returns focus to the header button. Help starts
+collapsed, follows the selected English/Russian language and theme, and keeps
+the working controls and background jobs available. For your first video, start
+with Process video and review a short sample before processing the full file.
+
+![Russian quick start in the dark studio theme](screenshots/help-screen.png)
+
 ### 1. Process video (Run)
 
 Single-file uniquification.
