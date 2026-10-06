@@ -10,6 +10,14 @@ versioning follows the git tags `v0.1.0`, `v0.2.0`, `v0.3.x`, `v0.4.x`,
 The `[Unreleased]` section, if present, summarises post-tip changes since
 the last tag.
 
+## [Unreleased]
+
+### Fixed
+
+- Table selection controls find the native corner through its public button type
+  after style polish, avoiding dependency on a private Qt class name. The file-search
+  regression uses native paths on Windows.
+
 ## [2.1.2] — 2026-10-06
 
 ### Changed

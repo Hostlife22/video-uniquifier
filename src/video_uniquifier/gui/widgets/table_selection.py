@@ -135,11 +135,14 @@ def install_selection_checkbox(table: QTableWidget) -> TableSelectionCheckBox:
     existing = table.findChild(TableSelectionCheckBox)
     if existing is not None:
         return existing
-    corner = next(button for button in table.findChildren(QAbstractButton)
-                  if button.metaObject().className() == "QTableCornerButton")
     header = table.verticalHeader()
     assert header is not None
     header.setMinimumWidth(Metrics.CONTROL_HEIGHT)
+    table.ensurePolished()
+    # The corner is a direct button child; cell actions belong to the viewport.
+    # Match the public base type rather than Qt's private implementation name.
+    corner = table.findChild(QAbstractButton, options=Qt.FindChildOption.FindDirectChildrenOnly)
+    assert corner is not None, "Qt table corner button is unavailable"
     checkbox = TableSelectionCheckBox(table, corner)
     # Keep the Python subclass alive even though its parent is a native Qt corner.
     table._selection_checkbox = checkbox

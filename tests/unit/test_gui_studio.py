@@ -82,7 +82,7 @@ def test_filtered_multiselect_copies_only_visible_paths(qtbot, qapp):
     table.copy_selected_paths()
     assert qapp.clipboard().text() == str(Path("/example/a.mp4"))
     tools.status.setCurrentIndex(0)
-    tools.search.setText("/example/c.mp4")
+    tools.search.setText(str(Path("/example") / "c.mp4"))
     table.select_visible()
     assert table.selected_keys() == ["c.mp4"]
     assert tools.count.text() == "1 shown · 1 selected"

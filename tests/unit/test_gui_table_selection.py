@@ -4,7 +4,13 @@ from __future__ import annotations
 
 import pytest
 from PyQt6.QtCore import QItemSelectionModel, QPoint, Qt
-from PyQt6.QtWidgets import QAbstractItemView, QTableWidget, QTableWidgetItem
+from PyQt6.QtWidgets import (
+    QAbstractButton,
+    QAbstractItemView,
+    QPushButton,
+    QTableWidget,
+    QTableWidgetItem,
+)
 
 from video_uniquifier import __version__
 from video_uniquifier.gui.i18n import active_locale, install_translator
@@ -73,6 +79,23 @@ def test_empty_and_single_selection_tables_do_not_offer_select_all(table):
     table.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
     checkbox.refresh()
     assert not checkbox.isEnabled()
+
+
+def test_corner_installation_ignores_private_class_names_and_cell_buttons(qtbot, monkeypatch):
+    table = QTableWidget(1, 1)
+    qtbot.addWidget(table)
+    table.setItem(0, 0, QTableWidgetItem("File"))
+    action = QPushButton("Open file")
+    table.setCellWidget(0, 0, action)
+    corner = table.findChild(QAbstractButton, options=Qt.FindChildOption.FindDirectChildrenOnly)
+    assert corner is not None
+    monkeypatch.setattr(corner, "metaObject", lambda: QAbstractButton.staticMetaObject)
+    checkbox = install_selection_checkbox(table)
+    table.show()
+    assert checkbox.parentWidget() is corner
+    assert checkbox.parentWidget() is not action
+    checkbox.click()
+    assert table.selectedIndexes()
 
 
 def test_table_filter_selects_only_visible_rows_and_updates_corner(gui_window_factory, qapp):
