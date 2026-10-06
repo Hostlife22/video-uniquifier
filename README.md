@@ -17,7 +17,7 @@ this revision; historical binaries and benchmark evidence retain their names.
 
 📚 **Live docs**: <https://hostlife22.github.io/video-uniquifier/> — mkdocs-material site, auto-deployed on every `v*` tag.
 
-![Video Uniquifier — dark studio desktop interface](./docs/screenshots/run-screen.png)
+![Video Uniquifier — dark studio desktop interface](./docs/screenshots/run-screen-en.png)
 
 The desktop workspace guides you through source selection, processing settings and
 results. Advanced controls and logs expand on demand; primary actions stay visible.
