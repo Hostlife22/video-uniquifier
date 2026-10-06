@@ -1,367 +1,129 @@
 # video-uniquifier
 
-Version 2.0.0 renames the Python package to `video_uniquifier` and the commands
-to `video-uniq`, `video-uniq-gui` and `video-uniq-web`. Reinstall the package and
-update imports, environment variables and plugin entry points; see
-[the naming migration](docs/api-contracts.md#how-to-import). GUI settings/history
-are copied from the previous application directory when no new state exists.
-New release assets, Pages and GHCR names take effect when their workflows publish
-this revision; historical binaries and benchmark evidence retain their names.
+Video processing and re-encoding for content you own or are licensed to use.
+Preview changes, compare the result with the original, and process individual
+videos or batches through a desktop app, CLI, or web interface.
 
-> Production-grade re-encoder with controlled, calibrated micro-transforms for
-> owned or licensed video content. **Current source version: v2.1.2** — stable API
-> under SemVer, signed-ready Linux AppImage + unsigned macOS / Windows
-> bundles, WCAG 2.1 AA desktop GUI, optional FastAPI web UI + Docker image,
-> third-party plugin system, community profile marketplace, opt-in local
-> telemetry, English + Russian localization.
-
-📚 **Live docs**: <https://hostlife22.github.io/video-uniquifier/> — mkdocs-material site, auto-deployed on every `v*` tag.
+**Source version: 2.1.2** ·
+[Downloads](https://github.com/Hostlife22/video-uniquifier/releases) ·
+[Documentation](https://hostlife22.github.io/video-uniquifier/) ·
+[Release notes](./CHANGELOG.md)
 
 ![Video Uniquifier — dark studio desktop interface](./docs/screenshots/run-screen-en.png)
 
-The desktop workspace guides you through source selection, processing settings and
-results. Advanced controls and logs expand on demand; primary actions stay visible.
-Preview a selected 10–20-second SDR fragment before processing the full video,
-choose its start on a thumbnail timeline and save the processed sample separately.
-Profile cards explain the changes; comparison includes a draggable divider and
-shared zoom/pan. A global task banner keeps progress visible while navigating.
-Every page has a **How to use** quick start with steps and key terms; press **F1**
-to toggle help for the current section in English or Russian.
-See the [GUI guide](./docs/gui.md).
+## Features
 
-## What it does
-
-- **`video-uniq` CLI** (13 subcommands), **`video-uniq-gui`** PyQt6 desktop (10
-  screens, full keyboard nav), and **`video-uniq-web`** headless FastAPI
-  server on top of `ffmpeg`.
-- **20+ micro-transforms** composed into a single `-filter_complex` per
-  ffmpeg invocation: crop+rescale, color jitter, noise, rotation, mirror,
-  frame-blend, HDR→SDR tonemap, **temporal frame jitter**
-  (Fojcik & Syga 2025), pitch / tempo (formant-preserving rubberband),
-  EQ, audio resample, spectral smear, compand (dynamic-range jitter),
-  reverb, Haas stereo widening, **parametric noise overlay**
-  (pink/white/brown), EBU R128 loudness normalization with target jitter,
-  Whisper-driven soft subtitle inject.
-- **Third-party plugins**: transforms register via the
-  `video_uniquifier.transforms` entry-point group; trust model + bootstrap
-  in [`docs/plugins.md`](./docs/plugins.md).
-- **Keyframe-aware split** + optional **content-aware scene-cut split**
-  → per-segment process → concat demuxer, so multi-hour files survive
-  Ctrl+C and resume from `state.json` on the next run.
-- **Per-segment VMAF target** with bounded retry for registered
-  encode-quality comparisons. Preflight rejects geometry, retiming,
-  mirroring, overlays, subtitles and tonemapping until their references
-  can be aligned correctly.
-- **Multi-track audio**, soft subtitles, and chapters passed through.
-- **Real HDR support** via zscale linear-light wrap when keeping HDR,
-  or via `video.tonemap_sdr` (hable / reinhard / mobius / aces) when
-  targeting SDR.
-- **Multi-vendor encoder detect** (NVENC / QSV / AMF / VideoToolbox /
-  libx264 / libx265) with real test-run on a null source; each candidate
-  carries its own `max_parallel` cap. Automatic selection defaults to the
-  reproducible `quality` policy; set `VIDEO_UNIQ_ENCODER_POLICY=balanced|speed`
-  for long-form AV1 or verified hardware throughput. Explicit `--encoder`
-  overrides are strict and never silently fall back.
-- **Per-run variability**: every invocation rolls a fresh `run_seed`,
-  making randomized editorial transforms reproducible within one run
-  while allowing deliberately different authorized derivatives.
-- **Similarity diagnostics**: chunked per-4s pHash + audio Jaccard
-  heuristic + optional **SSCD** semantic-similarity model
-  ([`docs/sscd.md`](./docs/sscd.md)), optional check against a local
-  **corpus** of previous uploads. HTML report with per-chunk heatmap.
-- **Experimental calibration** (`video-uniq calibrate`): explores profile
-  intensity with a deterministic bounded search over start/middle/end samples,
-  independent self-similarity and quality constraints, and resumable scored
-  trials. It is not an external rights-system predictor; the tuned result still
-  requires full-file QA.
-- **Distributed batch** via shared filesystem: `video-uniq worker` drains
-  a queue across N machines using atomic POSIX rename leasing —
-  **no redis, no database**, just NFSv4 with `noac` (or ZFS / ext4).
-- **Profile marketplace** (`video-uniq profile install <slug>`): HTTPS +
-  SHA-256-pinned + schema-validated download from a community catalog.
-- **Opt-in local telemetry** — JSONL events written to your config dir,
-  no network egress in v1.0; full schema in
-  [`docs/telemetry.md`](./docs/telemetry.md).
-- **English + Russian UI** (`QTranslator`, hot-switch in Settings).
-- **WCAG 2.1 AA** accessibility: visible focus outlines, keyboard
-  reachability on every control, screen-reader-friendly names.
-  Conformance statement: [`docs/accessibility.md`](./docs/accessibility.md).
-
-## What it is NOT
-
-A tool to evade rights-holder detection of third-party copyrighted material.
-The intended scenarios are: re-uploading your own content, distributing
-licensed material in multiple cuts, or producing fair-use derivatives. If your
-use case is "make YouTube Content ID stop matching someone else's movie" —
-this is the wrong tool, and I won't help you wire it up.
+- **Desktop workspace:** large video preview, resizable panels, short processed
+  samples, and before/after comparison with shared playback and zoom.
+- **Processing profiles:** Gentle, Medium, Strong, and custom YAML recipes for
+  video and audio changes, with a built-in profile editor.
+- **Batch processing:** searchable file lists, status filters, saved history,
+  pause/resume, and a shared-filesystem queue for multiple machines.
+- **Encoding:** software and hardware encoders, HDR workflows, and configurable
+  handling of audio tracks, subtitles, and chapters.
+- **Quality reports:** HTML reports with visual and audio diagnostics;
+  optional VMAF and SSCD measurements depend on installed tools and models.
+- **Interfaces:** English and Russian desktop UI with contextual help,
+  a scriptable CLI, and an optional FastAPI web interface with Docker support.
 
 ## Install
 
+### Desktop downloads
+
+Choose a published build from
+[GitHub Releases](https://github.com/Hostlife22/video-uniquifier/releases).
+Desktop bundles include Python and the GUI dependencies.
+
+| Platform | Download | FFmpeg |
+| --- | --- | --- |
+| Linux x86_64 | AppImage | Included |
+| macOS Apple Silicon | macOS ZIP containing the app | Install separately |
+| Windows | Windows ZIP containing the executable | Install separately |
+
+See the [installation guide](./docs/install.md) for setup, checksum verification,
+first-launch instructions, and installation on Intel Macs.
+
+### From source
+
 Requires Python 3.11+ and `ffmpeg` / `ffprobe` on `PATH`.
-
-### Pre-built installers (v2.1.2)
-
-| OS      | Format       | Signing                       | Where                                          |
-|---------|--------------|-------------------------------|------------------------------------------------|
-| Linux   | `.AppImage`  | ✅ self-contained + SHA256SUMS | GitHub Releases → `video-uniq-gui-*.AppImage`     |
-| macOS   | `.app.zip`   | ❌ unsigned (Gatekeeper bypass) | GitHub Releases → `video-uniq-gui-macOS.zip`      |
-| Windows | `.zip`       | ❌ unsigned (SmartScreen bypass)| GitHub Releases → `video-uniq-gui-Windows.zip`    |
-
-Per-OS bypass + SHA256SUMS verification: [`docs/install.md` § 0](./docs/install.md).
-Developer ID / Windows certificate signing requires platform credentials (see [`installers/README.md`](./installers/README.md)).
-
-### From source (developers / contributors)
+On macOS or Linux with `make`:
 
 ```bash
-git clone https://github.com/Hostlife22/video-uniquifier.git && cd video-uniquifier
-make dev                           # .venv + pip install -e ".[dev,gui,web]"
-video-uniq-gui                        # GUI; or `video-uniq run <input> ...` for CLI
+git clone https://github.com/Hostlife22/video-uniquifier.git
+cd video-uniquifier
+make dev PYTHON=python3
+make gui
 ```
 
-**Extras** (compose to taste):
+Use a Python 3.11+ interpreter for `PYTHON`. Windows setup and optional
+dependencies are covered in the [installation guide](./docs/install.md).
 
-| Extra        | Adds                                                                |
-|--------------|---------------------------------------------------------------------|
-| `[dev]`      | pytest, ruff, mypy, coverage, benchmark deps                        |
-| `[gui]`      | PyQt6 + WebEngine for `video-uniq-gui`                                 |
-| `[gui-charts]` | PyQt6-Charts for divergence sparkline + KPI widgets               |
-| `[qa]`       | chromaprint (`pyacoustid`) for audio fingerprinting                 |
-| `[scene]`    | PySceneDetect for content-aware segmentation                        |
-| `[ml]`       | torch + torchvision (CPU) for SSCD semantic-similarity QA           |
-| `[web]`      | FastAPI + uvicorn for `video-uniq-web`                                 |
-| `[docs]`     | mkdocs-material for building the docs site locally                  |
+## First video
 
-Optional native binaries (graceful skip / fallback when missing):
+1. Open **Process video**, choose an input, and select where to save the result.
+2. Start with **Gentle** and click **Process sample** to review a short fragment.
+   Use **Before / after** to compare picture, sound, and synchronization.
+3. Click **Start processing** for the full video, then open the result and its
+   quality report.
 
-- `fpcalc` (chromaprint) — audio fingerprint similarity & corpus matching
-- ffmpeg with `libvmaf` — VMAF score (and target-VMAF bounded retry)
-- ffmpeg with `zscale` (zimg) — HDR-keep wrap, HDR→SDR tonemap
-- ffmpeg with `librubberband` — formant-preserving pitch shift (`cid_aware`)
-- `nvidia-smi` — auto-detect NVENC concurrent-session cap
+The default sample is 15 seconds; you can choose its start and a 10, 15, or
+20-second duration. Sample processing is available for SDR sources.
+Each page's **How to use** button, or **F1**, opens its quick guide.
+See the [GUI guide](./docs/gui.md) for the full workflow.
 
-**Full guide** — prerequisites per OS, AppImage usage, Gatekeeper /
-SmartScreen bypass, Docker image, troubleshooting, PyInstaller binary
-build: see [`docs/install.md`](./docs/install.md).
+### CLI example
 
-## Shipped profiles (16)
-
-**Quality-family** (`src/video_uniquifier/profiles/`):
-
-| Profile                       | Intent                                                                  |
-|-------------------------------|-------------------------------------------------------------------------|
-| `soft.yaml`                   | Conservative authorized-derivative baseline; corpus QA still required. |
-| `medium.yaml`                 | Moderate processing; quality band is not yet corpus-validated.          |
-| `aggressive.yaml`             | Experimental visible/audible processing; mandatory review.              |
-| `medium_hdr.yaml`             | Keep HDR (PQ/HLG) through transforms via zscale wrap.                   |
-| `cid_aware.yaml`              | Legacy experimental high-change preset retained for compatibility.     |
-| `cid_aggressive.yaml`         | Legacy maximum-change preset; not a quality-first default.              |
-| `cid_aware_hdr_to_sdr.yaml`   | Experimental HDR→SDR high-change derivative preset.                    |
-
-**Platform-destination** (v0.7.0 — pre-tuned for upload targets):
-
-| Profile                  | Intent                                                                                              |
-|--------------------------|-----------------------------------------------------------------------------------------------------|
-| `youtube_4k.yaml`        | UHD delivery canvas; upscaling cannot restore missing source detail.                               |
-| `youtube_1080p.yaml`     | Standard 1080p re-upload baseline.                                                                  |
-| `youtube_shorts.yaml`    | 9:16 short-form, ≤60 s clamp, mobile-optimised loudness.                                            |
-| `tiktok_vertical.yaml`   | 9:16 delivery canvas with platform-oriented audio loudness.                                        |
-| `instagram_reels.yaml`   | 9:16 + Reels loudness target.                                                                       |
-| `instagram_square.yaml`  | 1:1 crop + IG-spec loudness.                                                                        |
-| `linkedin_square.yaml`   | 1:1 crop + LinkedIn auto-play loudness.                                                             |
-
-Community-contributed profiles via the marketplace —
-[`docs/marketplace.md`](./docs/marketplace.md).
-
-## Quickstart
+From the source checkout on macOS/Linux:
 
 ```bash
-# 1. Inspect a source.
-video-uniq probe /path/to/master.mp4 | jq '.video[0]'
-
-# 2. Validate against YouTube targets + HDR sanity.
-video-uniq preflight /path/to/master.mp4 \
-  --profile src/video_uniquifier/profiles/soft.yaml
-
-# 3. (Optional) Index a previous upload so the QA report can warn about
-#    accidental self-collisions across authorized derivatives.
-video-uniq corpus add /path/to/old_upload.mp4
-
-# 4. (Optional) Auto-tune intensity for THIS source.
-video-uniq calibrate /path/to/master.mp4 \
-  --base src/video_uniquifier/profiles/medium.yaml \
-  --out  /path/to/tuned.yaml \
-  --target 0.2
-
-# 5. Re-encode with micro-transforms (resume-capable, parallel CPU).
-video-uniq run /path/to/master.mp4 \
-  --profile /path/to/tuned.yaml \
-  --out     /path/to/uniq_v1.mp4 \
-  --workers 4
-
-# 6. Inspect the QA report (heatmap + SSCD bands + corpus matches).
-open /path/to/uniq_v1.mp4.qa.html
-
-# 7. Generate a second, distinct variant.
-video-uniq run /path/to/master.mp4 \
-  --profile /path/to/tuned.yaml \
-  --out     /path/to/uniq_v2.mp4 \
-  --new-variant
-
-# 8. Standalone QA on a pre-existing pair (no encode).
-video-uniq qa /path/to/master.mp4 /path/to/uniq_v1.mp4 --vs-corpus
-
-# 9. Batch a directory on one machine.
-video-uniq batch /path/to/movies/ \
+.venv/bin/video-uniq run input.mp4 \
   --profile src/video_uniquifier/profiles/soft.yaml \
-  --out     /path/to/uniq/
-
-# 10. Distributed batch across N machines (NFSv4 + noac mount).
-video-uniq queue init /shared/queue
-video-uniq queue add  /shared/queue /shared/sources/*.mp4
-video-uniq worker /shared/queue \
-  --profile /shared/profiles/soft.yaml \
-  --out-dir /shared/uniq/ \
-  --workers 4
-
-# 11. Install a community profile from the marketplace.
-video-uniq profile install youtube_shorts_premium
-
-# 12. Launch the desktop GUI.
-video-uniq-gui
-
-# 13. Launch the headless web UI (FastAPI + SSE).
-video-uniq-web --host 0.0.0.0 --port 8000
-# or via Docker: docker compose up   (see docs/web.md)
+  --out output.mp4
 ```
 
-## CLI reference
+The run also writes `output.mp4.qa.html` and `output.mp4.qa.json`.
+Open the HTML report in a browser to inspect the measurements.
+Use `make cli` for available commands, or add `--help` to a command for its options.
 
-| Command                                                    | What it does                                                          |
-|------------------------------------------------------------|-----------------------------------------------------------------------|
-| `video-uniq version`                                          | Print version                                                         |
-| `video-uniq probe <path>`                                     | Print SourceMeta JSON                                                 |
-| `video-uniq probe --encoders`                                 | List working encoders with `max_parallel` cap                         |
-| `video-uniq preflight <in> --profile p.yaml`                  | YouTube target + HDR validation                                       |
-| `video-uniq run <in> --profile p.yaml --out o.mp4 [--workers N] [--new-variant]` | Single-file run with resume + auto QA               |
-| `video-uniq batch <dir> --profile p.yaml --out <dir>`         | Sequential directory processing                                       |
-| `video-uniq qa <in> <out> [--vs-corpus] [--metric sscd]`      | Similarity report + optional corpus / SSCD                            |
-| `video-uniq calibrate <in> --base p.yaml --out tuned.yaml [--metric sscd]` | Experimental internal similarity/quality search         |
-| `video-uniq corpus add/list/remove`                           | Manage local fingerprint corpus                                       |
-| `video-uniq queue init/add/status/reset`                      | Manage a shared-FS distributed queue                                  |
-| `video-uniq worker <queue_dir> --profile p.yaml --out-dir D`  | Long-running queue drainer                                            |
-| `video-uniq profile install/list/uninstall <slug>`            | Marketplace profile management                                        |
-| `video-uniq subtitles <in> [--out s.srt]`                     | Whisper subtitle generation (requires `[ml]` extra)                   |
-| `video-uniq telemetry status/enable/disable/events`           | Local opt-in telemetry control                                        |
-| `video-uniq-gui`                                              | PyQt6 desktop UI (`[gui]` extra)                                      |
-| `video-uniq-web`                                              | Headless FastAPI server (`[web]` extra)                               |
+## Profiles
 
-Run any command with `--help` for full flag listings.
+| Desktop choice | YAML profile | Use |
+| --- | --- | --- |
+| Gentle | `soft.yaml` | Mild changes; a starting point for review |
+| Medium | `medium.yaml` | More noticeable processing |
+| Strong | `aggressive.yaml` | Experimental processing requiring careful review |
 
-## Project docs
+Shipped recipes also cover HDR and common delivery formats, including vertical
+and square video. See [Profiles](./docs/profiles.md) for the complete list,
+transform settings, and instructions for creating your own recipe.
 
-📖 **Hosted site**: <https://hostlife22.github.io/video-uniquifier/> — same content as the `docs/` directory below, rendered with search and dark/light theme via mkdocs-material. Use the hosted site for casual reading; use the in-repo links below when you want to read the version that matches your local checkout.
+Quality depends on the source and selected transforms. Review a sample and the
+full output; diagnostic scores complement visual and listening checks.
 
-**Getting started**
+## Documentation
 
-- [Install + run guide](./docs/install.md) — pre-built installers, source
-  install, GUI launch, Docker, troubleshooting
-- [Getting started](./docs/getting-started.md) — first run walkthrough
-- [GUI walkthrough](./docs/gui-walkthrough.md) — screen-by-screen tour
-- [Web UI & Docker](./docs/web.md) — `video-uniq-web` + container deploy
+- [Web UI & Docker](./docs/web.md) — browser access and container deployment.
+- [Quality reports](./docs/qa_report.md) — measurements and their interpretation.
+- [Distributed batch](./docs/distributed.md) — processing across multiple machines.
+- [Plugins](./docs/plugins.md) — extending the transform registry.
+- [API contracts and naming migration](./docs/api-contracts.md) — Python integration
+  and compatibility details.
+- [Security policy](./SECURITY.md) — reporting vulnerabilities.
 
-**Reference**
-
-- [Architecture](./docs/architecture.md) — layer diagram + module map
-- [Profiles](./docs/profiles.md) — YAML schema + transform reference
-- [Marketplace](./docs/marketplace.md) — community profile catalog
-- [Plugins](./docs/plugins.md) — third-party transform packages
-- [Filter graph](./docs/filter_graph.md) — how transforms compose
-- [Seed strategy](./docs/seed_strategy.md) — `per_run` / `per_file` /
-  `fixed` / `divergent`
-- [YouTube targets](./docs/youtube_targets.md) — preflight matrix
-
-**Operations**
-
-- [Calibrate workflow](./docs/calibrate.md) — `video-uniq calibrate`
-- [QA report fields](./docs/qa_report.md) — `.qa.json` / `.qa.html` schema
-- [SSCD QA](./docs/sscd.md) — semantic-similarity model option
-- [Corpus index](./docs/corpus.md) — fingerprint database
-- [Distributed batch](./docs/distributed.md) — shared-FS workflow
-- [Validation harness](./docs/validation_harness.md) — real-CID
-  upload-observe-record loop
-- [Telemetry](./docs/telemetry.md) — opt-in local event log
-- [Localization](./docs/i18n.md) — `QTranslator` + locale catalog
-
-**Project**
-
-- [Versioning & SemVer](./docs/versioning.md) — stable contract surface
-- [API contracts](./docs/api-contracts.md) — frozen field-by-field reference
-- [Accessibility](./docs/accessibility.md) — WCAG 2.1 AA conformance
-- [Security policy](./SECURITY.md) — private disclosure + CVSS table
-- [Contributing](./CONTRIBUTING.md) — dev loop + RFC process
-- [Changelog](./CHANGELOG.md) — release notes per tag
-
-## Status
-
-<!-- AUTO-GENERATED: regenerated from git tags; see CHANGELOG.md for details. -->
-
-- **v0.1.0** — foundation pipeline, single-host single-file flow ✅
-- **v0.2.0** — CID-divergence calibration, corpus, calibrate loop ✅
-- **v0.3.x** — HDR→SDR tonemap, parallel GPU detect, distributed batch,
-  audio CID resistance (rubberband, loudnorm jitter, compand, reverb),
-  Smitelli pitch threshold fix, Haas stereo, temporal jitter,
-  divergent per-segment seeds, parametric noise overlay ✅
-- **v0.4.x** — Poisson temporal_jitter, subpixel_sharpen, `encoder=`
-  strip, real-CID validation harness, per-segment audio divergence
-  with `acrossfade` seams, `--sanitize-bitstream` libx264 pass ✅
-- **v0.5.x** — PyQt6 desktop foundation (10 screens, `WorkerBase`
-  contract), QA Viewer, Profile Editor, History, Queue dashboard,
-  3-step Validation wizard, Settings + Corpus, PyInstaller packaging ✅
-- **v0.6.0** — performance baseline + signed installer scaffolding ✅
-- **v0.7.0** — GUI maturity (divergence sparkline, pause/resume,
-  auto-tune), 7 platform-destination profiles, post-job webhooks
-  (Discord/Slack/Telegram/email), full keyboard navigation + theme
-  contrast pass ✅
-- **v0.8.0** — third-party transform plugins (entry-points + trust
-  model), SSCD semantic-similarity QA, content-aware scene-cut
-  segmentation, per-segment VMAF target with bounded retry,
-  Whisper subtitle injection ✅
-- **v0.9.0** — community profile marketplace (HTTPS + SHA-pinned),
-  FastAPI web UI + Docker image, opt-in local telemetry, English +
-  Russian UI (`QTranslator`), mkdocs-material documentation site ✅
-- **v1.0.0** — frozen API + SemVer contract, 41-file contract snapshot
-  suite, 80%+ core coverage gate, nightly perf-regression CI,
-  Linux AppImage installer + SHA256SUMS, WCAG 2.1 AA conformance,
-  SECURITY.md disclosure policy, RFC process via issue templates ✅
-
-`ruff` + `mypy --strict` clean. CI runs on Ubuntu + macOS + Windows for
-Python 3.11 / 3.12. Coverage gate `--cov-fail-under=80` on `core/`.
+The [documentation site](https://hostlife22.github.io/video-uniquifier/)
+contains the full reference and workflow guides.
 
 ## Development
 
 ```bash
-make dev                          # .venv + pip install -e ".[dev,gui,web]"
-make check                        # ruff + mypy --strict + full pytest
-make test                         # pytest only
-make build                        # PyInstaller bundle
+make check        # lint, strict type checking, and tests
+make test-unit    # fast unit tests
+make build        # desktop bundle
+make build-wheel  # Python wheel
 ```
 
-Performance benchmarks + regression tracking under `tools/`:
-
-```bash
-python tools/benchmark.py /path/to/movie.mp4 \
-  --profile src/video_uniquifier/profiles/cid_aware.yaml \
-  --out /tmp/uniq.mp4 --encoder libx264 --workers 4 \
-  --json /tmp/bench.json
-
-python tools/perf_compare.py \
-  --baseline perf-history/baseline.json \
-  --current  /tmp/bench.json \
-  --threshold 15
-```
-
-See [`CONTRIBUTING.md`](./CONTRIBUTING.md) for the full dev workflow,
-commit conventions, and RFC process for stable-contract changes.
+See [Contributing](./CONTRIBUTING.md) for the development workflow, test
+requirements, and contribution guidelines. Run `make help` for all targets.
 
 ## License
 
