@@ -57,7 +57,7 @@ jobs:
         with:
           platforms: arm64
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
       - name: Build, start, health-check, and process a real clip
         env:
           DOCKER_BUILD_SUMMARY: "false"
@@ -79,7 +79,7 @@ jobs:
           platforms: arm64
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Compute image metadata
         id: meta
