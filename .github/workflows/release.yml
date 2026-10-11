@@ -469,7 +469,7 @@ jobs:
         # Draft so a human reviews before users see it. softprops is the
         # most-widely-used action for this; it accepts a glob of files
         # and attaches them to the release named after the tag.
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         if: startsWith(github.ref, 'refs/tags/v')
         with:
           draft: true
