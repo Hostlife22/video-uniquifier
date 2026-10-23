@@ -135,7 +135,7 @@ def test_quality_gate_reports_bad_format_sync_decode_and_clipping(tmp_path, monk
     assert report["status"] == "failed" and report["gates_enforced"] is True
 
 
-def test_quality_does_not_claim_missing_streams_or_unverified_loudness_passed(tmp_path, monkeypatch):
+def test_quality_rejects_missing_streams_and_unverified_loudness(tmp_path, monkeypatch):
     from video_uniquifier.core.reels import inspection
 
     metadata = _src(tmp_path).model_copy(update={"video": [], "audio": []})

@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import json
+from pathlib import Path
+
 import pytest
 import yaml
 from pydantic import ValidationError
@@ -87,3 +90,10 @@ def test_oversized_yaml_is_rejected_before_parsing(tmp_path):
     path.write_bytes(b" " * (256 * 1024 + 1))
     with pytest.raises(ValueError, match="256 KiB"):
         load_rules(path)
+
+
+def test_shipped_business_example_and_editor_schema_stay_in_sync():
+    examples = Path(__file__).parents[2] / "examples" / "facebook_reels"
+    assert load_rules(examples / "reels_business_rules.yaml") == ReelsRules()
+    assert json.loads((examples / "reels_business.schema.json").read_text()) == (
+        ReelsRules.model_json_schema())

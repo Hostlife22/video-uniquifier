@@ -171,6 +171,7 @@ packages = ["src/video_uniquifier"]
 [tool.hatch.build]
 include = [
     "src/video_uniquifier/**/*.py",
+    "custom_profiles/facebook_reels_base.yaml",
     "src/video_uniquifier/gui/assets/*.svg",
     "src/video_uniquifier/profiles/*.yaml",
     "src/video_uniquifier/core/qa/templates/*.j2",

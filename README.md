@@ -9,6 +9,10 @@ videos or batches through a desktop app, CLI, or web interface.
 [Documentation](https://hostlife22.github.io/video-uniquifier/) ·
 [Release notes](./CHANGELOG.md)
 
+**Facebook Reels 短剧处理（P0/P1）**：独立 `video-reels` Worker 提供格式交付、
+两遍响度、质量报告、镜头时间线及可选人工标题/Logo；无需 AI，不包含发布功能。
+安装、两层 YAML、CLI、HTTP 和 NestJS/BullMQ 对接见 [中文使用文档](./docs/facebook-reels.md)。
+
 ![Video Uniquifier — dark studio desktop interface](./docs/screenshots/run-screen-en.png)
 
 ## Features

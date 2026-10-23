@@ -12,6 +12,15 @@ the last tag.
 
 ## [Unreleased]
 
+### Added
+
+- Experimental `video-reels` CLI and local worker API: strictly validated business
+  YAML, native fit/loudnorm/tonemap reuse, one-pass H.264 delivery, decode/loudness/
+  timing QA, atomic artifacts, scene timelines, synchronized trim, optional human
+  title/PNG logo and separate safe-area previews. Includes bounded jobs, cancellation,
+  retries, a NestJS/BullMQ HTTP bridge and synthetic 10/30/90-second acceptance.
+  No AI or publishing integration; stable engine schemas remain unchanged.
+
 ### Fixed
 
 - Simplified Chinese covers desktop navigation, settings, processing, comparison
