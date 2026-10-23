@@ -47,7 +47,12 @@ from video_uniquifier.gui.screens.validation import ValidationScreen
 from video_uniquifier.gui.state import CONFIG_DIR, AppState
 from video_uniquifier.gui.theme import ThemeName, qss_for, tokens_for
 from video_uniquifier.gui.widgets.activity_banner import ActivityBanner
-from video_uniquifier.gui.widgets.navigation import NAV_LABELS, NavigationDelegate, outline_icon
+from video_uniquifier.gui.widgets.navigation import (
+    NAV_DESCRIPTIONS,
+    NAV_LABELS,
+    NavigationDelegate,
+    outline_icon,
+)
 
 _log = logging.getLogger(__name__)
 
@@ -212,7 +217,7 @@ class MainWindow(QMainWindow):
         self.sidebar.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.nav_delegate = NavigationDelegate(self.sidebar, self.state.theme)
         self.sidebar.setItemDelegate(self.nav_delegate)
-        self.sidebar.setAccessibleName("Main navigation")
+        self.sidebar.setAccessibleName(self.tr("Main navigation"))
         self.sidebar.setAccessibleDescription(
             "Switch between Run, Batch, Calibrate, QA Viewer, "
             "Profile Editor, History, Corpus, Queue, Validation, "
@@ -222,7 +227,7 @@ class MainWindow(QMainWindow):
         for label, _lands_in in SIDEBAR_ITEMS:
             item = QListWidgetItem(self.tr(NAV_LABELS[label]), self.sidebar)
             item.setData(Qt.ItemDataRole.UserRole, label)
-            item.setToolTip(self.tr(NAV_LABELS[label]))
+            item.setToolTip(self.tr(NAV_LABELS[label]) + "\n" + self.tr(NAV_DESCRIPTIONS[label]))
         sidebar_layout.addWidget(self.sidebar, stretch=1)
         layout.addWidget(shell)
 
@@ -325,7 +330,10 @@ class MainWindow(QMainWindow):
                 item = self.sidebar.item(index)
                 if item is not None:
                     item.setText(self.tr(NAV_LABELS[label]))
-                    item.setToolTip(self.tr(NAV_LABELS[label]))
+                    item.setToolTip(
+                        self.tr(NAV_LABELS[label]) + "\n" + self.tr(NAV_DESCRIPTIONS[label]),
+                    )
+            self.sidebar.setAccessibleName(self.tr("Main navigation"))
             if hasattr(self, "status_note"):
                 self.status_note.setText(self._footer_text())
             viewport = self.sidebar.viewport()

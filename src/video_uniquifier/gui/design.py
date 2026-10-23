@@ -9,7 +9,7 @@ class Space:
     MD = 12
     LG = 16
     XL = 24
-    PAGE = 28
+    PAGE = 24
     XXL = 32
 
 
@@ -19,7 +19,7 @@ class Type:
     LABEL = 14
     SECTION = 16
     BRAND = 18
-    TITLE = 28
+    TITLE = 24
 
 
 class Metrics:
@@ -27,7 +27,7 @@ class Metrics:
     WINDOW_HEIGHT = 800
     MIN_WINDOW_WIDTH = 980
     MIN_WINDOW_HEIGHT = 640
-    SIDEBAR_WIDTH = 228
+    SIDEBAR_WIDTH = 208
     NAV_ROW_HEIGHT = 44
     NAV_SECTION_HEIGHT = 30
     ICON = 20

@@ -30,7 +30,6 @@ from video_uniquifier.gui.widgets.splitter import StudioSplitter
 from video_uniquifier.gui.widgets.studio_preview import StudioPreview
 from video_uniquifier.gui.widgets.studio_table import STATUS_ROLE, StudioTable, TableTools
 from video_uniquifier.gui.widgets.surfaces import Disclosure
-from video_uniquifier.gui.widgets.table_selection import TableSelectionCheckBox
 
 
 @pytest.fixture(autouse=True)
@@ -204,6 +203,7 @@ def test_log_is_full_width_below_result_and_collapses_to_one_row(gui_window_fact
     screen.log.log("Decoder failure", "error")
     QApplication.processEvents()
     assert screen.log_details.height() > collapsed_height
+    assert screen.workflow_steps.isHidden()
     assert screen.log.text.isVisible()
     assert window.rect().contains(
         screen.log.text.mapTo(window, screen.log.text.rect().bottomRight()),
@@ -214,6 +214,7 @@ def test_log_is_full_width_below_result_and_collapses_to_one_row(gui_window_fact
     QApplication.processEvents()
     assert screen.log_details.height() == collapsed_height
     assert screen.log_details.content.isHidden()
+    assert screen.workflow_steps.isVisible()
     old.deleteLater()
 
 
@@ -261,6 +262,11 @@ def test_workspace_controls_and_disclosures_keep_their_panel_insets(
     QApplication.processEvents()
     screen = window.stack.widget(0)
     preview = screen.preview
+    # Check transport insets in its loaded layout; empty state has no transport.
+    preview.mode_bar.show()
+    preview.transport_bar.show()
+    preview.position.show()
+    QApplication.processEvents()
     sound_right = preview.sound.mapTo(preview, preview.sound.rect().bottomRight()).x()
     timecode_bottom = preview.position.mapTo(preview, preview.position.rect().bottomRight()).y()
     assert preview.width() - 1 - sound_right >= Space.MD
@@ -299,9 +305,12 @@ def test_every_page_uses_the_same_checkbox_indicator(
     indicators = []
     for page in range(window.stack.count()):
         window.sidebar.setCurrentRow(page)
+        for disclosure in window.stack.widget(page).findChildren(Disclosure):
+            disclosure.set_expanded(True)
+        QApplication.processEvents()
         for checkbox in window.stack.widget(page).findChildren(QCheckBox):
-            if isinstance(checkbox, TableSelectionCheckBox) and not checkbox.isVisible():
-                # Tables with hidden headers have no visible corner control to compare.
+            if not checkbox.isVisible():
+                # Only painted controls have indicator pixels to compare.
                 continue
             checkbox.setChecked(checked)
             checkbox.setEnabled(enabled)
@@ -322,7 +331,8 @@ def test_profile_table_checkbox_matches_standalone_controls(gui_window_factory, 
     window = gui_window_factory()
     window.state.set_theme(theme)
     window.show()
-    checkbox = window.stack.widget(0).preview.sound
+    window.sidebar.setCurrentRow(9)
+    checkbox = window.stack.widget(9).reduced_motion_check
     checkbox.setChecked(True)
     QApplication.processEvents()
     option = QStyleOptionButton()

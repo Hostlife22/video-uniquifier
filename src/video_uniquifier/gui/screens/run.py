@@ -10,7 +10,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 from PyQt6.QtCore import QEvent, Qt, QTimer, QUrl
-from PyQt6.QtGui import QDesktopServices, QPixmap
+from PyQt6.QtGui import QDesktopServices, QPixmap, QResizeEvent
 from PyQt6.QtWidgets import (
     QComboBox,
     QFileDialog,
@@ -50,6 +50,7 @@ from video_uniquifier.gui.widgets.segment_timeline import SegmentTimeline
 from video_uniquifier.gui.widgets.splitter import StudioSplitter
 from video_uniquifier.gui.widgets.studio_preview import StudioPreview
 from video_uniquifier.gui.widgets.surfaces import Disclosure, SectionCard
+from video_uniquifier.gui.widgets.workflow_steps import WorkflowSteps
 from video_uniquifier.gui.workers.preflight_worker import PreflightWorker
 from video_uniquifier.gui.workers.probe_worker import ProbeWorker
 from video_uniquifier.gui.workers.review_assets_worker import SaveSampleWorker, ThumbnailWorker
@@ -110,6 +111,7 @@ class RunScreen(ScreenBase):
         self._plan_cache: PlanCacheEntry | None = None
         self._preflight_blocked = False
         self._completed_output_path: Path | None = None
+        self._completed_input_path: Path | None = None
         self._suggested_output: Path | None = None
         self._source_meta: SourceMeta | None = None
         self._sample_worker: SampleWorker | None = None
@@ -152,6 +154,8 @@ class RunScreen(ScreenBase):
             "Process video",
             "Choose a video, adjust processing and save the result.",
         )
+        self.workflow_steps = WorkflowSteps()
+        layout.addWidget(self.workflow_steps)
 
         source = SectionCard("Video files")
         source.heading.hide()
@@ -245,7 +249,7 @@ class RunScreen(ScreenBase):
         cards_layout.removeWidget(self.profile_cards.details)
         self.profile_details.body.addWidget(self.profile_cards.details)
         processing.body.addWidget(self.profile_details)
-        self.review_card = SectionCard("Try a short sample")
+        self.review_card = SectionCard("Preview before exporting")
         self.sample_controls = Disclosure(
             "Choose sample interval", "Compare a processed sample before starting the full video.",
             state=self.state,
@@ -413,6 +417,8 @@ class RunScreen(ScreenBase):
         for section in (processing, self.review_card, result):
             section.setProperty("variant", "flat")
             section.body.setContentsMargins(Space.MD, Space.MD, Space.MD, Space.MD)
+        processing.body.setSpacing(Space.SM)
+        self.review_card.body.setSpacing(Space.SM)
         source.setProperty("variant", "flat")
         source.body.setContentsMargins(Space.MD, Space.SM, Space.MD, Space.SM)
         self.input_picker.directory_label.hide()
@@ -420,7 +426,9 @@ class RunScreen(ScreenBase):
         layout.addWidget(source)
         self.source_thumbnail.hide()
         self.preview_source_btn.hide()
-        self.preview = StudioPreview()
+        self.preview = StudioPreview(self.state)
+        self.preview.choose_requested.connect(self.input_picker.browse_btn.click)
+        self.preview.source_dropped.connect(self.input_picker.set_path)
         # Docked logs may shrink the picture while transport controls stay usable.
         self.preview.stage.setMinimumHeight(0)
         policy = self.preview.stage.sizePolicy()
@@ -430,6 +438,7 @@ class RunScreen(ScreenBase):
         self.preview.select_sample.setProperty("variant", "quiet")
         self.preview.setMinimumWidth(Metrics.PREVIEW_MIN_WIDTH)
         self.settings_content = QWidget()
+        self.settings_content.setObjectName("inspector_content")
         settings = QVBoxLayout(self.settings_content)
         settings.setContentsMargins(0, 0, 0, 0)
         settings.setSpacing(Space.LG)
@@ -453,13 +462,15 @@ class RunScreen(ScreenBase):
         settings.addWidget(extras)
         settings.addStretch(1)
         self.settings_scroll = self._panel_scroll(self.settings_content)
+        self.settings_scroll.setObjectName("inspector_scroll")
         self.settings_panel = QWidget()
+        self.settings_panel.setObjectName("processing_inspector")
         inspector = QVBoxLayout(self.settings_panel)
-        inspector.setContentsMargins(0, 0, 0, 0)
+        inspector.setContentsMargins(1, 1, 1, 1)
         inspector.setSpacing(Space.MD)
         inspector.addWidget(self.settings_scroll, stretch=1)
         sample_actions = QWidget()
-        sample_actions.setObjectName("form_row")
+        sample_actions.setObjectName("sample_actions")
         sample_actions_layout = QHBoxLayout(sample_actions)
         sample_actions_layout.setContentsMargins(Space.MD, 0, Space.MD, Space.MD)
         sample_actions_layout.addWidget(self.sample_btn)
@@ -494,7 +505,14 @@ class RunScreen(ScreenBase):
         self.log_details.expanded_changed.connect(self._resize_log_panel)
         layout.addWidget(self.workspace_splitter, stretch=1)
 
+    def resizeEvent(self, event: QResizeEvent | None) -> None:
+        super().resizeEvent(event)
+        self.workflow_steps.set_compact(self.height() < 700)
+
     def _resize_log_panel(self, expanded: bool) -> None:
+        # Diagnostics take priority over the overview when vertical space is limited.
+        self.workflow_steps.setVisible(not expanded)
+        self.page_scroll.widget().layout().activate()
         sizes = self.workspace_splitter.sizes()
         header_height = Metrics.CONTROL_HEIGHT
         self.log_details.setMaximumHeight(16_777_215 if expanded else header_height)
@@ -541,16 +559,16 @@ class RunScreen(ScreenBase):
 
     def _update_profile_hint(self) -> None:
         hints = {
-            "soft": "Soft · Subtle changes. A good starting point for reviewing quality.",
-            "medium": "Medium · More visible changes. Compare a short clip before a full run.",
-            "aggressive": "Strong · Pronounced changes that may reduce picture quality.",
+            "soft": "Recommended first: subtle picture and sound adjustments.",
+            "medium": "More noticeable changes. Compare a sample before exporting.",
+            "aggressive": "Largest visual changes. Check detail and sound carefully.",
         }
         data = self.profile_combo.currentData()
         path = Path(str(data)) if data else None
         stem = (path.stem if path is not None and path.parent.resolve() == PROFILES_DIR.resolve()
                 else "")
         self.profile_cards.set_selected(stem)
-        self.profile_hint.setVisible(stem not in {"soft", "medium", "aggressive"})
+        self.profile_hint.setVisible(True)
         self.profile_details.setVisible(stem in {"soft", "medium", "aggressive"})
         if stem not in {"soft", "medium", "aggressive"}:
             self.advanced.set_expanded(True)
@@ -1108,6 +1126,7 @@ class RunScreen(ScreenBase):
         self.processing_status.finish(success=True)
         self.status_label.setToolTip(output)
         self._completed_output_path = Path(output)
+        self._completed_input_path = self.state.input_path
         if self._completed_output_path.is_file():
             self.preview.set_result(self._completed_output_path)
         if self._review_source is not None:
@@ -1206,6 +1225,14 @@ class RunScreen(ScreenBase):
     def _refresh_run_button(self, *, preflight_fail: bool = False) -> None:
         busy = (self.run_worker is not None or self._tune_worker is not None
                 or self._sample_worker is not None or self._save_worker is not None)
+        full_result = (self._completed_output_path is not None and not self._sample_mode
+                       and self._completed_input_path == self.state.input_path)
+        self.workflow_steps.set_stage(
+            2 if self.run_worker is not None or full_result
+            else 1 if self.state.input_path is not None else 0,
+            complete=full_result and not busy,
+        )
+        self.preview.import_button.setEnabled(not busy)
         if busy:
             self._show_progress_panel()
         same_path = (
@@ -1248,6 +1275,11 @@ class RunScreen(ScreenBase):
             and not (self._preflight_blocked or preflight_fail)
             and self.profile_combo.currentData() is not None,
         )
+        self.sample_btn.setToolTip(self.tr(
+            "Process only a short sample; the full video is exported separately."
+            if self.sample_btn.isEnabled() else
+            "Choose a video and wait for its details before previewing a sample."
+        ) if not sample_hdr else self.sample_hint.text())
         self.preflight_btn.setEnabled(
             self.state.input_path is not None and self.profile_combo.currentData() is not None
             and not busy and self.preflight_worker is None,

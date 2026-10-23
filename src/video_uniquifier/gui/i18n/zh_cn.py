@@ -1,6 +1,41 @@
 """Simplified Chinese desktop catalogue; keys remain the English source text."""
 
 STRINGS: dict[str, str] = {
+    # Workflow guidance and navigation descriptions.
+    "Import video": "导入视频",
+    "Adjust and preview": "调整与预览",
+    "Export result": "导出结果",
+    "Current step": "当前步骤",
+    "Complete": "已完成",
+    "Next": "接下来",
+    "Add a video to begin": "从一个视频开始",
+    "Drop a video here, or choose a file. Your original is kept.":
+        "将视频拖入此处，或选择文件。原始视频会保留。",
+    "Choose video…": "选择视频…",
+    "Preview before exporting": "导出前，先看看效果",
+    "Natural look": "自然观感",
+    "Visible changes": "明显变化",
+    "Bold changes": "大幅调整",
+    "Recommended first: subtle picture and sound adjustments.":
+        "初次使用推荐。轻微调整画面与声音。",
+    "More noticeable changes. Compare a sample before exporting.":
+        "画面变化更明显。建议先对比样片，再导出完整视频。",
+    "Largest visual changes. Check detail and sound carefully.":
+        "调整幅度最大。请仔细检查画面细节与声音效果。",
+    "Process only a short sample; the full video is exported separately.":
+        "仅处理短片段；确认效果后，再导出完整视频。",
+    "Choose a video and wait for its details before previewing a sample.":
+        "请先选择视频，读取信息后即可处理样片。",
+    "Preview and export": "单个视频 · 样片预览",
+    "Process a folder": "整批视频 · 统一处理",
+    "Find suitable settings": "寻找合适的处理参数",
+    "Compare output quality": "检查画面与声音质量",
+    "Manage processing recipes": "编辑与保存处理方案",
+    "Revisit previous results": "查看结果与历史报告",
+    "Compare with your videos": "管理用于比较的素材",
+    "Manage background jobs": "安排后台处理任务",
+    "Record observations": "记录不同版本的表现",
+    "Appearance and preferences": "外观与个人偏好",
     "Local telemetry": "本地使用统计",
     "Help improve video-uniquifier with local-only telemetry?":
         "是否通过本地使用统计帮助改进 video-uniquifier？",
