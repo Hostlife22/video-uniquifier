@@ -1,5 +1,35 @@
 # Facebook Reels implementation log
 
+## Desktop delivery workflow (2026-10-23)
+
+- Added **Workspace → Video delivery** (Chinese: **工作区 → 视频交付**). Reels identifies
+  the current vertical delivery preset rather than defining the module name.
+- Four independent source/settings/sample/export pages replace the dense single
+  form. Video, audio/timeline and optional branding each have their own settings tab.
+  The original Run screen also separates source, settings and results.
+- `ReelsWorker` calls the existing core directly in QThread. It snapshots settings,
+  stages bounded local assets, keeps 10-second samples separate from full export,
+  invalidates stale samples, retains worker references until the thread finishes,
+  and propagates native cancellation. Successful full exports enter existing history.
+- Native macOS/Cocoa acceptance: real 10-second footage → sample → 720×1280 export,
+  PySceneDetect timeline, safe-area PNG and final technical QA passed. Duration error
+  and start/end A/V drift: 0. Loudness: -16.04 LUFS. Dialogue/subtitle review remains manual.
+  Evidence is generated at `out/reels-desktop-acceptance/acceptance.json` by
+  `tools/reels_desktop_acceptance.py`; reviewed screenshots are in `docs/screenshots/delivery-*`.
+- Native acceptance found that selecting a hidden sidebar item allowed focus changes
+  to navigate away during processing. Replaced it with a single visible, grouped sidebar
+  and route-to-screen mapping. Existing screen identities and keyboard shortcuts remain
+  stable; tests verify route identity, language changes, task return and small windows.
+- Desktop regression tests include real ffmpeg sample/full export/cancellation and
+  strict options, asset limits, errors and live Chinese switching. New desktop modules
+  reached 90.5% branch-aware coverage in the focused coverage run.
+- Final unit/contract/desktop smoke regression: **2120 passed, 2 skipped** (optional
+  QtCharts and Torch). Focused desktop tests: **20 passed**. Native screenshots include
+  all four steps plus 980×640, light theme and the reorganized ordinary processing pages.
+- GUI mypy passes (73 files), Ruff and wheel resource checks pass. Four existing Qt
+  optional-object typing errors were fixed while updating the shared UI widgets;
+  whole-source mypy retains the existing optional `core/qa/sscd.py:129` unused-ignore issue.
+
 ## Locked baseline / inspected contracts (2026-10-23)
 
 - Hostlife22/video-uniquifier HEAD: `e9138ddbc798cb23e28b44d9edf7959a712f0add`;

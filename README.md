@@ -9,9 +9,9 @@ videos or batches through a desktop app, CLI, or web interface.
 [Documentation](https://hostlife22.github.io/video-uniquifier/) ·
 [Release notes](./CHANGELOG.md)
 
-**Facebook Reels 短剧处理（P0/P1）**：独立 `video-reels` Worker 提供格式交付、
+**视频交付 / Reels 竖屏预设（P0/P1）**：桌面端“工作区 → 视频交付”和 `video-reels` Worker 提供格式交付、
 两遍响度、质量报告、镜头时间线及可选人工标题/Logo；无需 AI，不包含发布功能。
-安装、两层 YAML、CLI、HTTP 和 NestJS/BullMQ 对接见 [中文使用文档](./docs/facebook-reels.md)。
+桌面四步操作、安装、两层 YAML、CLI、HTTP 和 NestJS/BullMQ 对接见 [中文使用文档](./docs/facebook-reels.md)。
 
 ![Video Uniquifier — dark studio desktop interface](./docs/screenshots/run-screen-en.png)
 
@@ -22,14 +22,16 @@ videos or batches through a desktop app, CLI, or web interface.
 - Large video player with playback, seeking, sound controls, and switching between
   the source and completed output. Source details include resolution, frame rate,
   duration, codec, and HDR status.
-- A settings inspector beside the preview, with compact Gentle / Medium / Strong
+- Separate source/preview, processing settings, and progress/result workspaces, with Gentle / Medium / Strong
   profile cards and expandable descriptions of their picture and sound changes.
-- Resizable preview, settings, result, and log panels. Panel sizes and table layouts
+- A four-step **Video delivery** route under **Workspace**: source, settings, sample review,
+  and full export, with a Reels vertical preset and optional title/logo controls.
+- Resizable result and log panels. Panel sizes and table layouts
   are remembered between sessions; primary processing actions stay visible.
 - Stage-specific progress, elapsed time, and remaining-time estimates when enough
   measurements are available. A global activity banner lets you follow active tasks
   while visiting other pages.
-- Dark studio and light themes, English and Russian localization, keyboard
+- Dark studio and light themes, English, Simplified Chinese and Russian localization, keyboard
   navigation, and a reduced-motion setting. Each page includes contextual help
   through **How to use** or **F1**.
 

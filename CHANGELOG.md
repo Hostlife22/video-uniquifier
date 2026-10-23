@@ -14,12 +14,22 @@ the last tag.
 
 ### Added
 
+- Desktop **Workspace → Video delivery** reuses the Reels core with four focused
+  steps, grouped video/audio/branding settings, native source/sample playback,
+  safe-area preview, cancellable background processing, QA results and history.
+  Simplified Chinese names describe the task; Reels is identified as the preset.
+
 - Experimental `video-reels` CLI and local worker API: strictly validated business
   YAML, native fit/loudnorm/tonemap reuse, one-pass H.264 delivery, decode/loudness/
   timing QA, atomic artifacts, scene timelines, synchronized trim, optional human
   title/PNG logo and separate safe-area previews. Includes bounded jobs, cancellation,
   retries, a NestJS/BullMQ HTTP bridge and synthetic 10/30/90-second acceptance.
   No AI or publishing integration; stable engine schemas remain unchanged.
+
+### Changed
+
+- The ordinary processing workspace separates source/preview, settings, and
+  progress/result into navigable pages. Primary actions stay outside scrolling areas.
 
 ### Fixed
 

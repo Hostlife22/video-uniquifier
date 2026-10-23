@@ -24,8 +24,38 @@ sh tools/install_reels.sh
 Ctrl+C 或 SIGTERM 会通过原生 CancelToken 终止 FFmpeg/镜头检测子进程并清理工作目录。
 取消退出码 130，配置/处理失败退出码 2；失败原因以 JSON 写到 stderr。
 
-这是独立的 `video-reels` CLI/API，没有向原桌面界面或稳定的 `video-uniq` CLI 添加字段。
+桌面、`video-reels` CLI 和 API 共用同一个处理核心，稳定的 `video-uniq` CLI 字段保持兼容。
 默认仅使用实测的软件 libx264；硬件编码器还未纳入这个交付预设。
+
+## 桌面端：工作区 → 视频交付
+
+```sh
+uv pip install --python .venv/bin/python -e '.[gui,scene]'
+.venv/bin/video-uniq-gui --reels
+```
+
+“视频交付”适用于已剪辑好的授权视频，当前提供 Reels 9:16 竖屏预设；不是完整视频剪辑器。
+它位于侧边栏“工作区”内，也可用 `Ctrl+Shift+R` 打开。四步可以直接点击切换：
+
+1. **选择视频**：拖入或选择源文件，查看分辨率、帧率、时长和音轨，指定导出文件夹。
+2. **处理参数**：分别在“视频交付／声音与时间线／标题与 Logo”中调整参数。
+   支持加载业务 YAML，未显示的高级字段继续保留。标题和 Logo 默认关闭，启用时需选择本地资源。
+3. **预览检查**：先检查配置，再生成所选时间范围起点的最多 10 秒样片，试听对白、检查字幕和安全区。
+   修改源文件或参数会使旧样片失效；最终导出仍使用完整的所选时间范围。
+4. **导出结果**：点击“导出完整视频”，查看进度、质量检查、提示和镜头时间轴；完成后可播放成片、
+   打开结果文件夹或原始 JSON 报告。技术详情按需展开，成功的完整导出写入历史记录。
+
+处理在后台线程执行。切换页面仍可通过全局任务提示返回，取消会终止核心及其子进程；
+关闭窗口会等待工作线程安全结束。每次完整导出保存到指定文件夹的 `results/<任务 ID>/`，
+样片保存在临时目录，退出时清理。失败不会把未验收的视频当作成片提供。
+
+安装 `[gui]` 本身不包含镜头检测依赖。若未安装 `[scene]`，需在“声音与时间线”中关闭镜头检测；
+界面会提供明确错误指导。当前 PyInstaller 配置同样排除了可选 scene 栈。
+普通“视频处理”也拆为“视频与预览／处理设置／进度与结果”三页，样片操作位于处理设置页。
+
+![视频交付：选择视频](screenshots/delivery-source-zh.png)
+![视频交付：分组设置](screenshots/delivery-settings-zh.png)
+![视频交付：成片结果](screenshots/delivery-result-zh.png)
 
 ## 两层配置
 
@@ -188,6 +218,10 @@ uv pip install --python .venv/bin/python 'pytest>=9.0.3,<10' 'pytest-cov~=5.0'
   --cov=video_uniquifier.core.reels --cov-report=term-missing
 node --test examples/facebook_reels/bullmq-worker.test.mjs
 .venv/bin/python tools/reels_acceptance.py --root /tmp/reels-acceptance
+.venv/bin/pytest tests/unit/test_gui_reels.py -q
+# 原生桌面截图与真实导出：用上一步生成的合成片，不需要用户视频
+.venv/bin/python tools/reels_desktop_acceptance.py \
+  --source /tmp/reels-acceptance/source-10s.mp4 --out /tmp/reels-desktop-acceptance
 ```
 
 验收脚本生成 10 秒竖屏、30 秒横屏 29.97fps、90 秒竖屏 23.976fps 素材，按默认
