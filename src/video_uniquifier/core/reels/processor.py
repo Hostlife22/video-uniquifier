@@ -35,6 +35,7 @@ from video_uniquifier.core.reels.native import (
     measure_audio,
     validate_native_profile,
 )
+from video_uniquifier.core.reels.packaging import create_previews, render_layers
 from video_uniquifier.core.reels.runtime import (
     ReelsError,
     atomic_json,
@@ -42,6 +43,7 @@ from video_uniquifier.core.reels.runtime import (
     content_hash,
     execute,
 )
+from video_uniquifier.core.reels.scenes import detect_timeline
 from video_uniquifier.core.resource_budget import resource_pool_dir
 from video_uniquifier.core.runner import CancelToken, RunEvent
 from video_uniquifier.core.utils.ffmpeg_paths import ffmpeg_bin
@@ -61,6 +63,14 @@ def inspect_source(path: Path, rules: ReelsRules) -> SourceMeta:
     if not source.video:
         raise ReelsError("missing_video", "Input has no primary video stream.")
     video = source.video[0]
+    if not video.color.is_hdr and video.color.space == "bt2020c":
+        raise ReelsError("unsupported_sdr_matrix", "BT.2020 constant-luminance SDR needs "
+                         "an explicitly verified conversion before this preset.")
+    if video.color.transfer == "unknown" and (
+        video.color.space in {"bt2020nc", "bt2020c"} or video.color.primaries == "bt2020"
+    ):
+        raise ReelsError("unknown_hdr_transfer", "Wide-gamut input has no reliable transfer tag. "
+                         "Verify PQ/HLG/SDR metadata before selecting a conversion.")
     if video.width * video.height > rules.worker.max_pixels:
         raise ReelsError("input_pixels", "Input exceeds the configured decoded pixel limit.")
     if not math.isfinite(source.duration_sec) or not 0 < source.duration_sec <= (
@@ -132,6 +142,8 @@ def process_video(
         source = inspect_source(source_path, rules)
         check_cancel(token)
         source_hash = content_hash(source_path, token)
+        report["ffmpeg_version"] = execute([ffmpeg_bin(), "-version"], work / "version.log",
+                                            token, timeout=10, progress=False).splitlines()[0]
         report["source"] = source.model_dump(mode="json", exclude={"path"})
         report["source"].update(filename=source_path.name, sha256=source_hash)
         details = stream_details(source_path, work, token)
@@ -155,6 +167,15 @@ def process_video(
         report["source_analysis"] = scan
         fps = rate_for(source.video[0].fps, scan["variable_frame_rate"], rules)
         report["delivery_fps"] = fps
+        if rules.scenes.detect_enabled:
+            timeline = detect_timeline(source_path, source.duration_sec, rules, work, token)
+            atomic_json(work / "scenes.json", timeline)
+            report["scenes"] = {"status": "detected", "artifact": "scenes.json", **timeline}
+            if scan["variable_frame_rate"]:
+                report["warnings"].append("VFR scene timestamps are approximate; "
+                                           "review cut positions.")
+        else:
+            report["scenes"] = {"status": "disabled"}
         if scan["variable_frame_rate"]:
             report["warnings"].append("VFR normalized to 30 CFR; review speech sync.")
         video = source.video[0]
@@ -170,10 +191,13 @@ def process_video(
             "source": source_hash, "audio": audio_index, "duration": duration,
             "trim_start": rules.scenes.trim_start_sec,
             "loudnorm": rules.audio.loudnorm.model_dump(), "channels": 2, "version": __version__,
+            "ffmpeg": report["ffmpeg_version"],
         }, sort_keys=True).encode()).hexdigest()
         measurement, audio_state = measure_audio(plan, rules, duration,
                                                  root / "cache" / f"{cache_key}.json", token)
-        report["audio_normalization"] = {"status": audio_state, "passes": 2,
+        report["audio_normalization"] = {"status": audio_state,
+                                          "passes": 0 if audio_state in {"missing", "disabled"}
+                                          else 2,
                                           "measurement": json.loads(measurement.model_dump_json())
                                           if measurement is not None else None}
         if audio_state == "silent" and rules.audio.loudnorm.skip_if_silent:
@@ -183,7 +207,10 @@ def process_video(
         report["native_profile"] = plan.profile.model_dump(mode="json")
         report["plan_hash"] = plan.plan_hash
         temporary_output = work / "output.tmp.mp4"
-        layers: list[tuple[Path, float, float | None]] = []
+        layers, packaging, warnings = render_layers(rules, asset_root or Path.cwd(), work,
+                                                     duration, token)
+        report["packaging"] = {"template_id": rules.packaging.template_id, "layers": packaging}
+        report["warnings"].extend(warnings)
         args = compose_command(plan, rules, temporary_output, duration, fps, measurement, layers)
         report["execution_argv"] = args
         report["video_encode_passes"] = 1
@@ -224,10 +251,11 @@ def process_video(
         check_cancel(token)
         report["output"] = output.model_dump(mode="json", exclude={"path"})
         report["output"].update(filename="output.mp4", sha256=content_hash(temporary_output, token))
+        report["previews"] = create_previews(temporary_output, rules, work, token)
+        if content_hash(source_path, token) != source_hash:
+            raise ReelsError("source_changed", "Source changed while processing; submit it again.")
         report["elapsed_sec"] = time.monotonic() - started
         report["status"] = "success"
-        report["ffmpeg_version"] = execute([ffmpeg_bin(), "-version"], work / "version.log",
-                                            token, timeout=10, progress=False).splitlines()[0]
         os.replace(temporary_output, work / "output.mp4")
         atomic_json(work / "report.json", report)
         final.parent.mkdir(parents=True, exist_ok=True)

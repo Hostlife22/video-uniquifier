@@ -150,8 +150,12 @@ def compose_command(
     # the explicitly recorded BT.709 assumption. HDR uses the native tonemap.
     color = plan.source.video[0].color
     if not color.is_hdr:
-        input_color = color.space if color.space in {"bt709", "smpte170m", "bt470bg"} else "bt709"
-        graph += f";[{vlabel}]colorspace=iall={input_color}:all=bt709:range=tv[reels_color]"
+        space = "bt709" if color.space == "unknown" else color.space
+        primaries = "bt709" if color.primaries == "unknown" else color.primaries
+        transfer = "bt709" if color.transfer == "unknown" else color.transfer
+        color_range = "tv" if color.color_range == "unknown" else color.color_range
+        graph += (f";[{vlabel}]colorspace=ispace={space}:iprimaries={primaries}:"
+                  f"itrc={transfer}:irange={color_range}:all=bt709:range=tv[reels_color]")
         vlabel = "reels_color"
     inputs: list[str] = []
     for index, (path, begin, end) in enumerate(layers, start=1):

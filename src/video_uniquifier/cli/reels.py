@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 import json
+import os
 import signal
 import tempfile
 from pathlib import Path
 from typing import Annotated
+from uuid import uuid4
 
 import typer
 import yaml
@@ -18,6 +20,12 @@ from video_uniquifier.core.reels.runtime import ReelsError
 from video_uniquifier.core.runner import CancelToken
 
 app = typer.Typer(help="Local Reels delivery for owned/licensed video. No publishing or AI.")
+
+
+@app.command("schema")
+def schema_command() -> None:
+    """Print the independent business JSON Schema for editors and API clients."""
+    typer.echo(json.dumps(ReelsRules.model_json_schema(), ensure_ascii=False, indent=2))
 
 
 def _rules(path: Path | None) -> ReelsRules:
@@ -82,6 +90,7 @@ def run_command(
                 for sig in (signal.SIGINT, signal.SIGTERM)}
     try:
         business = _rules(rules)
+        job_id = job_id or uuid4().hex
 
         def notify(status: str, progress: float) -> None:
             if json_events:
@@ -98,6 +107,30 @@ def run_command(
     finally:
         for sig, handler in previous.items():
             signal.signal(sig, handler)
+
+
+@app.command("serve")
+def serve_command(
+    root: Annotated[Path, typer.Option("--root")] = Path("reels-jobs"),
+    rules: Annotated[Path | None, typer.Option("--rules")] = None,
+    asset_root: Annotated[Path | None, typer.Option("--asset-root")] = None,
+    port: Annotated[int, typer.Option("--port", min=1024, max=65535)] = 8765,
+) -> None:
+    """Serve the internal worker API on loopback; NestJS owns the public API/queue."""
+    try:
+        import uvicorn
+
+        from video_uniquifier.web.reels import build_reels_app
+        business = _rules(rules)
+        application = build_reels_app(root, {business.preset_id: business},
+                                      asset_root=asset_root or (
+                                          rules.parent if rules else Path.cwd()),
+                                      api_token=os.environ.get("VIDEO_REELS_API_TOKEN"))
+        uvicorn.run(application, host="127.0.0.1", port=port, workers=1)
+    except ImportError as error:
+        _fail(ValueError(f"Install the [web,scene] extras: {error}"))
+    except (OSError, ValueError, yaml.YAMLError, ReelsError) as error:
+        _fail(error)
 
 
 if __name__ == "__main__":

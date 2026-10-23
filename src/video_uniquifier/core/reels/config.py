@@ -191,6 +191,7 @@ class QualityRules(RulesModel):
     max_av_drift_ms: int = Field(default=100, ge=1, le=500)
     require_video_decode_check: bool = True
     sample_preview_seconds: int = Field(default=10, ge=1, le=180)
+    sample_preview_enabled: bool = True
     compare_against_source: bool = True
     no_external_platform_detection_claims: Literal[True] = True
 

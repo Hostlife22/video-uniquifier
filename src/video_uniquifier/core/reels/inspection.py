@@ -64,7 +64,7 @@ def scan_source(
     args += ["-sn", "-dn", "-fps_mode", "passthrough", "-f", "null", os.devnull]
     text = execute(args, work / "source-scan.log", token,
                    timeout=rules.worker.wall_timeout_sec)
-    found = re.search(r"VFR:([\d.]+).*?\(min:\s*(\d+)\s+max:\s*(\d+)", text)
+    found = re.search(r"VFR:([\d.]+).*?min:\s*(\d+)\s+max:\s*(\d+)", text)
     variable = False
     if found and float(found[1]) > 0:
         timebase = Fraction(video_details(details).get("time_base", "1/1000"))
@@ -105,6 +105,27 @@ def timing_evidence(details: dict[str, Any]) -> dict[str, float | None]:
     return {"start_drift_ms": abs(vs - ast) * 1000, "end_drift_ms": abs(ve - ae) * 1000}
 
 
+def has_faststart(path: Path) -> bool:
+    """Read MP4 top-level atom headers without loading the encoded payload."""
+    size = path.stat().st_size
+    with path.open("rb") as handle:
+        offset = 0
+        while offset + 8 <= size:
+            handle.seek(offset)
+            header = handle.read(8)
+            atom_size, kind = int.from_bytes(header[:4], "big"), header[4:]
+            minimum = 8
+            if atom_size == 1:
+                atom_size = int.from_bytes(handle.read(8), "big")
+                minimum = 16
+            if kind == b"moov":
+                return True
+            if kind == b"mdat" or atom_size < minimum:
+                return False
+            offset += atom_size
+    return False
+
+
 def inspect_delivery(
     path: Path, metadata: SourceMeta, details: dict[str, Any], rules: ReelsRules,
     expected_duration: float, expected_fps: str, token: CancelToken,
@@ -134,6 +155,9 @@ def inspect_delivery(
             failures.append("frame_rate")
     if metadata.container != "mp4":
         failures.append("container")
+    faststart = has_faststart(path)
+    if rules.video.faststart and not faststart:
+        failures.append("faststart")
     duration_delta = abs(metadata.duration_sec - expected_duration)
     if duration_delta > rules.quality_gate.max_duration_delta_sec:
         failures.append("duration")
@@ -174,6 +198,7 @@ def inspect_delivery(
     check_cancel(token)
     return {"status": "failed" if failures else "passed", "failures": sorted(set(failures)),
             "gates_enforced": rules.quality_gate.enabled, "decode": decode,
+            "faststart": faststart,
             "expected_duration_sec": expected_duration, "duration_delta_sec": duration_delta,
             "timing": timing, "loudness": loudness.model_dump(mode="json"),
             "listening_review": "manual_required", "subtitle_review": "manual_required",
