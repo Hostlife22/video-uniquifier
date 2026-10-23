@@ -14,6 +14,10 @@ the last tag.
 
 ### Fixed
 
+- Simplified Chinese covers desktop navigation, settings, processing, comparison
+  controls and page guides. Switching languages refreshes existing page captions
+  without rebuilding screens or changing input values, paths and selections.
+
 - Table selection controls find the native corner through its public button type
   after style polish, avoiding dependency on a private Qt class name. The file-search
   regression uses native paths on Windows.

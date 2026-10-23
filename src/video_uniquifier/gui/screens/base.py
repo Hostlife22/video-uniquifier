@@ -18,6 +18,7 @@ from PyQt6.QtWidgets import (
 
 from video_uniquifier.gui.design import Metrics, Space
 from video_uniquifier.gui.guides import GUIDES
+from video_uniquifier.gui.i18n.widgets import retranslate_widgets
 from video_uniquifier.gui.state import AppState
 from video_uniquifier.gui.widgets.page_guide import GuidePanel
 from video_uniquifier.gui.widgets.table_selection import install_selection_checkbox
@@ -109,6 +110,8 @@ class ScreenBase(QWidget):
             self.help_button.setFocus()
 
     def changeEvent(self, event: QEvent | None) -> None:
+        if event is not None and event.type() == QEvent.Type.LanguageChange:
+            retranslate_widgets(self)
         if (event is not None and event.type() == QEvent.Type.LanguageChange
                 and self._page_strings is not None):
             title, description = self._page_strings
@@ -130,6 +133,7 @@ class ScreenBase(QWidget):
         self.outer_layout.addWidget(bar)
 
     def showEvent(self, event: QShowEvent | None) -> None:
+        retranslate_widgets(self)
         for combo in self.findChildren(QComboBox):
             combo.setSizeAdjustPolicy(
                 QComboBox.SizeAdjustPolicy.AdjustToMinimumContentsLengthWithIcon,

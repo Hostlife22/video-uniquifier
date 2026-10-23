@@ -23,6 +23,8 @@ Bilingual style for v0.9 (en → ru):
 
 from __future__ import annotations
 
+from video_uniquifier.gui.i18n.zh_cn import STRINGS as ZH_CN_STRINGS
+
 # Source-of-truth list of every translatable string the v0.9 GUI
 # wraps. Add an entry here when you wrap a new string with tr().
 # Keep alphabetised within sections; section headers are comments.
@@ -723,3 +725,8 @@ _WORKSPACE_RU = {
 }
 SOURCE_KEYS = (*SOURCE_KEYS, *(key for key in _WORKSPACE_RU if key not in SOURCE_KEYS))
 TRANSLATIONS["ru_RU"].update(_WORKSPACE_RU)
+
+# Keep the source inventory shared across locales; missing entries in other
+# languages continue to fall back to English.
+SOURCE_KEYS = tuple(dict.fromkeys((*SOURCE_KEYS, *ZH_CN_STRINGS)))
+TRANSLATIONS["zh_CN"].update(ZH_CN_STRINGS)

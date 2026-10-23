@@ -393,10 +393,10 @@ def _maybe_prompt_telemetry_consent(parent: QMainWindow | None = None) -> None:
     if has_consent_marker():
         return
     box = QMessageBox(parent)
-    box.setWindowTitle("Local telemetry")
+    box.setWindowTitle(box.tr("Local telemetry"))
     box.setIcon(QMessageBox.Icon.Information)
-    box.setText("Help improve video-uniquifier with local-only telemetry?")
-    box.setInformativeText(
+    box.setText(box.tr("Help improve video-uniquifier with local-only telemetry?"))
+    box.setInformativeText(box.tr(
         "When enabled, each completed or failed encode appends one "
         "anonymous summary event (profile name, encoder, wall-clock, "
         "segment count, OS) to a JSONL file in your per-user data "
@@ -406,11 +406,11 @@ def _maybe_prompt_telemetry_consent(parent: QMainWindow | None = None) -> None:
         "from Settings → Local telemetry, or via "
         "`video-uniq telemetry status`.\n\n"
         "Your choice is remembered; change it any time in Settings."
-    )
+    ))
     from PyQt6.QtWidgets import QPushButton
-    enable_btn = box.addButton("&Enable", QMessageBox.ButtonRole.AcceptRole)
+    enable_btn = box.addButton(box.tr("&Enable"), QMessageBox.ButtonRole.AcceptRole)
     keep_disabled_btn = box.addButton(
-        "&Keep disabled", QMessageBox.ButtonRole.RejectRole,
+        box.tr("&Keep disabled"), QMessageBox.ButtonRole.RejectRole,
     )
     if isinstance(keep_disabled_btn, QPushButton):
         box.setDefaultButton(keep_disabled_btn)
