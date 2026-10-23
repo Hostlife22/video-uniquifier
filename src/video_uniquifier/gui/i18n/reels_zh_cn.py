@@ -69,6 +69,12 @@ STRINGS = {
     "Shot timeline": "镜头时间轴",
     "Processing details": "处理详情",
     "Play completed video": "播放成片",
+    "Completed video": "成片播放",
+    "Watch the completed video in the app.": "在应用内观看成片，可播放、暂停、拖动进度或逐帧检查。",
+    "Export saved. Compare the original and result in the app.":
+        "结果已保存，可以在应用内同步对比原片与成片，或单独播放成片。",
+    "Video file is unavailable. Check that the original and export still exist.":
+        "视频文件不可用，请确认原片和成片未被移动或删除。",
     "Open export folder": "打开结果文件夹",
     "Open quality report": "打开质量报告",
     "Reading video details…": "正在读取视频信息…",

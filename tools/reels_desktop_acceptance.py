@@ -13,7 +13,7 @@ import json
 import time
 from pathlib import Path
 
-from PyQt6.QtWidgets import QApplication
+from PyQt6.QtWidgets import QApplication, QWidget
 
 from video_uniquifier.core.reels.runtime import json_object
 from video_uniquifier.gui import state as state_module
@@ -32,7 +32,7 @@ def wait_for(app: QApplication, predicate, timeout: float = 120) -> None:
     app.processEvents()
 
 
-def capture(app: QApplication, window: MainWindow, path: Path) -> None:
+def capture(app: QApplication, window: QWidget, path: Path) -> None:
     for _ in range(12):
         app.processEvents()
         time.sleep(.025)
@@ -84,6 +84,19 @@ def main() -> None:
         report = json_object(page.result_directory / "report.json")
         assert report["quality_check"]["status"] == "passed"
         assert page.scene_table.rowCount() > 0
+        review = page._compare_dialog
+        assert review is not None and review.isVisible()
+        wait_for(app, lambda: all(frame.isValid() for frame in review._frames))
+        review.seek(1000)
+        wait_for(app, lambda: all(stamp >= 950000 for stamp in review._frame_times))
+        capture(app, review, args.screenshots / "delivery-comparison-zh.png")
+        page.open_video_btn.click()
+        playback = page._compare_dialog
+        assert playback is not None and playback is not review
+        wait_for(app, lambda: playback._frames[1].isValid())
+        assert playback.players[0].source().isEmpty()
+        capture(app, playback, args.screenshots / "delivery-playback-zh.png")
+        assert page._close_comparison()
         capture(app, window, args.screenshots / "delivery-result-zh.png")
         window.resize(980, 640)
         capture(app, window, args.screenshots / "delivery-small-zh.png")

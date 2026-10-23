@@ -44,20 +44,33 @@ class VideoCompareDialog(QDialog):
     Time sync preserves presentation time. Duration sync additionally maps
     positions/rates by clip duration for constant-tempo changes. Neither mode
     claims semantic registration across edits or arbitrary temporal transforms.
+    source_range bounds the original timeline in seconds after delivery trimming.
+    A missing source opens the candidate alone in the native player.
     """
 
     sample_selected = pyqtSignal(float)
 
     def __init__(
-        self, source: Path, candidate: Path | None = None, *, parent: QWidget | None = None,
+        self, source: Path | None, candidate: Path | None = None, *,
+        source_range: tuple[float, float] | None = None, parent: QWidget | None = None,
     ) -> None:
+        if source is None and candidate is None:
+            raise ValueError("Choose a video to review.")
+        if source_range is not None and (
+            not all(math.isfinite(value) for value in source_range)
+            or not 0 <= source_range[0] < source_range[1]
+        ):
+            raise ValueError("Source review range must have a finite start before its end.")
         super().__init__(parent)
-        self.setWindowTitle(self.tr("Before / after"))
+        self._review_title = "Completed video" if source is None else "Before / after"
+        self.setWindowTitle(self.tr(self._review_title))
         self.resize(Metrics.REVIEW_WIDTH, Metrics.REVIEW_HEIGHT)
         self.setMinimumSize(Metrics.REVIEW_MIN_WIDTH, Metrics.REVIEW_MIN_HEIGHT)
         self._playing = False
         self._position = 0
         self._durations = [0, 0]
+        self._source_range = (tuple(round(value * 1000) for value in source_range)
+                              if source_range is not None else None)
         self._frame_times = [0, 0]
         self._sizes = [QSize(), QSize()]
         self._paths = [source, candidate]
@@ -77,10 +90,12 @@ class VideoCompareDialog(QDialog):
         layout = QVBoxLayout(self)
         layout.setContentsMargins(Space.XL, Space.XL, Space.XL, Space.XL)
         layout.setSpacing(Space.LG)
-        title = QLabel(self.tr("Before / after"))
-        title.setObjectName("title")
-        layout.addWidget(title)
-        self.context = QLabel(source.name)
+        self.title = QLabel(self.tr(self._review_title))
+        self.title.setObjectName("title")
+        layout.addWidget(self.title)
+        review_path = source or candidate
+        assert review_path is not None
+        self.context = QLabel(review_path.name)
         self.context.setObjectName("hint")
         self.context.setWordWrap(True)
         layout.addWidget(self.context)
@@ -90,7 +105,7 @@ class VideoCompareDialog(QDialog):
         self.view_combo.addItem(self.tr("Side by side"), "both")
         self.view_combo.addItem(self.tr("Original only"), "source")
         self.view_combo.addItem(self.tr("Result only"), "candidate")
-        if candidate is not None:
+        if source is not None and candidate is not None:
             self.view_combo.addItem(self.tr("Draggable divider"), "wipe")
         mark(self.view_combo, "Comparison layout", "Choose which video panels are visible.")
         options.addWidget(self.view_combo)
@@ -239,8 +254,8 @@ class VideoCompareDialog(QDialog):
         self.wipe_timer.setInterval(Metrics.WIPE_REFRESH_MS)
         self.wipe_timer.timeout.connect(self._refresh_wipe)
         self.wipe_timer.start()
-        if candidate is None:
-            self.view_combo.setCurrentIndex(1)
+        if source is None or candidate is None:
+            self.view_combo.setCurrentIndex(2 if source is None else 1)
             self.view_combo.setEnabled(False)
             self.sync_combo.setEnabled(False)
             self.audio_combo.setEnabled(False)
@@ -257,14 +272,23 @@ class VideoCompareDialog(QDialog):
     def _limit(self) -> int:
         if self.master_index == 0:
             return self._durations[0]
+        if self._paths[0] is None:
+            return self._durations[1]
         if self.sync_combo.currentData() == "duration":
             return self._durations[1]
-        return min(self._durations)
+        return min(self._reference_duration(), self._durations[1])
+
+    def _reference_duration(self) -> int:
+        if self._source_range is None:
+            return self._durations[0]
+        start, end = self._source_range
+        return max(0, min(end, self._durations[0]) - start)
 
     def _reference_position(self, position: int) -> int:
+        start = self._source_range[0] if self._source_range is not None else 0
         if self.sync_combo.currentData() == "duration" and self._durations[1] > 0:
-            return round(position * self._durations[0] / self._durations[1])
-        return position
+            return start + round(position * self._reference_duration() / self._durations[1])
+        return start + position
 
     def _duration(self, side: int, duration: int) -> None:
         self._durations[side] = duration
@@ -292,7 +316,10 @@ class VideoCompareDialog(QDialog):
         if self._closed or self._playing:
             return
         self.players[side].pause()
-        self.players[side].setPosition(1)
+        self.players[side].setPosition(
+            self._reference_position(self._position) + 1 if side == 0
+            and self.master_index == 1 else self._position + 1,
+        )
 
     def _frame(self, side: int, frame: QVideoFrame) -> None:
         if self._closed or not frame.isValid():
@@ -350,7 +377,7 @@ class VideoCompareDialog(QDialog):
     def seek(self, position: int) -> None:
         self._position = min(max(position, 0), self._limit())
         self.players[self.master_index].setPosition(self._position)
-        if self.master_index == 1:
+        if self.master_index == 1 and self._paths[0] is not None:
             self.players[0].setPosition(self._reference_position(self._position))
         previous = self.timeline.blockSignals(True)
         self.timeline.setValue(self._position)
@@ -449,7 +476,7 @@ class VideoCompareDialog(QDialog):
             self.pause()
             return
         self._position = position
-        if self.master_index == 1:
+        if self.master_index == 1 and self._paths[0] is not None:
             expected = self._reference_position(position)
             if abs(self.players[0].position() - expected) > Metrics.REVIEW_SYNC_TOLERANCE_MS:
                 self.players[0].setPosition(expected)
@@ -566,14 +593,23 @@ class VideoCompareDialog(QDialog):
         ratio = 1.0
         if (self.sync_combo.currentData() == "duration"
                 and all(duration > 0 for duration in self._durations)):
-            ratio = self._durations[0] / self._durations[1]
+            ratio = self._reference_duration() / self._durations[1]
         self.players[0].setPlaybackRate(ratio)
         self.timeline.setRange(0, self._limit())
         if not self._has_error:
             self.message.setText(self.tr(
+                "Watch the completed video in the app." if self._paths[0] is None else
                 "Shared time; choose duration sync when the clip tempo changes.",
             ))
         self.seek(self._position)
+
+    def reject(self) -> None:
+        # QDialog's Escape shortcut normally hides without a close event.
+        # Route it through player/worker cleanup before allowing rejection.
+        if self._closed:
+            super().reject()
+        else:
+            self.close()
 
     def closeEvent(self, event: QCloseEvent | None) -> None:
         if self._closed:
@@ -615,7 +651,8 @@ class VideoCompareDialog(QDialog):
 
     def changeEvent(self, event: QEvent | None) -> None:
         if event is not None and event.type() == QEvent.Type.LanguageChange:
-            self.setWindowTitle(self.tr("Before / after"))
+            self.setWindowTitle(self.tr(self._review_title))
+            self.title.setText(self.tr(self._review_title))
             if hasattr(self, "play_btn"):
                 self.play_btn.setText(self.tr("Pause" if self._playing else "Play"))
                 self.previous_btn.setText(self.tr("Previous frame"))

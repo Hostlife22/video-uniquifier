@@ -9,7 +9,7 @@ from typing import Any
 
 import yaml
 from PyQt6.QtCore import QEvent, Qt, QUrl
-from PyQt6.QtGui import QDesktopServices, QPixmap, QResizeEvent
+from PyQt6.QtGui import QDesktopServices, QHideEvent, QPixmap, QResizeEvent
 from PyQt6.QtWidgets import (
     QAbstractButton,
     QFileDialog,
@@ -39,6 +39,7 @@ from video_uniquifier.gui.widgets.file_picker import FilePickerRow
 from video_uniquifier.gui.widgets.reels_options import ReelsOptions
 from video_uniquifier.gui.widgets.studio_preview import StudioPreview
 from video_uniquifier.gui.widgets.surfaces import Disclosure, SectionCard
+from video_uniquifier.gui.widgets.video_compare import VideoCompareDialog
 from video_uniquifier.gui.widgets.workflow_navigation import WorkflowNavigation
 from video_uniquifier.gui.workers.probe_worker import ProbeWorker
 from video_uniquifier.gui.workers.reels_worker import ReelsMode, ReelsWorker
@@ -66,6 +67,10 @@ class ReelsScreen(ScreenBase):
         self.result_directory: Path | None = None
         self.sample_directory: Path | None = None
         self.last_report: dict[str, Any] | None = None
+        self._review_pair: tuple[Path, Path] | None = None
+        self._review_source_range: tuple[float, float] | None = None
+        self._compare_dialog: VideoCompareDialog | None = None
+        self._reveal_comparison = False
         self._sample_fingerprint: str | None = None
         self._preflight_fingerprint: str | None = None
         self._preview_storage = TemporaryDirectory(prefix="video_reels_preview_")
@@ -272,22 +277,33 @@ class ReelsScreen(ScreenBase):
         layout.addWidget(self.result_scroll, stretch=1)
         self.result_actions = QWidget()
         self.result_actions.setObjectName("action_bar")
-        row = QHBoxLayout(self.result_actions)
-        row.setContentsMargins(Space.PAGE, Space.SM, Space.PAGE, Space.SM)
+        actions = QVBoxLayout(self.result_actions)
+        actions.setContentsMargins(Space.PAGE, Space.SM, Space.PAGE, Space.SM)
+        row = QHBoxLayout()
+        self.compare_btn = QPushButton(self.tr("Compare before / after"))
+        self.compare_btn.setProperty("variant", "primary")
+        self.compare_btn.clicked.connect(lambda: self._open_comparison())
+        row.addWidget(self.compare_btn)
         self.open_video_btn = QPushButton(self.tr("Play completed video"))
-        self.open_video_btn.clicked.connect(lambda: self._open_artifact("output.mp4"))
+        self.open_video_btn.clicked.connect(lambda: self._open_comparison(result_only=True))
         row.addWidget(self.open_video_btn)
+        row.addStretch(1)
+        actions.addLayout(row)
+        artifacts = QHBoxLayout()
         self.open_folder_btn = QPushButton(self.tr("Open export folder"))
         self.open_folder_btn.clicked.connect(lambda: self._open_artifact(""))
-        row.addWidget(self.open_folder_btn)
+        artifacts.addWidget(self.open_folder_btn)
         self.open_report_btn = QPushButton(self.tr("Open quality report"))
         self.open_report_btn.clicked.connect(lambda: self._open_artifact("report.json"))
-        row.addWidget(self.open_report_btn)
-        row.addStretch(1)
+        artifacts.addWidget(self.open_report_btn)
+        artifacts.addStretch(1)
+        actions.addLayout(artifacts)
         self.outer_layout.addWidget(self.result_actions)
         self.result_actions.hide()
 
     def _show_step(self, index: int) -> None:
+        if self._compare_dialog is not None:
+            self._compare_dialog.pause()
         for preview in (self.source_preview, self.review_preview):
             preview.pause()
         self.pages.setCurrentIndex(index)
@@ -423,6 +439,8 @@ class ReelsScreen(ScreenBase):
             self.details_text.setPlainText(str(exc))
             self.details.set_expanded(True)
             return
+        if not self._close_comparison():
+            return
         root = (Path(self.output_folder.text()).expanduser() if mode == "export"
                 else Path(self._preview_storage.name))
         worker = ReelsWorker(source, rules, root, mode=mode, assets=assets)
@@ -435,6 +453,9 @@ class ReelsScreen(ScreenBase):
         self.review_preview.pause()
         self.progress_bar.setValue(0)
         if mode == "export":
+            self._review_pair = None
+            self._review_source_range = None
+            self._reveal_comparison = False
             self.result_directory = None
             self.result_actions.hide()
             self.scene_table.hide()
@@ -489,6 +510,12 @@ class ReelsScreen(ScreenBase):
             return
         self.result_directory = directory
         self.last_report = report
+        self._review_pair = (self._active_source, directory / "output.mp4")
+        self._review_source_range = (
+            self._active_rules.scenes.trim_start_sec,
+            report["source"]["duration_sec"] - self._active_rules.scenes.trim_end_sec,
+        )
+        self._reveal_comparison = self.isVisible() and self.navigation.currentIndex() == 3
         self.progress_bar.setValue(1000)
         self.progress_text.setText(self.tr("Delivery complete"))
         self.result_heading.setText(self.tr("Your Reels video is ready"))
@@ -514,7 +541,7 @@ class ReelsScreen(ScreenBase):
                 self.scene_table.setItem(row, column, QTableWidgetItem(
                     str(value) if column == 0 else f"{value:.2f} s"))
         self.scene_table.setVisible(bool(scenes))
-        self._set_feedback(self.tr("Export saved. Open the video or its quality report."))
+        self._set_feedback(self.tr("Export saved. Compare the original and result in the app."))
         self._record_history(report)
 
     def _record_history(self, report: dict[str, Any]) -> None:
@@ -554,6 +581,10 @@ class ReelsScreen(ScreenBase):
         if worker is not None:
             worker.deleteLater()
         self._refresh_controls()
+        if self._reveal_comparison:
+            self._reveal_comparison = False
+            if self.isVisible() and self.navigation.currentIndex() == 3:
+                self._open_comparison()
 
     def _cancel(self) -> None:
         if self.worker is not None:
@@ -585,10 +616,48 @@ class ReelsScreen(ScreenBase):
                 Qt.TransformationMode.SmoothTransformation))
 
     def _open_artifact(self, name: str) -> None:
+        if name == "output.mp4":
+            self._open_comparison(result_only=True)
+            return
         if self.result_directory is not None:
             path = self.result_directory / name
             if path.exists():
                 QDesktopServices.openUrl(QUrl.fromLocalFile(str(path.resolve())))
+
+    def _close_comparison(self) -> bool:
+        if self._compare_dialog is not None:
+            if not self._compare_dialog.close():
+                return False
+            self._compare_dialog.deleteLater()
+            self._compare_dialog = None
+        return True
+
+    def _open_comparison(self, *, result_only: bool = False) -> None:
+        if self._review_pair is None:
+            return
+        source, candidate = self._review_pair
+        if not candidate.is_file() or (not result_only and not source.is_file()):
+            self._set_feedback(self.tr(
+                "Video file is unavailable. Check that the original and export still exist.",
+            ), error=True)
+            return
+        if not self._close_comparison():
+            return
+        self.source_preview.pause()
+        self.review_preview.pause()
+        dialog = VideoCompareDialog(
+            None if result_only else source, candidate,
+            source_range=None if result_only else self._review_source_range, parent=self,
+        )
+        dialog.wipe.set_theme(self.state.theme)
+        self.state.theme_changed.connect(dialog.wipe.set_theme)
+        self._compare_dialog = dialog
+        dialog.show()
+
+    def hideEvent(self, event: QHideEvent | None) -> None:
+        if self._compare_dialog is not None:
+            self._compare_dialog.pause()
+        super().hideEvent(event)
 
     def _import_rules(self) -> None:
         filename, _ = QFileDialog.getOpenFileName(self, self.tr("Load configuration…"), "",
@@ -625,6 +694,8 @@ class ReelsScreen(ScreenBase):
     def shutdown_workers(self, wait_ms: int = 16000) -> bool:
         stopped = super().shutdown_workers(wait_ms)
         if stopped:
+            if not self._close_comparison():
+                return False
             self.source_preview.shutdown()
             self.review_preview.shutdown()
             self._preview_storage.cleanup()

@@ -9,6 +9,7 @@ from types import SimpleNamespace
 import pytest
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QShortcut
+from PyQt6.QtMultimedia import QMediaPlayer
 from PyQt6.QtWidgets import QFileDialog
 
 from video_uniquifier.core.reels.config import ReelsRules
@@ -125,6 +126,9 @@ def test_reels_entry_and_all_steps_fit_small_windows(
     assert window.rect().contains(
         page.open_video_btn.mapTo(window, page.open_video_btn.rect().bottomRight()),
     )
+    for button in (page.compare_btn, page.open_folder_btn, page.open_report_btn):
+        assert button.isVisible()
+        assert window.rect().contains(button.mapTo(window, button.rect().bottomRight()))
     window._navigate_to("Batch")
     assert window.stack.currentIndex() == 1
     assert window.sidebar.currentItem() is window.sidebar_items["Batch"]
@@ -209,8 +213,154 @@ def test_changed_settings_invalidate_sample_but_keep_completed_artifacts(
     opened = []
     monkeypatch.setattr("video_uniquifier.gui.screens.reels.QDesktopServices.openUrl",
                         lambda url: opened.append(Path(url.toLocalFile())))
+    screen._open_artifact("")
+    assert opened == [screen.result_directory]
+
+
+@pytest.fixture
+def completed_review(screen, tmp_path, monkeypatch):
+    monkeypatch.setattr(QMediaPlayer, "setSource", lambda *args: None)
+    source = tmp_path / "original.mp4"
+    source.touch()
+    directory = tmp_path / "completed"
+    directory.mkdir()
+    (directory / "output.mp4").touch()
+    report = {
+        "source": {"duration_sec": 30},
+        "output": {"duration_sec": 25, "video": [{"width": 720, "height": 1280}]},
+        "quality_check": {"status": "passed"}, "delivery_fps": 30,
+        "warnings": [], "plan_hash": "review-test",
+    }
+    (directory / "report.json").write_text(json.dumps(report))
+    screen._active_source = source
+    screen._active_rules = ReelsRules()
+    screen._active_rules.scenes.trim_start_sec = 2
+    screen._active_rules.scenes.trim_end_sec = 3
+    screen._completed({"mode": "export", "directory": directory, "report": report})
+    return source, directory
+
+
+def test_delivery_comparison_keeps_export_pair_and_trim_after_settings_change(
+    screen, completed_review, tmp_path,
+):
+    source, directory = completed_review
+    screen.input_picker.current_path = lambda: tmp_path / "new.mp4"
+    screen.options.trim_start.setValue(7)
+    screen.output_folder.setText(str(tmp_path / "next-export"))
+    screen.compare_btn.click()
+    dialog = screen._compare_dialog
+    assert dialog is not None and dialog.isVisible()
+    assert dialog._paths == [source, directory / "output.mp4"]
+    assert dialog._source_range == (2000, 27000)
+    dialog._durations = [30000, 25000]
+    assert dialog._reference_position(5000) == 7000
+    assert dialog._limit() == 25000
+    assert dialog.view_combo.currentData() == "both"
+    assert dialog.audio_combo.currentData() == 1
+
+
+def test_completed_video_is_internal_and_works_without_original(
+    screen, completed_review, monkeypatch, qapp,
+):
+    source, directory = completed_review
+    source.unlink()
+    opened = []
+    monkeypatch.setattr("video_uniquifier.gui.screens.reels.QDesktopServices.openUrl",
+                        lambda url: opened.append(url.toLocalFile()))
+    screen.compare_btn.click()
+    assert screen.feedback.property("error")
+    assert screen._compare_dialog is None
+    screen.open_video_btn.click()
+    dialog = screen._compare_dialog
+    assert dialog is not None and dialog.isVisible()
+    assert dialog._paths == [None, directory / "output.mp4"]
+    assert dialog.view_combo.currentData() == "candidate"
+    assert dialog.panels[0].isHidden()
+    assert dialog.windowTitle() == "Completed video"
+    install_translator(qapp, "zh_CN")
+    qapp.processEvents()
+    assert dialog.windowTitle() == "成片播放"
     screen._open_artifact("output.mp4")
-    assert opened == [output]
+    assert dialog._closed
+    assert screen._compare_dialog is not dialog
+    assert not opened
+    screen._open_artifact("report.json")
+    assert opened == [str(directory / "report.json")]
+
+
+def test_missing_completed_file_produces_inline_error(screen, completed_review):
+    _, directory = completed_review
+    (directory / "output.mp4").unlink()
+    screen.open_video_btn.click()
+    assert screen.feedback.property("error")
+    assert screen._compare_dialog is None
+
+
+def test_review_pauses_on_navigation_and_releases_players_on_shutdown(
+    screen, completed_review,
+):
+    screen.show()
+    screen.navigation.setCurrentIndex(3)
+    screen.compare_btn.click()
+    dialog = screen._compare_dialog
+    dialog._durations = [30000, 25000]
+    dialog.toggle_play()
+    assert dialog._playing
+    screen.navigation.setCurrentIndex(1)
+    assert not dialog._playing
+    dialog.toggle_play()
+    screen.hide()
+    assert not dialog._playing
+    assert screen.shutdown_workers()
+    assert dialog._closed and not dialog.timer.isActive()
+    assert screen._compare_dialog is None
+
+
+@pytest.mark.parametrize("background", [False, True])
+def test_auto_review_only_opens_when_completed_export_is_visible(
+    screen, completed_review, background,
+):
+    screen.show()
+    screen.navigation.setCurrentIndex(3)
+    screen._reveal_comparison = True
+    if background:
+        screen.hide()
+    screen._worker_finished()
+    assert (screen._compare_dialog is None) == background
+    assert not screen._reveal_comparison
+
+
+def test_busy_frame_lookup_defers_replacing_and_closing_review(
+    screen, completed_review, monkeypatch,
+):
+    source, directory = completed_review
+    screen.compare_btn.click()
+    dialog = screen._compare_dialog
+    with monkeypatch.context() as pending:
+        pending.setattr(dialog, "close", lambda: False)
+        screen.open_video_btn.click()
+        assert screen._compare_dialog is dialog
+        assert not screen.shutdown_workers()
+        screen.input_picker.current_path = lambda: source
+        screen.output_folder.setText(str(directory.parent / "new"))
+        screen._start("export")
+        assert screen.worker is None
+
+
+def test_new_export_releases_previous_review_and_clears_pair(
+    screen, completed_review, monkeypatch,
+):
+    source, directory = completed_review
+    monkeypatch.setattr(ReelsWorker, "start", lambda self: None)
+    screen.compare_btn.click()
+    dialog = screen._compare_dialog
+    screen.input_picker.current_path = lambda: source
+    screen.output_folder.setText(str(directory.parent / "new"))
+    screen._start("export")
+    assert screen.worker is not None
+    assert screen._review_pair is None and screen._review_source_range is None
+    assert screen.result_directory is None
+    assert screen._compare_dialog is None and dialog._closed
 
 
 def test_actionable_failure_and_cancellation_keep_details(screen):

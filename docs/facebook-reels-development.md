@@ -1,5 +1,26 @@
 # Facebook Reels implementation log
 
+## In-app delivery review (2026-10-23)
+
+- Reused `VideoCompareDialog` for completed delivery exports. The result page has a
+  primary before/after comparison action and a separate in-app result-only player;
+  neither video action invokes the system default player. Folder/report actions remain available.
+- Export review retains the completed source/output pair and trims its reference timeline
+  to the exact start/end selected for that export. Later form changes do not replace it.
+  Duration synchronization scales the retained interval instead of the entire source.
+- Visible export completion opens the comparison; background completion leaves other work
+  undisturbed. Navigation pauses review, and replacement, shutdown and Escape release media.
+  Result-only playback also works when the original file has moved or been deleted.
+- Validation: **2137 passed, 2 skipped** in unit/contract/desktop smoke regression;
+  **109 passed** in focused review/delivery tests including real export and cancellation;
+  **11 passed** with native macOS/Cocoa media playback. Reviewed screen/player modules have
+  **86.2% branch-aware coverage**. GUI mypy, Ruff and wheel build pass.
+- Native acceptance re-exports the 10-second synthetic source, seeks both comparison
+  players and checks the standalone result player. Result/small-window screenshots and
+  new comparison/playback layouts are recorded in `docs/screenshots/delivery-*`.
+  QWidget captures omit native GPU video surfaces; decoded frames and transport are checked
+  by acceptance assertions and real-media integration tests.
+
 ## Desktop delivery workflow (2026-10-23)
 
 - Added **Workspace → Video delivery** (Chinese: **工作区 → 视频交付**). Reels identifies
