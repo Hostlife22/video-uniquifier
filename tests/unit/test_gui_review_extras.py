@@ -452,7 +452,7 @@ def test_global_banner_survives_navigation_and_hides_after_completion(gui_window
     screen.status_label.setText("Video 42%")
     screen.progress_bar.setRange(0, 1000)
     screen.progress_bar.setValue(420)
-    window.sidebar.setCurrentRow(9)
+    window._navigate_to("Settings")
     window._refresh_activity()
     assert not window.activity_banner.isHidden()
     assert window.activity_banner.progress.value() == 420

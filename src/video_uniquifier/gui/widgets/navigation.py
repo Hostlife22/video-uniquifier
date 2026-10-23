@@ -12,6 +12,8 @@ from video_uniquifier.gui.theme import tokens_for
 
 # A single outline family: 24-unit grid, rounded strokes, no raster dependencies.
 _PATHS = {
+    "Reels": '<rect x="6" y="2" width="12" height="20" rx="3"/>'
+             '<path d="m10 8 5 4-5 4Z"/>',
     "import": '<path d="M12 16V3m-5 5 5-5 5 5M4 15v4a2 2 0 0 0 2 2h12'
               'a2 2 0 0 0 2-2v-4"/>',
     "open": '<path d="M14 3h7v7m0-7L10 14M10 3H5a2 2 0 0 0-2 2v14'
@@ -41,14 +43,18 @@ _PATHS = {
 }
 
 NAV_LABELS = {
+    "Reels": "Video delivery",
     "Run": "Process video", "Batch": "Batch processing", "Calibrate": "Auto-tune",
     "QA Viewer": "Quality reports", "Profile Editor": "Profiles", "History": "History",
     "Corpus": "Reference library", "Queue": "Processing queue",
     "Validation": "Experiments", "Settings": "Settings",
 }
-NAV_GROUPS = {0: "WORKSPACE", 2: "TUNING & QUALITY", 5: "LIBRARY", 7: "TOOLS"}
+NAV_ORDER = ("Run", "Batch", "Reels", "Calibrate", "QA Viewer", "Profile Editor",
+             "History", "Corpus", "Queue", "Validation", "Settings")
+NAV_GROUPS = {0: "WORKSPACE", 3: "TUNING & QUALITY", 6: "LIBRARY", 8: "TOOLS"}
 
 NAV_DESCRIPTIONS = {
+    "Reels": "Vertical format and delivery checks",
     "Run": "Preview and export", "Batch": "Process a folder",
     "Calibrate": "Find suitable settings", "QA Viewer": "Compare output quality",
     "Profile Editor": "Manage processing recipes", "History": "Revisit previous results",

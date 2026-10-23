@@ -229,7 +229,7 @@ def test_every_screen_fits_a_small_window_and_primary_action_stays_visible(
     window.state.set_theme(theme)
     window.resize(980, 640)
     window.show()
-    window.sidebar.setCurrentRow(index)
+    window._navigate_to(SIDEBAR_ITEMS[index][0])
     for _ in range(3):
         qapp.processEvents()
     assert (window.width(), window.height()) == (980, 640)
@@ -264,7 +264,7 @@ def test_queue_and_validation_fit_with_long_paths_and_larger_text(
             label.setStyleSheet("font-size: 16px;")
     window.show()
     for index in (7, 8):
-        window.sidebar.setCurrentRow(index)
+        window._navigate_to(SIDEBAR_ITEMS[index][0])
         page = window.stack.currentWidget()
         for _ in range(3):
             qapp.processEvents()

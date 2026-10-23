@@ -183,11 +183,11 @@ def test_every_page_uses_chinese_after_boot_or_language_switch(
         assert QCoreApplication.translate("Navigation", group) == TRANSLATIONS["zh_CN"][group]
     for index, (source, _) in enumerate(SIDEBAR_ITEMS):
         page = window.stack.widget(index)
-        window.sidebar.setCurrentRow(index)
+        window._navigate_to(source)
         qapp.processEvents()
         assert window.stack.widget(index) is page
         title = TRANSLATIONS["zh_CN"][NAV_LABELS[source]]
-        assert window.sidebar.item(index).text() == title
+        assert window.sidebar_items[source].text() == title
         assert page.page_title.text() == title
         assert page.help_button.text() == "使用说明"
         page.toggle_guide()

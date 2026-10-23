@@ -54,7 +54,9 @@ class WorkflowSteps(QFrame):
     def set_compact(self, compact: bool) -> None:
         """Keep the current step visible in short desktop windows."""
         inset = Space.SM if compact else Space.MD
-        self.layout().setContentsMargins(Space.LG, inset, Space.LG, inset)
+        layout = self.layout()
+        if layout is not None:
+            layout.setContentsMargins(Space.LG, inset, Space.LG, inset)
         for _item, _title, hint in self._items:
             hint.setVisible(not compact)
 

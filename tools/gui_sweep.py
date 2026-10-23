@@ -38,6 +38,7 @@ SCREENS: dict[str, int] = {
     "Queue":          7,
     "Validation":     8,
     "Settings":       9,
+    "Reels":         10,
 }
 
 WINDOW_SIZE = (1280, 800)
@@ -88,8 +89,7 @@ def _capture_screen(window: object, label: str, out_dir: Path) -> Path:
     from PyQt6.QtCore import QSize
     from PyQt6.QtWidgets import QApplication
 
-    idx = SCREENS[label]
-    window.sidebar.setCurrentRow(idx)  # type: ignore[attr-defined]
+    window._navigate_to(label)  # type: ignore[attr-defined]
     app = QApplication.instance()
     assert app is not None
     app.processEvents()

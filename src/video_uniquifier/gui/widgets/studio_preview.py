@@ -336,7 +336,9 @@ class StudioPreview(QWidget):
         self.import_icon.setVisible(not compact)
         self.formats.setVisible(not compact)
         inset = Space.SM if compact else Space.LG
-        self.empty.layout().setContentsMargins(inset, inset, inset, inset)
+        layout = self.empty.layout()
+        if layout is not None:
+            layout.setContentsMargins(inset, inset, inset, inset)
 
     def hideEvent(self, event: QHideEvent | None) -> None:
         self.pause()

@@ -193,6 +193,18 @@ QWidget#sample_actions {{ border-top: 1px solid {border}; }}
 QFrame#workflow_steps {{
     background: {bg_alt}; border: 1px solid {border}; border-radius: {radius}px;
 }}
+QFrame#workflow_navigation {{ background: transparent; border: none; }}
+QPushButton#workflow_nav {{
+    background: {bg_alt}; border: 1px solid {border};
+    color: {fg_dim}; padding: {sm}px; border-radius: {control_radius}px;
+}}
+QPushButton#workflow_nav:checked {{
+    background: {selected_bg}; color: {selected_fg}; border-color: {accent}; font-weight: bold;
+}}
+QPushButton#workflow_nav:hover {{ border-color: {accent}; }}
+QLabel#workflow_feedback {{ color: {fg_dim}; padding: {sm}px 0px; }}
+QLabel#workflow_feedback[error="true"] {{ color: {accent_warm}; }}
+QLabel#safe_area_preview {{ background: {bg_deep}; border-radius: {radius}px; }}
 QFrame#workflow_step {{ background: transparent; border: none; }}
 QFrame#workflow_step QLabel {{ background: transparent; }}
 QLabel#step_number {{

@@ -13,6 +13,14 @@ class PageGuide:
 
 
 GUIDES: dict[str, PageGuide] = {
+    "Video delivery": PageGuide(
+        ("Choose a source video and an export folder.",
+         "Adjust delivery, audio and optional branding in separate settings tabs.",
+         "Check a short sample, then export the full video and review its quality report."),
+        ("A sample processes up to 10 seconds from the selected timeline.",
+         "Shot detection reports cuts without reordering or removing the story."),
+        "Review dialogue, subtitles and safe areas on a phone before publishing.",
+    ),
     "Process video": PageGuide(
         (
             "Choose a source video and a separate destination for the result.",

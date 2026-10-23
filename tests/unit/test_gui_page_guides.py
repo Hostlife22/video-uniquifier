@@ -33,8 +33,8 @@ def test_every_page_has_readable_optional_help_at_minimum_window_size(
     window.state.set_theme(theme)
     window.resize(980, 640)
     window.show()
-    for index, _item in enumerate(SIDEBAR_ITEMS):
-        window.sidebar.setCurrentRow(index)
+    for label, _version in SIDEBAR_ITEMS:
+        window._navigate_to(label)
         qapp.processEvents()
         screen = window.stack.currentWidget()
         assert isinstance(screen, ScreenBase)
@@ -69,7 +69,7 @@ def test_f1_opens_current_page_help_from_navigation_and_leaves_other_pages_alone
     first = window.stack.currentWidget()
     qtbot.keyClick(window.sidebar, Qt.Key.Key_F1)
     assert first.guide_panel.isVisible()
-    window.sidebar.setCurrentRow(9)
+    window._navigate_to("Settings")
     settings = window.stack.currentWidget()
     qtbot.keyClick(window.sidebar, Qt.Key.Key_F1)
     assert settings.guide_panel.isVisible()

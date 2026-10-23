@@ -23,6 +23,7 @@ Bilingual style for v0.9 (en → ru):
 
 from __future__ import annotations
 
+from video_uniquifier.gui.i18n.reels_zh_cn import STRINGS as REELS_ZH_CN_STRINGS
 from video_uniquifier.gui.i18n.zh_cn import STRINGS as ZH_CN_STRINGS
 
 # Source-of-truth list of every translatable string the v0.9 GUI
@@ -730,3 +731,18 @@ TRANSLATIONS["ru_RU"].update(_WORKSPACE_RU)
 # languages continue to fall back to English.
 SOURCE_KEYS = tuple(dict.fromkeys((*SOURCE_KEYS, *ZH_CN_STRINGS)))
 TRANSLATIONS["zh_CN"].update(ZH_CN_STRINGS)
+SOURCE_KEYS = tuple(dict.fromkeys((*SOURCE_KEYS, *REELS_ZH_CN_STRINGS)))
+TRANSLATIONS["zh_CN"].update(REELS_ZH_CN_STRINGS)
+TRANSLATIONS["ru_RU"].update({
+    "Choose a source video and an export folder.": "Выберите видео и папку результата.",
+    "Adjust delivery, audio and optional branding in separate settings tabs.":
+        "Настройте видео, звук, заголовок и логотип на отдельных вкладках.",
+    "Check a short sample, then export the full video and review its quality report.":
+        "Проверьте фрагмент, экспортируйте полное видео и откройте отчёт качества.",
+    "A sample processes up to 10 seconds from the selected timeline.":
+        "Фрагмент содержит до 10 секунд выбранного диапазона.",
+    "Shot detection reports cuts without reordering or removing the story.":
+        "Детекция кадров сохраняет порядок и содержание сцен.",
+    "Review dialogue, subtitles and safe areas on a phone before publishing.":
+        "Проверьте диалоги, субтитры и безопасные области на телефоне.",
+})

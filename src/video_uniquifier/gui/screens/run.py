@@ -50,6 +50,7 @@ from video_uniquifier.gui.widgets.segment_timeline import SegmentTimeline
 from video_uniquifier.gui.widgets.splitter import StudioSplitter
 from video_uniquifier.gui.widgets.studio_preview import StudioPreview
 from video_uniquifier.gui.widgets.surfaces import Disclosure, SectionCard
+from video_uniquifier.gui.widgets.workflow_navigation import WorkflowNavigation
 from video_uniquifier.gui.widgets.workflow_steps import WorkflowSteps
 from video_uniquifier.gui.workers.preflight_worker import PreflightWorker
 from video_uniquifier.gui.workers.probe_worker import ProbeWorker
@@ -155,7 +156,13 @@ class RunScreen(ScreenBase):
             "Choose a video, adjust processing and save the result.",
         )
         self.workflow_steps = WorkflowSteps()
-        layout.addWidget(self.workflow_steps)
+        self.workflow_steps.setParent(self)
+        self.workflow_steps.hide()
+        self.workflow_navigation = WorkflowNavigation((
+            "Source & preview", "Processing settings", "Progress & result",
+        ))
+        self.workflow_navigation.currentChanged.connect(self._show_workspace)
+        layout.addWidget(self.workflow_navigation)
 
         source = SectionCard("Video files")
         source.heading.hide()
@@ -424,6 +431,7 @@ class RunScreen(ScreenBase):
         self.input_picker.directory_label.hide()
         self.output_picker.directory_label.hide()
         layout.addWidget(source)
+        self.source_card = source
         self.source_thumbnail.hide()
         self.preview_source_btn.hide()
         self.preview = StudioPreview(self.state)
@@ -504,15 +512,34 @@ class RunScreen(ScreenBase):
         self.workspace_splitter.setSizes(list(Metrics.WORKSPACE_VERTICAL_SIZES))
         self.log_details.expanded_changed.connect(self._resize_log_panel)
         layout.addWidget(self.workspace_splitter, stretch=1)
+        self._show_workspace(0)
+
+    def _show_workspace(self, index: int) -> None:
+        """Keep one task visible while retaining the existing processing controls."""
+        self.preview.pause()
+        self.source_card.setVisible(index == 0)
+        self.workspace_top.setVisible(index < 2)
+        self.preview.setVisible(index == 0)
+        self.settings_panel.setVisible(index == 1)
+        self.progress_scroll.setVisible(index == 2)
+        self.log_details.setVisible(index == 2)
+        self.workspace_splitter.setSizes([
+            1000 if index < 2 else 0, 1000 if index == 2 else 0,
+            Metrics.LOG_HEIGHT if self.log_details.toggle.isChecked() else Metrics.CONTROL_HEIGHT,
+        ])
+        scrollbar = self.page_scroll.verticalScrollBar()
+        if scrollbar is not None:
+            scrollbar.setValue(0)
 
     def resizeEvent(self, event: QResizeEvent | None) -> None:
         super().resizeEvent(event)
         self.workflow_steps.set_compact(self.height() < 700)
 
     def _resize_log_panel(self, expanded: bool) -> None:
-        # Diagnostics take priority over the overview when vertical space is limited.
-        self.workflow_steps.setVisible(not expanded)
-        self.page_scroll.widget().layout().activate()
+        content = self.page_scroll.widget()
+        content_layout = content.layout() if content is not None else None
+        if content_layout is not None:
+            content_layout.activate()
         sizes = self.workspace_splitter.sizes()
         header_height = Metrics.CONTROL_HEIGHT
         self.log_details.setMaximumHeight(16_777_215 if expanded else header_height)
@@ -525,12 +552,7 @@ class RunScreen(ScreenBase):
             QTimer.singleShot(0, self._reveal_log_panel)
 
     def _show_progress_panel(self) -> None:
-        if self.progress_scroll.isHidden():
-            self.progress_scroll.show()
-            self.workspace_splitter.setSizes([
-                self.workspace_top.height(), Metrics.WORKSPACE_VERTICAL_SIZES[1],
-                self.log_details.height(),
-            ])
+        self.workflow_navigation.setCurrentIndex(2)
 
     def _reveal_log_panel(self) -> None:
         if self.log_details.toggle.isChecked():
@@ -593,6 +615,7 @@ class RunScreen(ScreenBase):
         if source != self.state.input_path or not self.sample_start.isEnabled():
             return
         self.sample_start.setValue(seconds)
+        self.workflow_navigation.setCurrentIndex(1)
         self.sample_controls.set_expanded(True)
         self.settings_scroll.ensureWidgetVisible(self.sample_start)
 
