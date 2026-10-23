@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from datetime import datetime
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -35,6 +36,7 @@ from video_uniquifier.core.reels.config import ReelsRules, load_rules
 from video_uniquifier.gui.design import Space
 from video_uniquifier.gui.screens.base import ScreenBase
 from video_uniquifier.gui.state import AppState, HistoryEntry
+from video_uniquifier.gui.widgets.delivery_report import DeliveryReportDialog
 from video_uniquifier.gui.widgets.file_picker import FilePickerRow
 from video_uniquifier.gui.widgets.reels_options import ReelsOptions
 from video_uniquifier.gui.widgets.studio_preview import StudioPreview
@@ -70,6 +72,7 @@ class ReelsScreen(ScreenBase):
         self._review_pair: tuple[Path, Path] | None = None
         self._review_source_range: tuple[float, float] | None = None
         self._compare_dialog: VideoCompareDialog | None = None
+        self._report_dialog: DeliveryReportDialog | None = None
         self._reveal_comparison = False
         self._sample_fingerprint: str | None = None
         self._preflight_fingerprint: str | None = None
@@ -619,10 +622,40 @@ class ReelsScreen(ScreenBase):
         if name == "output.mp4":
             self._open_comparison(result_only=True)
             return
+        if name == "report.json":
+            self._open_quality_report()
+            return
         if self.result_directory is not None:
             path = self.result_directory / name
             if path.exists():
                 QDesktopServices.openUrl(QUrl.fromLocalFile(str(path.resolve())))
+
+    def _open_quality_report(self) -> None:
+        if self.result_directory is None:
+            return
+        report = self.last_report
+        if report is None:
+            try:
+                report = json.loads((self.result_directory / "report.json").read_text(
+                    encoding="utf-8"))
+                if not isinstance(report, dict) or not all(
+                    isinstance(report.get(key), dict) for key in ("source", "output")
+                ):
+                    raise ValueError("Invalid delivery report")
+            except (OSError, ValueError):
+                self._set_feedback(self.tr(
+                    "Quality report is unavailable. Check the export folder.",
+                ), error=True)
+                return
+        if self._report_dialog is not None:
+            self._report_dialog.close()
+            self._report_dialog.deleteLater()
+        self.source_preview.pause()
+        self.review_preview.pause()
+        if self._compare_dialog is not None:
+            self._compare_dialog.pause()
+        self._report_dialog = DeliveryReportDialog(report, parent=self)
+        self._report_dialog.show()
 
     def _close_comparison(self) -> bool:
         if self._compare_dialog is not None:
@@ -694,6 +727,9 @@ class ReelsScreen(ScreenBase):
     def shutdown_workers(self, wait_ms: int = 16000) -> bool:
         stopped = super().shutdown_workers(wait_ms)
         if stopped:
+            if self._report_dialog is not None:
+                self._report_dialog.close()
+                self._report_dialog = None
             if not self._close_comparison():
                 return False
             self.source_preview.shutdown()

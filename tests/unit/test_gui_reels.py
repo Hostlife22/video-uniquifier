@@ -285,7 +285,52 @@ def test_completed_video_is_internal_and_works_without_original(
     assert screen._compare_dialog is not dialog
     assert not opened
     screen._open_artifact("report.json")
-    assert opened == [str(directory / "report.json")]
+    assert not opened
+    assert screen._report_dialog is not None and screen._report_dialog.isVisible()
+    assert screen._report_dialog.windowTitle() == "视频交付质量报告"
+
+
+def test_quality_report_uses_export_snapshot_and_replaces_old_window(
+    screen, completed_review, monkeypatch,
+):
+    _, directory = completed_review
+    monkeypatch.setattr("video_uniquifier.gui.screens.reels.QDesktopServices.openUrl",
+                        lambda url: pytest.fail("Report must open inside the app"))
+    (directory / "report.json").unlink()
+    screen.open_report_btn.click()
+    first = screen._report_dialog
+    assert first is not None and first.isVisible()
+    assert first.comparison.item(2, 2).text() == "25.000 s"
+    screen.options.trim_start.setValue(7)
+    assert first.comparison.item(2, 2).text() == "25.000 s"
+    screen.open_report_btn.click()
+    assert not first.isVisible()
+    assert screen._report_dialog is not first
+    assert screen.shutdown_workers()
+    assert screen._report_dialog is None
+
+
+def test_quality_report_loads_existing_export_when_snapshot_is_missing(
+    screen, completed_review,
+):
+    screen.last_report = None
+    screen.open_report_btn.click()
+    assert screen._report_dialog is not None
+    assert screen._report_dialog.comparison.item(0, 2).text() == "720 × 1280"
+
+
+@pytest.mark.parametrize("data", [None, "[", "[]", '{"source": null, "output": {}}'])
+def test_unreadable_quality_report_is_an_inline_error(screen, completed_review, data):
+    _, directory = completed_review
+    screen.last_report = None
+    path = directory / "report.json"
+    if data is None:
+        path.unlink()
+    else:
+        path.write_text(data)
+    screen.open_report_btn.click()
+    assert screen._report_dialog is None
+    assert screen.feedback.property("error")
 
 
 def test_missing_completed_file_produces_inline_error(screen, completed_review):
@@ -486,6 +531,13 @@ def test_desktop_real_preflight_sample_and_full_export(screen, tiny_clip, tmp_pa
     assert screen.open_video_btn.isVisible()
     assert screen.scene_table.isHidden()
     assert screen.state.history[0].output_path == str(result / "output.mp4")
+    screen.open_report_btn.click()
+    report_dialog = screen._report_dialog
+    assert report_dialog is not None and report_dialog.isVisible()
+    assert report_dialog.comparison.item(0, 2).text() == "720 × 1280"
+    assert report_dialog.comparison.item(2, 2).text() == "2.000 s"
+    assert report_dialog.summary.text() == "Technical QA: Passed"
+    report_dialog.close()
 
     # A real second encode is cancelled as soon as the core enters processing.
     screen._start("export")

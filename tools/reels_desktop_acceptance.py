@@ -97,6 +97,14 @@ def main() -> None:
         assert playback.players[0].source().isEmpty()
         capture(app, playback, args.screenshots / "delivery-playback-zh.png")
         assert page._close_comparison()
+        page.open_report_btn.click()
+        quality_dialog = page._report_dialog
+        assert quality_dialog is not None and quality_dialog.isVisible()
+        assert quality_dialog.comparison.rowCount() == 10
+        capture(app, quality_dialog, args.screenshots / "delivery-quality-comparison-zh.png")
+        quality_dialog.tabs.setCurrentIndex(1)
+        capture(app, quality_dialog, args.screenshots / "delivery-quality-checks-zh.png")
+        quality_dialog.close()
         capture(app, window, args.screenshots / "delivery-result-zh.png")
         window.resize(980, 640)
         capture(app, window, args.screenshots / "delivery-small-zh.png")

@@ -1,5 +1,22 @@
 # Facebook Reels implementation log
 
+## Tabular desktop quality reports (2026-10-23)
+
+- Delivery's quality-report action opens a native window with source/output columns
+  for resolution, frame rate, duration, codecs, bitrates, file size, measured loudness,
+  sample rate and channel count. A second tab shows technical checks, A/V drift,
+  measured true peak, warnings and outstanding human review.
+- Values come from the completed export snapshot; missing measurements are explicit.
+  Form changes and removal of the JSON file do not alter an already available snapshot.
+  Existing report files can also be loaded, with unreadable reports handled inline.
+  The JSON artifact remains available to CLI/API consumers without changes to core schema.
+- Chinese/English switching, minimum window layout, missing audio, malformed/missing
+  values, failures, snapshot isolation and real export handoff are tested. The report
+  widget has **98.7% branch-aware coverage**. Native Cocoa screenshots are recorded as
+  `docs/screenshots/delivery-quality-{comparison,checks}-zh.png` using synthetic footage.
+- Final unit/contract/desktop smoke recheck: **2155 passed, 2 skipped**. GUI mypy
+  (74 files), Ruff and wheel build pass.
+
 ## In-app delivery review (2026-10-23)
 
 - Reused `VideoCompareDialog` for completed delivery exports. The result page has a
