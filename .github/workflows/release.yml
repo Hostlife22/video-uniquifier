@@ -14,7 +14,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        mode: [native, debugger]
+        mode: [debugger]
     steps:
       - uses: actions/checkout@v7
         with:
@@ -38,10 +38,10 @@ jobs:
         run: |
           ulimit -c unlimited
           sudo sysctl -w kernel.core_pattern="$PWD/core.qt.%p"
-          for attempt in 1 2 3 4 5 6; do
+          for attempt in 1 2 3 4 5 6 7 8 9 10; do
             echo "Coverage repetition $attempt ($DIAGNOSTIC_MODE)"
             if [ "$DIAGNOSTIC_MODE" = debugger ]; then
-              gdb --return-child-result --batch -ex 'set pagination off' -ex 'run' -ex 'thread apply all bt' --args python -X faulthandler -m pytest -q -m 'not integration and not visual' --cov=video_uniquifier.core --cov-report=term --cov-fail-under=80 || exit $?
+              gdb --return-child-result --batch -ex 'set pagination off' -ex 'run' -ex 'thread apply all bt' -ex 'py-bt' -ex 'info registers' -ex 'x/16i $pc-24' --args python -X faulthandler -m pytest -q -m 'not integration and not visual' --cov=video_uniquifier.core --cov-report=term --cov-fail-under=80 || exit $?
             else
               python -X faulthandler -m pytest -q -m 'not integration and not visual' --cov=video_uniquifier.core --cov-report=term --cov-fail-under=80 || {
                 result=$?
