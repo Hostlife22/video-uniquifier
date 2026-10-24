@@ -16,7 +16,7 @@ PRESETS = {
                    "Audio: pitch, equalizer and loudness normalization."),
 }
 SHORT_TITLES = {"soft": "Gentle", "medium": "Medium", "aggressive": "Strong"}
-SHORT_HINTS = {"soft": "Subtle", "medium": "Moderate", "aggressive": "Intense"}
+SHORT_HINTS = {"soft": "Natural look", "medium": "Visible changes", "aggressive": "Bold changes"}
 
 
 class ProfileCards(QWidget):
@@ -24,6 +24,7 @@ class ProfileCards(QWidget):
 
     def __init__(self) -> None:
         super().__init__()
+        self.setObjectName("profile_cards")
         self.buttons: dict[str, QPushButton] = {}
         self.labels: dict[str, list[QLabel]] = {}
         self._label_measurements: dict[QLabel, tuple[str, str, int, int]] = {}
@@ -42,6 +43,7 @@ class ProfileCards(QWidget):
             button = QPushButton()
             button.setObjectName("profile_card")
             button.setCheckable(True)
+            button.setCursor(Qt.CursorShape.PointingHandCursor)
             button.setMinimumHeight(Metrics.PROFILE_CARD_HEIGHT)
             button.installEventFilter(self)
             column = QVBoxLayout(button)

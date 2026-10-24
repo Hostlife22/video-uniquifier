@@ -3,7 +3,7 @@
 A ``RunEvent.kind`` is a wire-format identifier: third-party GUI
 consumers, telemetry pipelines, and webhook handlers match on the
 exact string. Adding a kind is MINOR; removing or renaming one is
-MAJOR and requires an RFC per ``docs/versioning.md``.
+MAJOR and requires an RFC per ``docs/en/versioning.md``.
 
 We also snapshot the structure of the ``RunEvent`` dataclass
 itself so a refactor that, say, renamed ``payload`` to ``data``

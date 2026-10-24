@@ -12,20 +12,18 @@ from video_uniquifier.gui.state import AppState
 
 
 @pytest.fixture(scope="module")
-def app() -> QApplication:
-    inst = QApplication.instance()
-    if inst is None:
-        return QApplication([])
-    return inst
+def app(qapp) -> QApplication:
+    return qapp
 
 
-def test_profile_editor_loads_cid_aware(app: QApplication, tmp_path: Path,
+def test_profile_editor_loads_cid_aware(qtbot, app: QApplication, tmp_path: Path,
                                          monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr("video_uniquifier.gui.state.CONFIG_DIR", tmp_path)
     monkeypatch.setattr("video_uniquifier.gui.state.STATE_PATH", tmp_path / "s.json")
     monkeypatch.setattr("video_uniquifier.gui.state.HISTORY_PATH", tmp_path / "h.json")
     state = AppState()
     editor = ProfileEditorScreen(state)
+    qtbot.addWidget(editor)
     # Select cid_aware if present.
     idx = editor.profile_combo.findText("cid_aware")
     assert idx >= 0
@@ -35,13 +33,14 @@ def test_profile_editor_loads_cid_aware(app: QApplication, tmp_path: Path,
     assert editor.table.rowCount() > 0
 
 
-def test_profile_editor_save_as_writes_yaml(app: QApplication, tmp_path: Path,
+def test_profile_editor_save_as_writes_yaml(qtbot, app: QApplication, tmp_path: Path,
                                               monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr("video_uniquifier.gui.state.CONFIG_DIR", tmp_path)
     monkeypatch.setattr("video_uniquifier.gui.state.STATE_PATH", tmp_path / "s.json")
     monkeypatch.setattr("video_uniquifier.gui.state.HISTORY_PATH", tmp_path / "h.json")
     state = AppState()
     editor = ProfileEditorScreen(state)
+    qtbot.addWidget(editor)
     idx = editor.profile_combo.findText("cid_aware")
     if idx >= 0:
         editor.profile_combo.setCurrentIndex(idx)
@@ -57,7 +56,7 @@ def test_profile_editor_save_as_writes_yaml(app: QApplication, tmp_path: Path,
     assert len(reloaded.transforms) == len(prof.transforms)
 
 
-def test_profile_editor_invalid_json_rejected(app: QApplication, tmp_path: Path,
+def test_profile_editor_invalid_json_rejected(qtbot, app: QApplication, tmp_path: Path,
                                                 monkeypatch: pytest.MonkeyPatch) -> None:
     """Putting invalid JSON in params cell returns None from _collect_profile."""
     monkeypatch.setattr("video_uniquifier.gui.state.CONFIG_DIR", tmp_path)
@@ -70,6 +69,7 @@ def test_profile_editor_invalid_json_rejected(app: QApplication, tmp_path: Path,
     )
     state = AppState()
     editor = ProfileEditorScreen(state)
+    qtbot.addWidget(editor)
     # Trash the first row's params cell.
     from PyQt6.QtWidgets import QTableWidgetItem
     editor.table.setItem(0, 2, QTableWidgetItem("{NOT_JSON"))

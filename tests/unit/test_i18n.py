@@ -172,20 +172,19 @@ def test_appstate_persists_and_reloads_locale(
 # ---------------------------------------------------------------------------
 
 
-def test_install_translator_translates_known_key() -> None:
+def test_install_translator_translates_known_key(request: pytest.FixtureRequest) -> None:
     """End-to-end: install ru_RU and QCoreApplication.translate returns
     Russian for a known source string."""
     pytest.importorskip("PyQt6.QtWidgets")
     os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
     from PyQt6.QtCore import QCoreApplication
-    from PyQt6.QtWidgets import QApplication
 
     from video_uniquifier.gui.i18n import (
         active_locale,
         install_translator,
     )
 
-    app = QApplication.instance() or QApplication([])
+    app = request.getfixturevalue("qapp")
 
     install_translator(app, "ru_RU")
     assert active_locale() == "ru_RU"
@@ -205,14 +204,15 @@ def test_install_translator_translates_known_key() -> None:
     assert fallback == "&Run"
 
 
-def test_install_translator_unknown_locale_falls_back_silently() -> None:
+def test_install_translator_unknown_locale_falls_back_silently(
+    request: pytest.FixtureRequest,
+) -> None:
     pytest.importorskip("PyQt6.QtWidgets")
     os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
-    from PyQt6.QtWidgets import QApplication
 
     from video_uniquifier.gui.i18n import active_locale, install_translator
 
-    app = QApplication.instance() or QApplication([])
+    app = request.getfixturevalue("qapp")
     install_translator(app, "xx_XX")
     # Unknown locale → silently treated as source; no exception.
     assert active_locale() == SOURCE_LOCALE

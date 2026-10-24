@@ -9,6 +9,10 @@ on:
     branches: [main]
     paths:
       - "docs/**"
+      - "README*.md"
+      - "tools/check_docs*.py"
+      - "tools/docs_hooks.py"
+      - "Makefile"
       - "mkdocs.yml"
       - ".github/workflows/docs.yml"
       - "pyproject.toml"
@@ -17,8 +21,13 @@ on:
   pull_request:
     paths:
       - "docs/**"
+      - "README*.md"
+      - "tools/check_docs*.py"
+      - "tools/docs_hooks.py"
+      - "Makefile"
       - "mkdocs.yml"
       - ".github/workflows/docs.yml"
+      - "pyproject.toml"
 
 permissions:
   contents: read
@@ -37,9 +46,12 @@ jobs:
       - name: Install docs deps
         run: |
           python -m pip install --upgrade pip
-          pip install -e ".[docs]"
+          pip install -e ".[docs,docs-test]"
+          python -m playwright install --with-deps chromium
       - name: Build site (strict)
-        run: mkdocs build --strict --site-dir _site
+        run: make docs-build PY=python
+      - name: Check language menu and search (desktop + mobile)
+        run: python tools/check_docs_browser.py --site-dir _site
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v5
         with:

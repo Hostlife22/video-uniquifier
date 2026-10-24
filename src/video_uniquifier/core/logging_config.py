@@ -31,7 +31,7 @@ import structlog
 from video_uniquifier.core.redaction import structlog_redactor
 
 # v1.1.0 Task 13: env-var contract is part of the public surface;
-# documented in README + docs/install.md. Defaults match v1.0 behaviour
+# documented in README + docs/en/install.md. Defaults match v1.0 behaviour
 # (console + INFO) so existing users see no change unless they opt in.
 LOG_FORMAT_ENV = "VIDEO_UNIQ_LOG_FORMAT"
 LOG_LEVEL_ENV = "VIDEO_UNIQ_LOG_LEVEL"

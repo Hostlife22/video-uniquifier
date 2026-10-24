@@ -16,7 +16,7 @@ import sys
 from pathlib import Path
 
 import pytest
-from PyQt6.QtCore import QSize
+from PyQt6.QtCore import QCoreApplication, QEvent, QSize
 from PyQt6.QtWidgets import QApplication
 
 from video_uniquifier.gui.widgets.chart_widget import HAS_QTCHARTS
@@ -39,17 +39,18 @@ SCREENS = {
     "Queue":          7,
     "Validation":     8,
     "Settings":       9,
+    "Reels":         10,
 }
 
 
 @pytest.fixture(scope="module")
-def main_window(tmp_path_factory):
+def main_window(qapp, tmp_path_factory):
     from video_uniquifier.core.qa import corpus
     from video_uniquifier.gui import state
     from video_uniquifier.gui.app_pyqt import MainWindow
     from video_uniquifier.gui.i18n import active_locale, install_translator
 
-    app = QApplication.instance() or QApplication([])
+    app = qapp
     previous_locale = active_locale()
     config = tmp_path_factory.mktemp("visual_config")
     # Module fixtures run before function-scoped state isolation. Never
@@ -75,7 +76,9 @@ def main_window(tmp_path_factory):
                 json.dumps({"platform": sys.platform, "theme": "dark", "locale": "en_US"}),
             )
         yield win
-        win.close()
+        assert win.close()
+        win.deleteLater()
+        QCoreApplication.sendPostedEvents(None, QEvent.Type.DeferredDelete)
         app.processEvents()
         install_translator(app, previous_locale)
 
@@ -91,8 +94,7 @@ def test_screen_snapshot(main_window, label: str) -> None:
     On first run (or with UPDATE_VISUAL_BASELINES=1) writes the baseline.
     On subsequent runs, fails if the file changed bytewise.
     """
-    idx = SCREENS[label]
-    main_window.sidebar.setCurrentRow(idx)
+    main_window._navigate_to(label)
     app = QApplication.instance()
     assert app is not None
     app.processEvents()

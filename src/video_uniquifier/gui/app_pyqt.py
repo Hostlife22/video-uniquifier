@@ -41,13 +41,20 @@ from video_uniquifier.gui.screens.history import HistoryScreen
 from video_uniquifier.gui.screens.profile_editor import ProfileEditorScreen
 from video_uniquifier.gui.screens.qa_viewer import QaViewerScreen
 from video_uniquifier.gui.screens.queue import QueueScreen
+from video_uniquifier.gui.screens.reels import ReelsScreen
 from video_uniquifier.gui.screens.run import RunScreen
 from video_uniquifier.gui.screens.settings import SettingsScreen
 from video_uniquifier.gui.screens.validation import ValidationScreen
 from video_uniquifier.gui.state import CONFIG_DIR, AppState
 from video_uniquifier.gui.theme import ThemeName, qss_for, tokens_for
 from video_uniquifier.gui.widgets.activity_banner import ActivityBanner
-from video_uniquifier.gui.widgets.navigation import NAV_LABELS, NavigationDelegate, outline_icon
+from video_uniquifier.gui.widgets.navigation import (
+    NAV_DESCRIPTIONS,
+    NAV_LABELS,
+    NAV_ORDER,
+    NavigationDelegate,
+    outline_icon,
+)
 
 _log = logging.getLogger(__name__)
 
@@ -141,6 +148,7 @@ SIDEBAR_ITEMS: list[tuple[str, str]] = [
     ("Queue",          "v0.5.3"),
     ("Validation",     "v0.5.3"),
     ("Settings",       "v0.5.4"),
+    ("Reels",          "2.2.0-reels"),
 ]
 
 
@@ -148,6 +156,8 @@ def _build_screen(label: str, lands_in: str, state: AppState) -> QWidget:
     """Instantiate the real screen if available, else PlaceholderScreen."""
     if label == "Run":
         return RunScreen(state)
+    if label == "Reels":
+        return ReelsScreen(state)
     if label == "Batch":
         return BatchScreen(state)
     if label == "Calibrate":
@@ -212,17 +222,19 @@ class MainWindow(QMainWindow):
         self.sidebar.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.nav_delegate = NavigationDelegate(self.sidebar, self.state.theme)
         self.sidebar.setItemDelegate(self.nav_delegate)
-        self.sidebar.setAccessibleName("Main navigation")
+        self.sidebar.setAccessibleName(self.tr("Main navigation"))
         self.sidebar.setAccessibleDescription(
             "Switch between Run, Batch, Calibrate, QA Viewer, "
             "Profile Editor, History, Corpus, Queue, Validation, "
             "and Settings. Use Ctrl+1 through Ctrl+0 (Ctrl+0 = Settings) "
             "to jump directly.",
         )
-        for label, _lands_in in SIDEBAR_ITEMS:
+        self.sidebar_items: dict[str, QListWidgetItem] = {}
+        for label in NAV_ORDER:
             item = QListWidgetItem(self.tr(NAV_LABELS[label]), self.sidebar)
+            self.sidebar_items[label] = item
             item.setData(Qt.ItemDataRole.UserRole, label)
-            item.setToolTip(self.tr(NAV_LABELS[label]))
+            item.setToolTip(self.tr(NAV_LABELS[label]) + "\n" + self.tr(NAV_DESCRIPTIONS[label]))
         sidebar_layout.addWidget(self.sidebar, stretch=1)
         layout.addWidget(shell)
 
@@ -238,7 +250,9 @@ class MainWindow(QMainWindow):
         column.setContentsMargins(0, 0, 0, 0)
         column.setSpacing(0)
         self.activity_banner = ActivityBanner()
-        self.activity_banner.requested.connect(self.sidebar.setCurrentRow)
+        self.activity_banner.requested.connect(
+            lambda index: self._navigate_to(SIDEBAR_ITEMS[index][0]),
+        )
         column.addWidget(self.activity_banner)
         column.addWidget(self.stack, stretch=1)
         layout.addWidget(content, stretch=1)
@@ -253,10 +267,12 @@ class MainWindow(QMainWindow):
         # Ctrl+1..Ctrl+9 → first 9 screens; Ctrl+0 → 10th (Settings).
         # Using QShortcut (not button shortcuts) so the binding is
         # active globally regardless of which screen has focus.
-        for idx in range(len(SIDEBAR_ITEMS)):
+        for idx in range(10):
             digit = (idx + 1) % 10  # 0..8 → 1..9; 9 → 0
             sc = QShortcut(QKeySequence(f"Ctrl+{digit}"), self)
-            sc.activated.connect(lambda i=idx: self.sidebar.setCurrentRow(i))
+            sc.activated.connect(lambda i=idx: self._navigate_to(SIDEBAR_ITEMS[i][0]))
+        reels_shortcut = QShortcut(QKeySequence("Ctrl+Shift+R"), self)
+        reels_shortcut.activated.connect(lambda: self._navigate_to("Reels"))
 
         self.help_shortcut = QShortcut(QKeySequence("F1"), self)
         self.help_shortcut.activated.connect(self._toggle_page_guide)
@@ -280,10 +296,9 @@ class MainWindow(QMainWindow):
             screen.toggle_guide()
 
     def _navigate_to(self, label: str) -> None:
-        for index, (source, _version) in enumerate(SIDEBAR_ITEMS):
-            if source == label:
-                self.sidebar.setCurrentRow(index)
-                return
+        item = self.sidebar_items.get(label)
+        if item is not None:
+            self.sidebar.setCurrentItem(item)
 
     def _refresh_activity(self) -> None:
         tasks: list[tuple[int, str, str, float | None]] = []
@@ -303,6 +318,10 @@ class MainWindow(QMainWindow):
                             if screen.progress_bar.maximum() > 0
                             and screen._tune_worker is None else None)
                 tasks.append((index, self.tr(NAV_LABELS[label]), details, fraction))
+            elif isinstance(screen, ReelsScreen):
+                if screen.worker is not None:
+                    tasks.append((index, self.tr(NAV_LABELS[label]), screen.feedback.text(),
+                                  screen.progress_bar.value() / 1000))
             elif isinstance(screen, (BatchScreen, CalibrateScreen, QueueScreen)):
                 worker = screen.drain_worker if isinstance(screen, QueueScreen) else screen.worker
                 if worker is None:
@@ -321,11 +340,13 @@ class MainWindow(QMainWindow):
     def changeEvent(self, event: QEvent | None) -> None:
         if (event is not None and event.type() == QEvent.Type.LanguageChange
                 and hasattr(self, "sidebar")):
-            for index, (label, _version) in enumerate(SIDEBAR_ITEMS):
-                item = self.sidebar.item(index)
+            for label, item in self.sidebar_items.items():
                 if item is not None:
                     item.setText(self.tr(NAV_LABELS[label]))
-                    item.setToolTip(self.tr(NAV_LABELS[label]))
+                    item.setToolTip(
+                        self.tr(NAV_LABELS[label]) + "\n" + self.tr(NAV_DESCRIPTIONS[label]),
+                    )
+            self.sidebar.setAccessibleName(self.tr("Main navigation"))
             if hasattr(self, "status_note"):
                 self.status_note.setText(self._footer_text())
             viewport = self.sidebar.viewport()
@@ -334,7 +355,12 @@ class MainWindow(QMainWindow):
         super().changeEvent(event)
 
     def _on_nav(self, idx: int) -> None:
-        self.stack.setCurrentIndex(idx)
+        item = self.sidebar.item(idx)
+        if item is None:
+            return
+        label = item.data(Qt.ItemDataRole.UserRole)
+        logical_index = next(i for i, (source, _) in enumerate(SIDEBAR_ITEMS) if source == label)
+        self.stack.setCurrentIndex(logical_index)
         widget = self.stack.currentWidget()
         if isinstance(widget, ScreenBase):
             widget.on_show()
@@ -393,10 +419,10 @@ def _maybe_prompt_telemetry_consent(parent: QMainWindow | None = None) -> None:
     if has_consent_marker():
         return
     box = QMessageBox(parent)
-    box.setWindowTitle("Local telemetry")
+    box.setWindowTitle(box.tr("Local telemetry"))
     box.setIcon(QMessageBox.Icon.Information)
-    box.setText("Help improve video-uniquifier with local-only telemetry?")
-    box.setInformativeText(
+    box.setText(box.tr("Help improve video-uniquifier with local-only telemetry?"))
+    box.setInformativeText(box.tr(
         "When enabled, each completed or failed encode appends one "
         "anonymous summary event (profile name, encoder, wall-clock, "
         "segment count, OS) to a JSONL file in your per-user data "
@@ -406,11 +432,11 @@ def _maybe_prompt_telemetry_consent(parent: QMainWindow | None = None) -> None:
         "from Settings → Local telemetry, or via "
         "`video-uniq telemetry status`.\n\n"
         "Your choice is remembered; change it any time in Settings."
-    )
+    ))
     from PyQt6.QtWidgets import QPushButton
-    enable_btn = box.addButton("&Enable", QMessageBox.ButtonRole.AcceptRole)
+    enable_btn = box.addButton(box.tr("&Enable"), QMessageBox.ButtonRole.AcceptRole)
     keep_disabled_btn = box.addButton(
-        "&Keep disabled", QMessageBox.ButtonRole.RejectRole,
+        box.tr("&Keep disabled"), QMessageBox.ButtonRole.RejectRole,
     )
     if isinstance(keep_disabled_btn, QPushButton):
         box.setDefaultButton(keep_disabled_btn)
@@ -480,6 +506,8 @@ def main() -> None:
     from video_uniquifier.gui.i18n import install_translator
     install_translator(app, _resolve_boot_locale())
     win = MainWindow()
+    if "--reels" in sys.argv:
+        win._navigate_to("Reels")
     win.show()
     _maybe_prompt_telemetry_consent(win)
     sys.exit(app.exec())

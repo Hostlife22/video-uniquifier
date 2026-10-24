@@ -37,5 +37,5 @@ def test_shipped_profile_dump_is_stable(profile_name: str) -> None:
 def test_shipped_profiles_set_is_complete() -> None:
     """If a profile is added or removed, force the maintainer to
     notice — adding one is MINOR (advertise it in CHANGELOG +
-    docs/profiles.md), removing one is MAJOR (RFC required)."""
+    docs/en/profiles.md), removing one is MAJOR (RFC required)."""
     snapshot("shipped_profiles.json", SHIPPED)

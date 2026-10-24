@@ -337,32 +337,31 @@ def test_phase6_m1_concat_error_includes_head_and_tail(
     assert "END." in msg
 
 
-def test_phase6_m11_chart_widget_refresh_repopulates_lines() -> None:
+def test_phase6_m11_chart_widget_refresh_repopulates_lines(request: pytest.FixtureRequest) -> None:
     """ChartWidget._refresh must store the rebuilt QLineSeries into
     `_lines` so the next add_point finds them instead of creating
     duplicates."""
     pytest.importorskip("PyQt6")
     pytest.importorskip("PyQt6.QtCharts")
-    from PyQt6.QtWidgets import QApplication
 
     from video_uniquifier.gui.widgets.chart_widget import ChartWidget, Series
 
-    _ = QApplication.instance() or QApplication([])
+    qtbot = request.getfixturevalue("qtbot")
     w = ChartWidget()
+    qtbot.addWidget(w)
     w.set_series([Series(name="a", color="#fff")])
     assert "a" in w._lines
 
 
-def test_phase6_m12_log_console_is_deque() -> None:
+def test_phase6_m12_log_console_is_deque(request: pytest.FixtureRequest) -> None:
     pytest.importorskip("PyQt6")
     from collections import deque
 
-    from PyQt6.QtWidgets import QApplication
-
     from video_uniquifier.gui.widgets.log_console import LogConsole
 
-    _ = QApplication.instance() or QApplication([])
+    qtbot = request.getfixturevalue("qtbot")
     c = LogConsole(max_lines=3)
+    qtbot.addWidget(c)
     assert isinstance(c._lines, deque)
     for i in range(10):
         c.log(f"line{i}", "info")
@@ -412,7 +411,7 @@ def test_phase7_m6_encoder_cache_uses_json_mode_for_dump(
 def test_phase7_l8_runbook_scale_test_doc_exists() -> None:
     """The long-form scale-validation runbook is checked in."""
     repo_root = Path(__file__).resolve().parents[2]
-    doc = repo_root / "docs" / "runbook_scale_test.md"
+    doc = repo_root / "docs" / "en" / "runbook_scale_test.md"
     assert doc.exists(), f"expected runbook at {doc}"
     text = doc.read_text(encoding="utf-8")
     assert "Scale validation" in text

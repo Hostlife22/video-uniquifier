@@ -1,0 +1,63 @@
+# Business rules: use video-reels --rules, never video-uniq --profile.
+# Omitted fields use the strict defaults exported by video-reels schema.
+schema_version: 1
+preset_id: facebook_reels_drama_v1
+publish:
+  platform: facebook
+  surface: reels
+  channel: organic
+  posting_method: manual_app
+video:
+  width: 1080
+  height: 1920
+  codec: libx264
+  crf: 21
+  preset: veryfast
+  fps_mode: auto
+  faststart: true
+  hdr_policy: fail_with_advice
+  geometry:
+    vertical_source: fit
+    nonvertical_source: pad_blur
+    allow_center_crop: false
+packaging:
+  enabled: false
+  template_id: reels_default_v1
+  cover_insert_enabled: false
+  watermark_removal: false
+  safe_area_preview_enabled: true
+  protect_existing_hard_subtitles: true
+audio:
+  enabled: true
+  loudnorm:
+    enabled: true
+    passes: 2
+    integrated_lufs: -16.0
+    true_peak_dbtp: -1.5
+    lra: 11.0
+    skip_if_silent: true
+scenes:
+  detect_enabled: true
+  threshold: 27.0
+  min_scene_length_sec: 2.0
+  trim_start_sec: 0.0
+  trim_end_sec: 0.0
+  blackdetect_enabled: true
+  silence_detect_enabled: true
+quality_gate:
+  enabled: true
+  require_video_decode_check: true
+  max_duration_delta_sec: 0.5
+  max_av_drift_ms: 100
+  sample_preview_enabled: true
+  sample_preview_seconds: 10
+worker:
+  ffmpeg_threads: auto
+  max_cpu_jobs: 2
+  max_retries: 1
+  temp_keep_on_failure: false
+  atomic_output: true
+  max_input_mb: 2048
+  max_duration_sec: 7200.0
+  max_pixels: 8847360
+  wall_timeout_sec: 14400

@@ -11,6 +11,7 @@ Headless: relies on QT_QPA_PLATFORM=offscreen (set globally in conftest).
 from __future__ import annotations
 
 import pytest
+from PyQt6.QtCore import QCoreApplication, QEvent
 from PyQt6.QtWidgets import QApplication, QPushButton, QWidget
 
 pytestmark = pytest.mark.smoke
@@ -27,11 +28,13 @@ SCREEN_INDEX = {
     "Queue":          7,
     "Validation":     8,
     "Settings":       9,
+    "Reels":         10,
 }
 
 # (sidebar label, screen class attribute names that must be present and non-None)
 EXPECTED_WIDGETS: dict[str, list[str]] = {
     "Run":            ["profile_combo", "run_btn", "cancel_btn", "status_label"],
+    "Reels":          ["navigation", "options", "sample_btn", "cancel_btn", "progress_bar"],
     "Batch":          ["pattern_edit", "profile_combo", "table", "run_btn", "cancel_btn"],
     "Calibrate":      ["profile_combo", "target_spin", "quality_spin", "iter_spin",
                        "run_btn", "cancel_btn", "save_btn"],
@@ -54,13 +57,13 @@ EXPECTED_WIDGETS: dict[str, list[str]] = {
 
 
 @pytest.fixture(scope="module")
-def main_window(tmp_path_factory):
+def main_window(qapp, tmp_path_factory):
     """One MainWindow shared by every screen test in this module."""
     from video_uniquifier.core.qa import corpus
     from video_uniquifier.gui import state
     from video_uniquifier.gui.app_pyqt import MainWindow
 
-    app = QApplication.instance() or QApplication([])
+    app = qapp
     config = tmp_path_factory.mktemp("smoke_gui_config")
     with pytest.MonkeyPatch.context() as patch:
         patch.setattr(state, "CONFIG_DIR", config)
@@ -71,7 +74,9 @@ def main_window(tmp_path_factory):
         win.show()
         app.processEvents()
         yield win
-        win.close()
+        assert win.close()
+        win.deleteLater()
+        QCoreApplication.sendPostedEvents(None, QEvent.Type.DeferredDelete)
         app.processEvents()
 
 
@@ -79,7 +84,7 @@ def main_window(tmp_path_factory):
 def test_screen_instantiates_with_required_widgets(main_window, label: str) -> None:
     """Navigate to the screen and assert its declared widgets exist."""
     idx = SCREEN_INDEX[label]
-    main_window.sidebar.setCurrentRow(idx)
+    main_window._navigate_to(label)
     app = QApplication.instance()
     assert app is not None
     app.processEvents()
@@ -105,14 +110,14 @@ def test_screen_instantiates_with_required_widgets(main_window, label: str) -> N
 def test_screen_round_trip_navigation(main_window, label: str) -> None:
     """Navigate away from the screen and back; no exceptions, no stale state."""
     target = SCREEN_INDEX[label]
-    main_window.sidebar.setCurrentRow(target)
+    main_window._navigate_to(label)
     app = QApplication.instance()
     assert app is not None
     app.processEvents()
 
     main_window.sidebar.setCurrentRow(0 if target != 0 else 1)
     app.processEvents()
-    main_window.sidebar.setCurrentRow(target)
+    main_window._navigate_to(label)
     app.processEvents()
 
     assert main_window.stack.currentIndex() == target

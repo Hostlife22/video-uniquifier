@@ -57,7 +57,7 @@ def preflight(
     # check, because an encrypted source is unsupported regardless of
     # codec / profile / encoder — no other finding adds information.
     # No override exists; encrypted content is by definition not the
-    # operator's to re-encode (see docs/architecture.md § ethics).
+    # operator's to re-encode (see docs/en/architecture.md § ethics).
     findings.extend(_check_input_drm(source))
     # v1.3.0 Task 30 — watermark guardrail.  Runs before YouTube-target
     # checks so the operator confronts ownership/licensing attestation
@@ -876,7 +876,7 @@ def _check_rubberband_perf(
             f"Profile uses audio.pitch_tempo method='rubberband' on a "
             f"{' and '.join(triggers)} source. Rubberband runs ~10-15× "
             f"wall time vs 'asetrate' on long / >=4K content "
-            f"(see docs/profiles.md#rubberband-performance-characteristic)."
+            f"(see docs/en/profiles.md#rubberband-performance-characteristic)."
         ),
         suggestion=(
             "For throughput, switch the profile to "

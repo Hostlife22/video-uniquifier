@@ -43,7 +43,7 @@ Owner identity is checked on every release retry; corruption remains fail-closed
 
 Release tooling now inventories actual native bundles/extracted AppImage and
 binds hashes to the archives and commit. File inventories do not prove complete
-opaque/static dependency or license attribution. See `PRODUCTION_CHECKLIST.md`
+opaque/static dependency or license attribution. See [PRODUCTION_CHECKLIST.md](https://github.com/Hostlife22/video-uniquifier/blob/d6af67ac05eb0689f958f18cca08cfdb6cb7c4db/PRODUCTION_CHECKLIST.md)
 for revision-specific CI/artifact qualification, and `BENCHMARKS.md` for measured
 results. Long-form QA reached about 5.89 GiB sampled process-tree RSS; its
 duration-scaled frame sampling/cache remains an explicit open resource risk.
@@ -71,7 +71,7 @@ production approval. Existing pipeline, profile engine and QA implementation are
 reused. ASS/bitmap retiming and natural HDR display/listening remain incomplete.
 Current GHCR qualification is tracked separately in the release checklist. The existing
 old `edge` image's signature, architecture manifests and attestations were verified;
-see the digest/revision in `PRODUCTION_CHECKLIST.md`.
+see the digest/revision in [PRODUCTION_CHECKLIST.md](https://github.com/Hostlife22/video-uniquifier/blob/d6af67ac05eb0689f958f18cca08cfdb6cb7c4db/PRODUCTION_CHECKLIST.md).
 
 Дата аудита: 2026-09-02
 Базовый коммит: `2c8d677` (`v1.3.3`, `main`)
@@ -582,7 +582,7 @@ Path validation и plugin capability/audit-hook defenses выглядят осм
   `requires-python >=3.11`.
 - Profile descriptions заявляют ожидаемый VMAF без воспроизводимого benchmark.
 
-## Исторические проверки — v1.5.0 (текущие в PRODUCTION_CHECKLIST.md)
+## Исторические проверки — v1.5.0 (архивные записи в PRODUCTION_CHECKLIST.md)
 
 | Gate | Result |
 |---|---|
@@ -619,4 +619,4 @@ GitHub check на 2026-09-05 для final commit `6aa0720`: six-cell CI run
 закрыты как completed; open CodeQL alerts — 0.
 
 Подробные приоритеты: `RISK_REGISTER.md`. План локальных исправлений без rewrite:
-`PRODUCTION_PLAN.md`. Измерения: `BENCHMARKS.md`.
+[PRODUCTION_PLAN.md](https://github.com/Hostlife22/video-uniquifier/blob/d6af67ac05eb0689f958f18cca08cfdb6cb7c4db/PRODUCTION_PLAN.md). Измерения: `BENCHMARKS.md`.

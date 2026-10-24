@@ -29,20 +29,40 @@ needs_ffmpeg = pytest.mark.skipif(
 
 
 @pytest.fixture
-def gui_window_factory(qtbot):
-    """Keep top-level window wrappers alive through Qt's post-test event pass.
+def qtbot(qtbot):
+    """Retain registered Python widget wrappers until native teardown finishes.
 
-    qtbot records weak references. A window with signal cycles can otherwise
-    be garbage-collected inside a native delegate's paint callback after the
-    test function releases its local variable.
+    pytest-qt tracks only weak references. Widget cycles can otherwise be
+    collected during a later Qt style/delegate callback, or a helper's widget
+    can disappear before its queued events are delivered.
     """
-    from video_uniquifier.gui.app_pyqt import MainWindow
+    from PyQt6.QtCore import QCoreApplication, QEvent
 
-    windows = []
+    registered = []
+    original_add_widget = qtbot.addWidget
+
+    def add_widget(widget, *, before_close_func=None):
+        original_add_widget(widget, before_close_func=before_close_func)
+        registered.append(widget)
+
+    qtbot.addWidget = qtbot.add_widget = add_widget
+    try:
+        yield qtbot
+    finally:
+        # pytest-qt's teardown hook closes widgets before fixture teardown.
+        # Destroy the native children while their Python subclasses are alive.
+        QCoreApplication.sendPostedEvents(None, QEvent.Type.DeferredDelete)
+        registered.clear()
+        qtbot.addWidget = qtbot.add_widget = original_add_widget
+
+
+@pytest.fixture
+def gui_window_factory(qtbot):
+    """Build top-level windows with the shared native widget lifetime guard."""
+    from video_uniquifier.gui.app_pyqt import MainWindow
 
     def create():
         window = MainWindow()
-        windows.append(window)
         qtbot.addWidget(window)
         return window
 

@@ -3,7 +3,7 @@
 Thanks for considering a contribution. This document covers the dev
 loop, the commit + PR conventions, and the RFC process required for
 any change that touches a **stable contract surface** (see
-[`docs/versioning.md`](docs/versioning.md)).
+[`docs/en/versioning.md`](docs/en/versioning.md)).
 
 For project scope, code style, and architectural invariants, read
 [`CLAUDE.md`](CLAUDE.md) first — it is the canonical project guide.
@@ -25,6 +25,21 @@ Windows: `choco install ffmpeg`.
 If you do not need the GUI, `make dev-min` skips PyQt6 (cuts install
 size + speeds up CI loops on headless hosts).
 
+## Documentation translations
+
+Documentation pages live in `docs/en/`, `docs/ru/` and `docs/zh/` with matching
+relative filenames. Update all three versions when changing a page. Keep executable
+examples and configuration identifiers consistent. README variants are `README.md`,
+`README.ru.md` and `README.zh-CN.md`; images are shared under `docs/screenshots/`.
+
+Install `.[docs]` and run `make docs-build` for strict source/site validation.
+For browser checks, install `.[docs,docs-test]`, run
+`python -m playwright install chromium`, then
+`python tools/check_docs_browser.py --site-dir _site`.
+The [documentation language guide](docs/en/documentation.md) explains URLs,
+section anchors and translation checks. Avoid duplicate `id` attributes: CI rejects
+both repeated source anchors and collisions in the rendered HTML.
+
 ## Bug reports + feature requests
 
 File via the GitHub issue templates — they collect the environment
@@ -40,7 +55,7 @@ data we need to triage without back-and-forth:
 ## RFC process
 
 A change is "RFC-required" when it would alter a contract listed as
-**stable** in [`docs/api-contracts.md`](docs/api-contracts.md):
+**stable** in [`docs/en/api-contracts.md`](docs/en/api-contracts.md):
 
 - Adding, removing, renaming, or retyping a field on `Plan`, `Profile`,
   `SourceMeta`, `RunEvent`, `EncoderCandidate`, `QAReport`, or their
@@ -67,7 +82,7 @@ names do **not** require an RFC — open a normal PR.
    one-paragraph rationale. Two `LGTM` and zero `Block` → ready to
    merge.
 4. **Implementation PR**: must reference the RFC issue, include a
-   `CHANGELOG.md` entry, update `docs/api-contracts.md`, and refresh
+   `CHANGELOG.md` entry, update `docs/en/api-contracts.md`, and refresh
    the contract snapshot goldens (`python tools/regen_contract_goldens.py --apply`).
 5. **MAJOR-version bumps** are batched — RFCs that imply a MAJOR
    bump wait until the next planned major (e.g. v2.0). PATCH and MINOR

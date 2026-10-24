@@ -6,7 +6,7 @@ covered by the SemVer contract — that is a MAJOR change.
 
 If you intentionally promote an internal helper to the public
 surface, add it here AND document the promotion in
-``docs/api-contracts.md`` under its stability label.
+``docs/en/api-contracts.md`` under its stability label.
 """
 
 from __future__ import annotations

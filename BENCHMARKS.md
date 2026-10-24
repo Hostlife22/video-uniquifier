@@ -340,7 +340,7 @@ Skips include the separately opted-in hardware matrix, heavy GUI E2E and the
 missing-PyQt branch in this GUI-equipped environment; they are not qualification
 of those paths. Real audio regressions also passed on Linux FFmpeg 5/6. CI
 `34030418205` passed all six OS/Python jobs; release/Docker proofs are recorded in
-`PRODUCTION_CHECKLIST.md`. The separate 180-minute job started before these fixes;
+[PRODUCTION_CHECKLIST.md](https://github.com/Hostlife22/video-uniquifier/blob/d6af67ac05eb0689f958f18cca08cfdb6cb7c4db/PRODUCTION_CHECKLIST.md). The separate 180-minute job started before these fixes;
 its completed historical results are now recorded at the top of this document.
 
 - 4K soft cell: 31.436 s, encode 82.72 s, sampled process-tree RSS 2,456,372 KiB,
@@ -869,7 +869,7 @@ Desktop run used a production-like `hard` mount and wedged the Linux VM during f
 network teardown. The harness now uses a bounded `soft` mount and faults client
 TCP/2049 with `iptables`, keeping Docker's control plane responsive. GitHub-hosted
 Ubuntu run `33881832592` passed the complete corrected matrix. This qualifies the
-application-level ephemeral lab only; `docs/distributed.md` still requires `hard`
+application-level ephemeral lab only; `docs/en/distributed.md` still requires `hard`
 mounts in production, and native cross-host deployment qualification remains required.
 
 Повторный локальный запуск 2026-09-05 на Docker Desktop также прошёл: 80/80 unique

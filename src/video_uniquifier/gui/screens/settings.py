@@ -386,13 +386,7 @@ class SettingsScreen(ScreenBase):
         self.state.set_theme(theme)
 
     def _on_language_change(self, _idx: int) -> None:
-        """Re-install the QTranslator and persist the choice.
-
-        Existing widgets keep their already-rendered strings until
-        next paint; we tell the user by flashing the status line
-        rather than tearing down + rebuilding every screen. A
-        future v1.0 may add per-screen ``retranslate_ui`` hooks.
-        """
+        """Re-install the translator, refresh captions and persist the choice."""
         from PyQt6.QtWidgets import QApplication
 
         from video_uniquifier.gui.i18n import install_translator
@@ -409,7 +403,7 @@ class SettingsScreen(ScreenBase):
         self.state.set_locale(loc)
         if hasattr(self, "status_label"):
             self.status_label.setText(
-                self.tr("Language switched to {loc} — reopen screens to refresh.")
+                self.tr("Language switched to {loc}.")
                 .replace("{loc}", loc),
             )
 

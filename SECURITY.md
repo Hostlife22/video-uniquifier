@@ -14,11 +14,11 @@ Security fixes land on the most recent MAJOR.MINOR line.
 
 | Version           | Security fixes | End-of-life               |
 | ----------------- | -------------- | ------------------------- |
-| **1.3.x**         | ✅ active      | TBD — see GitHub Releases |
-| 1.2.x and earlier | ❌ no          | superseded                |
+| **2.2.x**         | ✅ active      | TBD — see GitHub Releases |
+| 2.1.x and earlier | ❌ no          | superseded                |
 
-For older users: please upgrade to the 1.3 line. See
-[docs/versioning.md](docs/versioning.md) for the support policy in
+For older users: please upgrade to the 2.2 line. See
+[docs/en/versioning.md](docs/en/versioning.md) for the support policy in
 general.
 
 ## Reporting a vulnerability
@@ -91,13 +91,13 @@ In scope:
 Out of scope:
 
 - Third-party profiles installed via `video-uniq profile install <URL>`
-  from a non-trusted source. The marketplace docs ([marketplace.md](docs/marketplace.md))
+  from a non-trusted source. The marketplace docs ([marketplace.md](docs/en/marketplace.md))
   describe the SHA-pinning and HTTPS-only guarantees we provide;
   beyond those, you are trusting the upstream author.
 - Vulnerabilities in `ffmpeg`, `fpcalc`, `whisper-cpp`, or any
   binary dependency. Please report those upstream.
 - Misconfiguration of the `[web]` server outside the published
-  hardening guidance in [docs/web.md](docs/web.md) — e.g.
+  hardening guidance in [docs/en/web.md](docs/en/web.md) — e.g.
   exposing the server to the public internet without basic-auth
   or behind no reverse proxy.
 - Brute-force / credential-stuffing against the `[web]` basic-auth

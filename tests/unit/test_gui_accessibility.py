@@ -50,11 +50,8 @@ def _stop_background_workers(screen: QWidget) -> None:
 
 
 @pytest.fixture(scope="module")
-def app() -> QApplication:
-    inst = QApplication.instance()
-    if inst is None:
-        return QApplication([])
-    return inst
+def app(qapp) -> QApplication:
+    return qapp
 
 
 # Known un-marked widgets that we have not yet covered in the R2 sweep.
@@ -101,6 +98,7 @@ def _interactive_widgets(root: QWidget) -> list[QWidget]:
 
 @pytest.mark.parametrize("label,_lands_in", SIDEBAR_ITEMS)
 def test_screen_interactive_widgets_have_accessible_names(
+    qtbot,
     app: QApplication,
     label: str,
     _lands_in: str,
@@ -111,6 +109,7 @@ def test_screen_interactive_widgets_have_accessible_names(
 
     state = AppState()
     screen = _build_screen(label, _lands_in, state)
+    qtbot.addWidget(screen)
     try:
         missing: list[str] = []
         for w in _interactive_widgets(screen):
@@ -137,11 +136,12 @@ def test_interactive_class_list_is_non_empty() -> None:
     assert "QLineEdit" in INTERACTIVE_WIDGET_CLASSES
 
 
-def test_mark_requires_non_empty_name(app: QApplication) -> None:
+def test_mark_requires_non_empty_name(qtbot, app: QApplication) -> None:
     from PyQt6.QtWidgets import QPushButton
 
     from video_uniquifier.gui.a11y import mark
 
     btn = QPushButton("ok")
+    qtbot.addWidget(btn)
     with pytest.raises(ValueError, match="non-empty name"):
         mark(btn, "")

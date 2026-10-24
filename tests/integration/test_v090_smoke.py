@@ -178,19 +178,18 @@ def test_r4_web_app_builds_and_healthz_responds(tmp_path: Path) -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_r5_install_translator_translates_known_key() -> None:
+def test_r5_install_translator_translates_known_key(request: pytest.FixtureRequest) -> None:
     if importlib.util.find_spec("PyQt6") is None:
         pytest.skip("PyQt6 not installed; [gui] extra absent")
     os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
     from PyQt6.QtCore import QCoreApplication
-    from PyQt6.QtWidgets import QApplication
 
     from video_uniquifier.gui.i18n import (
         SOURCE_LOCALE,
         install_translator,
     )
 
-    app = QApplication.instance() or QApplication([])
+    app = request.getfixturevalue("qapp")
     install_translator(app, "ru_RU")
     try:
         translated = QCoreApplication.translate("smoke", "&Run")

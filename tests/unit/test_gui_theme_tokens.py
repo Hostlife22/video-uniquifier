@@ -23,11 +23,8 @@ from video_uniquifier.gui.widgets.preflight_panel import PreflightPanel
 
 
 @pytest.fixture(scope="module")
-def app() -> QApplication:
-    inst = QApplication.instance()
-    if inst is None:
-        return QApplication([])
-    return inst
+def app(qapp) -> QApplication:
+    return qapp
 
 
 _REQUIRED_BADGE_KEYS = {
@@ -51,7 +48,7 @@ def test_tokens_cover_badges_and_kpis_for_both_themes() -> None:
             assert v.startswith("#") and len(v) in (4, 7, 9), f"{theme}.{k}={v!r}"
 
 
-def test_preflight_panel_badge_repaints_on_theme_change(app: QApplication) -> None:
+def test_preflight_panel_badge_repaints_on_theme_change(qtbot, app: QApplication) -> None:
     """Theme switch must invalidate the rendered badge style.
 
     Uses a `warn` finding because `badge_warn_bg` differs between
@@ -60,6 +57,7 @@ def test_preflight_panel_badge_repaints_on_theme_change(app: QApplication) -> No
     identical across themes by design, so it can't catch this leak.)
     """
     panel = PreflightPanel()
+    qtbot.addWidget(panel)
     panel.set_findings([
         PreflightFinding(code="t.x", severity="warn", message="m", suggestion=None),
     ])
@@ -74,8 +72,9 @@ def test_preflight_panel_badge_repaints_on_theme_change(app: QApplication) -> No
     )
 
 
-def test_kpi_pills_repaint_on_theme_change(app: QApplication) -> None:
+def test_kpi_pills_repaint_on_theme_change(qtbot, app: QApplication) -> None:
     pills = KpiPills()
+    qtbot.addWidget(pills)
     pills.set_qa({
         "phash_similarity": 0.5,
         "vmaf_mean": 90.0,
@@ -93,11 +92,13 @@ def test_kpi_pills_repaint_on_theme_change(app: QApplication) -> None:
     assert dark != light, f"pills did not repaint on theme switch: {dark!r}"
 
 
-def test_widgets_constructable_without_state(app: QApplication) -> None:
+def test_widgets_constructable_without_state(qtbot, app: QApplication) -> None:
     """state=None must remain a valid construction mode for tests."""
     panel = PreflightPanel(state=None)
+    qtbot.addWidget(panel)
     assert panel is not None
     pills = KpiPills(state=None)
+    qtbot.addWidget(pills)
     assert pills is not None
 
 

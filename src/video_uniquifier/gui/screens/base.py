@@ -18,6 +18,7 @@ from PyQt6.QtWidgets import (
 
 from video_uniquifier.gui.design import Metrics, Space
 from video_uniquifier.gui.guides import GUIDES
+from video_uniquifier.gui.i18n.widgets import retranslate_widgets
 from video_uniquifier.gui.state import AppState
 from video_uniquifier.gui.widgets.page_guide import GuidePanel
 from video_uniquifier.gui.widgets.table_selection import install_selection_checkbox
@@ -62,20 +63,24 @@ class ScreenBase(QWidget):
         self.page_title.setWordWrap(True)
         header = QHBoxLayout()
         header.setSpacing(Space.LG)
-        header.addWidget(self.page_title, stretch=1)
+        titles = QVBoxLayout()
+        titles.setSpacing(Space.SM)
+        titles.addWidget(self.page_title)
+        self.page_subtitle = QLabel(self.tr(description))
+        self.page_subtitle.setObjectName("subtitle")
+        self.page_subtitle.setWordWrap(True)
+        titles.addWidget(self.page_subtitle)
+        header.addLayout(titles, stretch=1)
         if title in GUIDES:
             self.help_button = QPushButton(self.tr("How to use"))
             self.help_button.setObjectName("page_help")
+            self.help_button.setProperty("variant", "quiet")
             self.help_button.setCheckable(True)
             self.help_button.setToolTip(self.tr("Show or hide this page's guide (F1)"))
             self.help_button.setAccessibleName(self.tr("How to use"))
             self.help_button.toggled.connect(self._set_guide_visible)
             header.addWidget(self.help_button, alignment=Qt.AlignmentFlag.AlignTop)
         layout.addLayout(header)
-        self.page_subtitle = QLabel(self.tr(description))
-        self.page_subtitle.setObjectName("subtitle")
-        self.page_subtitle.setWordWrap(True)
-        layout.addWidget(self.page_subtitle)
         if title in GUIDES:
             self.guide_panel = GuidePanel(GUIDES[title])
             self.guide_panel.dismissed.connect(self._dismiss_guide)
@@ -109,6 +114,8 @@ class ScreenBase(QWidget):
             self.help_button.setFocus()
 
     def changeEvent(self, event: QEvent | None) -> None:
+        if event is not None and event.type() == QEvent.Type.LanguageChange:
+            retranslate_widgets(self)
         if (event is not None and event.type() == QEvent.Type.LanguageChange
                 and self._page_strings is not None):
             title, description = self._page_strings
@@ -130,6 +137,7 @@ class ScreenBase(QWidget):
         self.outer_layout.addWidget(bar)
 
     def showEvent(self, event: QShowEvent | None) -> None:
+        retranslate_widgets(self)
         for combo in self.findChildren(QComboBox):
             combo.setSizeAdjustPolicy(
                 QComboBox.SizeAdjustPolicy.AdjustToMinimumContentsLengthWithIcon,

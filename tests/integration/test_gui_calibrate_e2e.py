@@ -7,16 +7,14 @@ wiring and initial UI state. Worker-level behavior is in unit tests.
 from __future__ import annotations
 
 import pytest
-from PyQt6.QtWidgets import QApplication
 
 pytestmark = pytest.mark.integration
 
 
 @pytest.fixture
-def app():
-    app = QApplication.instance() or QApplication([])
-    yield app
-    app.processEvents()
+def app(qapp):
+    yield qapp
+    qapp.processEvents()
 
 
 def test_calibrate_screen_builds_and_run_disabled(app, qtbot) -> None:

@@ -16,20 +16,19 @@ from video_uniquifier.gui.widgets.divergence_indicator import DivergenceIndicato
 
 
 @pytest.fixture(scope="module")
-def app() -> QApplication:
-    inst = QApplication.instance()
-    if inst is None:
-        return QApplication([])
-    return inst
+def app(qapp) -> QApplication:
+    return qapp
 
 
-def test_starts_hidden(app: QApplication) -> None:
+def test_starts_hidden(qtbot, app: QApplication) -> None:
     d = DivergenceIndicator()
+    qtbot.addWidget(d)
     assert d.isHidden()
 
 
-def test_first_sample_unhides(app: QApplication) -> None:
+def test_first_sample_unhides(qtbot, app: QApplication) -> None:
     d = DivergenceIndicator()
+    qtbot.addWidget(d)
     d.show()  # parent layout would normally show it on screen entry
     d.hide()
     assert d.isHidden()
@@ -37,8 +36,9 @@ def test_first_sample_unhides(app: QApplication) -> None:
     assert d.isVisible()
 
 
-def test_tracks_latest_running_lowest(app: QApplication) -> None:
+def test_tracks_latest_running_lowest(qtbot, app: QApplication) -> None:
     d = DivergenceIndicator()
+    qtbot.addWidget(d)
     d.push_sample({"segment": 0, "phash_similarity": 0.95, "running_phash": 0.95})
     d.push_sample({"segment": 1, "phash_similarity": 0.80, "running_phash": 0.91})
     d.push_sample({"segment": 2, "phash_similarity": 0.88, "running_phash": 0.90})
@@ -48,8 +48,9 @@ def test_tracks_latest_running_lowest(app: QApplication) -> None:
     assert d._sample_count == 3
 
 
-def test_malformed_payload_no_crash(app: QApplication) -> None:
+def test_malformed_payload_no_crash(qtbot, app: QApplication) -> None:
     d = DivergenceIndicator()
+    qtbot.addWidget(d)
     # Missing required key — must be a quiet no-op.
     d.push_sample({"segment": 0})
     # Non-numeric similarity — must not crash either.
@@ -58,8 +59,9 @@ def test_malformed_payload_no_crash(app: QApplication) -> None:
     assert d.isHidden()
 
 
-def test_reset_clears_state(app: QApplication) -> None:
+def test_reset_clears_state(qtbot, app: QApplication) -> None:
     d = DivergenceIndicator()
+    qtbot.addWidget(d)
     d.push_sample({"segment": 0, "phash_similarity": 0.7})
     assert d._sample_count == 1
     d.reset()
@@ -69,8 +71,9 @@ def test_reset_clears_state(app: QApplication) -> None:
     assert d.isHidden()
 
 
-def test_band_color_thresholds(app: QApplication) -> None:
+def test_band_color_thresholds(qtbot, app: QApplication) -> None:
     d = DivergenceIndicator()
+    qtbot.addWidget(d)
     tokens = {"kpi_green": "#G", "kpi_yellow": "#Y", "kpi_red": "#R"}
     # Mirrors the same lower-is-better banding as widgets/kpi_pills::phash_worst.
     assert d._band_color_hex(0.70, tokens) == "#G"
@@ -78,9 +81,10 @@ def test_band_color_thresholds(app: QApplication) -> None:
     assert d._band_color_hex(0.95, tokens) == "#R"
 
 
-def test_set_theme_re_resolves_color(app: QApplication) -> None:
+def test_set_theme_re_resolves_color(qtbot, app: QApplication) -> None:
     """Theme switch should re-paint the latest sample with new palette."""
     d = DivergenceIndicator()
+    qtbot.addWidget(d)
     d.push_sample({"segment": 0, "phash_similarity": 0.5})
     dark_text = d.current_label.text()
     d.set_theme("light")

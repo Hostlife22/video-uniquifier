@@ -17,11 +17,8 @@ from video_uniquifier.gui.workers.corpus_worker import CorpusWorker
 
 
 @pytest.fixture(scope="module")
-def app() -> QApplication:
-    inst = QApplication.instance()
-    if inst is None:
-        return QApplication([])
-    return inst
+def app(qapp) -> QApplication:
+    return qapp
 
 
 def _isolate(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> AppState:
@@ -61,21 +58,25 @@ def test_corpus_worker_failed_on_exception(tmp_path: Path) -> None:
 
 # ---- SettingsScreen ----
 def test_settings_theme_switch_emits_signal(
+    qtbot,
     app: QApplication, tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     state = _isolate(tmp_path, monkeypatch)
     received: list[str] = []
     state.theme_changed.connect(received.append)
     screen = SettingsScreen(state)
+    qtbot.addWidget(screen)
     screen.theme_combo.setCurrentIndex(screen.theme_combo.findData("light"))
     assert "light" in received
 
 
 def test_settings_save_persists_theme(
+    qtbot,
     app: QApplication, tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     state = _isolate(tmp_path, monkeypatch)
     screen = SettingsScreen(state)
+    qtbot.addWidget(screen)
     screen.theme_combo.setCurrentIndex(screen.theme_combo.findData("light"))
     screen._on_save()
     # Re-load from disk.
@@ -85,6 +86,7 @@ def test_settings_save_persists_theme(
 
 # ---- CorpusScreen ----
 def test_corpus_screen_table_populates(
+    qtbot,
     app: QApplication, tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     state = _isolate(tmp_path, monkeypatch)
@@ -96,6 +98,7 @@ def test_corpus_screen_table_populates(
     )
     with patch.object(Corpus, "list_all", return_value=[fake_entry]):
         screen = CorpusScreen(state)
+        qtbot.addWidget(screen)
         # _refresh now dispatches a worker; synthesise the resulting
         # `listed` signal so the table populates synchronously for the
         # test without spinning a real QThread + event loop.

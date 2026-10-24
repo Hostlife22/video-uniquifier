@@ -5,7 +5,7 @@ A failing test in this directory does NOT necessarily indicate a bug
 
 - **Additive** (new optional field, new RunEvent kind) → MINOR bump.
 - **Breaking** (removed field, renamed, type tightened) → MAJOR bump
-  AND an accepted RFC per ``docs/versioning.md``.
+  AND an accepted RFC per ``docs/en/versioning.md``.
 
 Either way, the workflow to acknowledge the change is:
 

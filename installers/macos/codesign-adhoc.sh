@@ -51,4 +51,4 @@ codesign --verify --deep --strict --verbose=2 "$APP_PATH"
 # expected. We only want to confirm codesign itself is happy.
 echo "[codesign-adhoc] done. Note: spctl will still reject this bundle"
 echo "  on first launch — users follow the right-click → Open bypass"
-echo "  in docs/install.md."
+echo "  in docs/en/install.md."

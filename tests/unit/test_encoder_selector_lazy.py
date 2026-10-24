@@ -20,14 +20,12 @@ from video_uniquifier.gui.widgets.encoder_selector import EncoderSelector
 
 
 @pytest.fixture(scope="module")
-def app() -> QApplication:
-    inst = QApplication.instance()
-    if inst is None:
-        return QApplication([])
-    return inst
+def app(qapp) -> QApplication:
+    return qapp
 
 
 def test_encoder_selector_starts_worker_not_synchronous_probe(
+    qtbot,
     app: QApplication, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     started: list[object] = []
@@ -45,6 +43,7 @@ def test_encoder_selector_starts_worker_not_synchronous_probe(
     )
 
     sel = EncoderSelector()
+    qtbot.addWidget(sel)
     # 'auto' must be rendered immediately (synchronously in __init__).
     assert sel.count() == 1
     assert sel.currentData() is None
@@ -57,6 +56,7 @@ def test_encoder_selector_starts_worker_not_synchronous_probe(
 
 
 def test_encoder_selector_appends_detected_items(
+    qtbot,
     app: QApplication, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     class _FakeWorker:
@@ -72,6 +72,7 @@ def test_encoder_selector_appends_detected_items(
     )
 
     sel = EncoderSelector()
+    qtbot.addWidget(sel)
     assert sel.count() == 1  # auto only
 
     # Simulate the worker's detected signal firing with two candidates.
@@ -96,6 +97,7 @@ def test_encoder_selector_appends_detected_items(
 
 
 def test_shutdown_preserves_reference_when_worker_is_still_running(
+    qtbot,
     app: QApplication, monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     class _BusyWorker:
@@ -111,6 +113,7 @@ def test_shutdown_preserves_reference_when_worker_is_still_running(
 
     monkeypatch.setattr(encoder_selector_mod, "EncoderDetectWorker", _BusyWorker)
     sel = EncoderSelector()
+    qtbot.addWidget(sel)
     worker = sel._detect_worker
 
     assert not sel.shutdown_detection(wait_ms=1)
@@ -121,6 +124,7 @@ def test_shutdown_preserves_reference_when_worker_is_still_running(
 
 
 def test_screen_close_shuts_down_nested_encoder_worker(
+    qtbot,
     app: QApplication, monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Directly embedded screens must own nested selector thread cleanup."""
@@ -137,7 +141,9 @@ def test_screen_close_shuts_down_nested_encoder_worker(
 
     monkeypatch.setattr(encoder_selector_mod, "EncoderDetectWorker", _Worker)
     screen = ScreenBase(MagicMock())
+    qtbot.addWidget(screen)
     selector = EncoderSelector()
+    qtbot.addWidget(selector)
     selector.setParent(screen)
     worker = selector._detect_worker
 
