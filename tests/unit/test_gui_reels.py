@@ -37,7 +37,9 @@ def screen(qtbot):
     widget = ReelsScreen(AppState())
     qtbot.addWidget(widget)
     yield widget
+    print("REELS: shutdown workers", flush=True)
     assert widget.shutdown_workers()
+    print("REELS: workers stopped", flush=True)
 
 
 def test_defaults_roundtrip_and_explicit_options(qtbot):
@@ -506,18 +508,25 @@ def test_worker_rejects_invalid_assets(tmp_path, asset_name):
 @pytest.mark.integration
 def test_desktop_real_preflight_sample_and_full_export(screen, tiny_clip, tmp_path, qtbot):
     """Exercise real QThreads, core, ffmpeg, QA and GUI result handoff."""
+    print("REELS: show", flush=True)
     screen.show()
+    print("REELS: set source", flush=True)
     screen.input_picker.set_path(tiny_clip)
+    print("REELS: source assigned", flush=True)
     qtbot.waitUntil(lambda: screen.probe_worker is None, timeout=15000)
+    print("REELS: probe complete", flush=True)
     assert screen.source_meta is not None
     screen.options.resolution.setCurrentIndex(1)
     screen.options.detect_scenes.setChecked(False)
     screen.output_folder.setText(str(tmp_path / "exports"))
     for mode in ("preflight", "sample", "export"):
+        print("REELS: start", mode, flush=True)
         screen._start(mode)
+        print("REELS: started", mode, flush=True)
         assert screen.worker is not None
         assert not screen.options.isEnabled()
         qtbot.waitUntil(lambda: screen.worker is None, timeout=90000)
+        print("REELS: completed", mode, flush=True)
         assert not screen.feedback.property("error"), screen.details_text.toPlainText()
         assert screen.options.isEnabled()
         if mode == "preflight":
@@ -525,7 +534,9 @@ def test_desktop_real_preflight_sample_and_full_export(screen, tiny_clip, tmp_pa
         if mode == "sample":
             assert screen.sample_directory
             assert (screen.sample_directory / "safe-area.png").is_file()
+            print("REELS: safe preview", flush=True)
             screen.safe_btn.click()
+            print("REELS: safe preview ready", flush=True)
             assert screen.review_tabs.currentIndex() == 1
     result = screen.result_directory
     assert result is not None and (result / "output.mp4").is_file()
@@ -537,26 +548,35 @@ def test_desktop_real_preflight_sample_and_full_export(screen, tiny_clip, tmp_pa
     assert screen.open_video_btn.isVisible()
     assert screen.scene_table.isHidden()
     assert screen.state.history[0].output_path == str(result / "output.mp4")
+    print("REELS: open report", flush=True)
     screen.open_report_btn.click()
+    print("REELS: report opened", flush=True)
     report_dialog = screen._report_dialog
     assert report_dialog is not None and report_dialog.isVisible()
     assert report_dialog.comparison.item(0, 2).text() == "720 × 1280"
     assert report_dialog.comparison.item(2, 2).text() == "2.000 s"
     assert report_dialog.summary.text() == "Technical QA: Passed"
+    print("REELS: close report", flush=True)
     report_dialog.close()
+    print("REELS: report closed", flush=True)
 
     # A real second encode is cancelled as soon as the core enters processing.
+    print("REELS: start cancellation export", flush=True)
     screen._start("export")
+    print("REELS: cancellation export started", flush=True)
     screen.worker.progress.connect(
         lambda fraction, phase: screen._cancel() if phase == "processing" else None,
     )
     qtbot.waitUntil(lambda: screen.worker is None, timeout=30000)
+    print("REELS: cancelled", flush=True)
     assert "cancelled" in screen.feedback.text()
     assert screen.result_directory is None
     failures = list((tmp_path / "exports" / "failures").glob("*.json"))
     assert len(failures) == 1
     assert json.loads(failures[0].read_text())["status"] == "cancelled"
     assert len(list((tmp_path / "exports" / "results").iterdir())) == 1
+
+    print("REELS: body finished", flush=True)
 
 
 def test_preflight_validates_assets_and_native_plan(tmp_path, monkeypatch):
