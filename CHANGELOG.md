@@ -44,6 +44,11 @@ the last tag.
 
 ### Fixed
 
+- Preserve the original preview decoder when invalidating an absent sample, and
+  send native pause only while playing. This avoids a Windows initialization stall
+  triggered by delivery-setting changes. Native test stalls now produce thread
+  dumps and terminate within the existing 180-second per-test limit.
+
 - Reels storage and downloads resolve paths against the worker root, reject
   escaping symlinks, and validate restored job identifiers. JSON reports use
   exclusive temporary files with flushed writes before atomic replacement.

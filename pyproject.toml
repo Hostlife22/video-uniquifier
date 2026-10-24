@@ -108,7 +108,7 @@ docs-test = [
     "playwright>=1.56,<2",
 ]
 dev = [
-    "pytest>=9.0.3,<10.0",
+    "pytest>=9.1.1,<10.0",
     "pytest-cov~=5.0",
     "pytest-qt~=4.4",         # v0.5.0 — PyQt6 widget testing fixtures
     # v0.7.0 R8 — hard per-test cap so a stalled real-ffmpeg fixture
@@ -221,6 +221,11 @@ markers = [
 # opcodes, which the GIL-released communicate() never returns to).
 timeout = 180
 timeout_method = "thread"
+# A native Qt call may hold the GIL and prevent pytest-timeout's Python timer
+# from running. Use the C watchdog at the same cap to dump all thread stacks
+# and terminate even that case. Requires pytest's exit-on-timeout support.
+faulthandler_timeout = 180
+faulthandler_exit_on_timeout = true
 
 # mutmut 3 copies the package before mutation; keep resource files and
 # repository fixtures available while limiting mutation to core functions.
