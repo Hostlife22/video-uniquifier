@@ -22,7 +22,9 @@
   generated footage and do not replace editorial listening/subtitle review.
 - Fast core contract tests cover source limits/HDR/subtitles, native audio selection
   and trim graphs, loudness caching, cadence diagnostics and queued cancellation.
-  Combined fast-test core coverage is 81.8%, above the required 80% gate.
+  Clean fast-test run: 2295 passed, one optional-branch skip; core coverage is
+  81.88%, above the required 80% gate. The loaded-HD preview integration checks
+  sample actions on their new settings page and waits for Qt layout completion.
 
 ## Tabular desktop quality reports (2026-10-23)
 
