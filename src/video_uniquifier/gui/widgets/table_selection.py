@@ -158,5 +158,6 @@ def install_selection_checkbox(table: QTableWidget) -> TableSelectionCheckBox:
     # Repeated native-child discovery/casting can invalidate SIP's wrapper cache.
     table.setCornerButtonEnabled(False)
     checkbox = TableSelectionCheckBox(table)
-    setattr(table, "_selection_checkbox", checkbox)
+    # Qt owns the C++ child; retain its Python subclass on the table as well.
+    table._selection_checkbox = checkbox  # type: ignore[attr-defined]
     return checkbox
