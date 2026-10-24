@@ -1,4 +1,6 @@
-"""Version-pinned adapter to the existing 2.1.2 full-file filter graph.
+"""Native full-file filter graph adapter for the 2.2.0 delivery worker.
+
+The original engine API contract was verified against the 2.1.2 baseline.
 
 Only this module composes engine labels/argv. No native Profile/RunOptions fields
 or transform registry contracts are changed by the business delivery options.
@@ -9,6 +11,7 @@ from __future__ import annotations
 import json
 import math
 import os
+from importlib.resources import files
 from pathlib import Path
 from typing import Any
 
@@ -73,10 +76,7 @@ def validate_native_profile(path: Path) -> Profile:
 
 
 def default_profile_path() -> Path:
-    packaged = Path(__file__).with_name("facebook_reels_base.yaml")
-    return packaged if packaged.is_file() else (
-        Path(__file__).parents[4] / "custom_profiles" / "facebook_reels_base.yaml"
-    )
+    return Path(str(files("video_uniquifier").joinpath("profiles", "facebook_reels_base.yaml")))
 
 
 def create_plan(source: SourceMeta, profile: Profile) -> Plan:

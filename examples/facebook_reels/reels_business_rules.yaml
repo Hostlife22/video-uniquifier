@@ -1,5 +1,5 @@
-# 业务配置：只能传给 video-reels --rules，不能传给 video-uniq --profile。
-# 未列出的字段使用 video-reels schema 中的严格默认值。
+# Business rules: use video-reels --rules, never video-uniq --profile.
+# Omitted fields use the strict defaults exported by video-reels schema.
 schema_version: 1
 preset_id: facebook_reels_drama_v1
 publish:

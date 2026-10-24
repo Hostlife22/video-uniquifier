@@ -87,7 +87,7 @@ Key invariants:
 
 `core/models.py` holds every pydantic dataclass: `SourceMeta`, `Profile`, `Plan`, `Segment`, `EncoderCandidate`, `QAReport`, `RunEvent`. The `Plan` is JSON-serializable on purpose — it crosses thread/process boundaries and is hashed for resume.
 
-Profiles (`src/video_uniquifier/profiles/*.yaml`) are loaded via `core/profile_loader.py` with `extra=forbid`. Shipped: `soft.yaml`, `medium.yaml`, `medium_hdr.yaml`, `aggressive.yaml`, `legacy_ab.yaml`, `cid_aware.yaml`, `cid_aware_hdr_to_sdr.yaml`, `cid_aggressive.yaml`. See `docs/profiles.md` for the schema.
+Profiles (`src/video_uniquifier/profiles/*.yaml`) are loaded via `core/profile_loader.py` with `extra=forbid`. Shipped: `soft.yaml`, `medium.yaml`, `medium_hdr.yaml`, `aggressive.yaml`, `legacy_ab.yaml`, `cid_aware.yaml`, `cid_aware_hdr_to_sdr.yaml`, `cid_aggressive.yaml`. See `docs/en/profiles.md` for the schema.
 
 ## Tests
 
@@ -108,25 +108,25 @@ When adding a transform: snapshot test the `filter_complex` fragment. Do not ass
 
 The rule: **workers wrap `core/` callables and stream `RunEvent`s back via Qt signals**. They never duplicate orchestration logic. A worker class typically inherits from `gui/workers/base.py` and bridges `on_event` callbacks → Qt `pyqtSignal`. If you find yourself reimplementing a pipeline step inside a worker, you're in the wrong layer — promote it to `core/`.
 
-See `docs/gui.md` for the screen-by-screen tour and `pyinstaller/` for the desktop packaging spec.
+See `docs/en/gui.md` for the screen-by-screen tour and `pyinstaller/` for the desktop packaging spec.
 
 ## Specs
 
 `specs/` contains retained RFCs for geometry and QA contracts; see `specs/README.md`.
 Completed implementation plans and version roadmaps are available in Git history.
-Use `docs/architecture.md` and `docs/api-contracts.md` for current behavior, and
+Use `docs/en/architecture.md` and `docs/en/api-contracts.md` for current behavior, and
 `PRODUCTION_PLAN.md` / `RISK_REGISTER.md` for outstanding production work.
 
 ## Docs
 
-- `docs/architecture.md` — layer diagram and data flow (authoritative)
-- `docs/install.md` — install + first-run guide (CLI + GUI + binary)
-- `docs/gui.md` — PyQt6 screen reference and packaging notes
-- `docs/profiles.md` — YAML profile schema and transform reference
-- `docs/filter_graph.md` — how transforms compose into `-filter_complex`
-- `docs/youtube_targets.md` — preflight target matrix
-- `docs/seed_strategy.md` — deterministic per-segment/per-transform seed derivation (load-bearing for reproducibility and divergence guarantees)
-- `docs/qa_report.md` — schema and KPIs for `<out>.qa.json` / `.qa.html`
-- `docs/calibrate.md` — calibration loop (auto-tunes profile params against fingerprint deltas)
-- `docs/distributed.md` — multi-host batch coordination
-- `docs/validation_harness.md` — real-CID validation harness for offline regression testing
+- `docs/en/architecture.md` — layer diagram and data flow (authoritative)
+- `docs/en/install.md` — install + first-run guide (CLI + GUI + binary)
+- `docs/en/gui.md` — PyQt6 screen reference and packaging notes
+- `docs/en/profiles.md` — YAML profile schema and transform reference
+- `docs/en/filter_graph.md` — how transforms compose into `-filter_complex`
+- `docs/en/youtube_targets.md` — preflight target matrix
+- `docs/en/seed_strategy.md` — deterministic per-segment/per-transform seed derivation (load-bearing for reproducibility and divergence guarantees)
+- `docs/en/qa_report.md` — schema and KPIs for `<out>.qa.json` / `.qa.html`
+- `docs/en/calibrate.md` — calibration loop (auto-tunes profile params against fingerprint deltas)
+- `docs/en/distributed.md` — multi-host batch coordination
+- `docs/en/validation_harness.md` — real-CID validation harness for offline regression testing

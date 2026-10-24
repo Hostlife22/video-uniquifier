@@ -97,3 +97,19 @@ def test_shipped_business_example_and_editor_schema_stay_in_sync():
     assert load_rules(examples / "reels_business_rules.yaml") == ReelsRules()
     assert json.loads((examples / "reels_business.schema.json").read_text()) == (
         ReelsRules.model_json_schema())
+
+
+def test_default_base_profile_uses_installed_package_resources(tmp_path, monkeypatch):
+    """The worker must use packaged profiles, even beside a source checkout."""
+    from video_uniquifier.core.reels import native
+
+    package = tmp_path / "installed" / "video_uniquifier"
+    profile_dir = package / "profiles"
+    profile_dir.mkdir(parents=True)
+    source = native.default_profile_path().read_text()
+    (profile_dir / "facebook_reels_base.yaml").write_text(
+        source.replace("name: facebook_reels_base", "name: bundled_only"),
+    )
+    monkeypatch.setattr(native, "files", lambda _name: package, raising=False)
+    loaded = native.validate_native_profile(native.default_profile_path())
+    assert loaded.name == "bundled_only"

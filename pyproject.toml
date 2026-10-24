@@ -1,6 +1,6 @@
 [project]
 name = "video-uniquifier"
-version = "2.1.2"
+version = "2.2.0"
 description = "Production-grade re-encoder with controlled micro-transforms for owned/licensed video content."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -47,7 +47,7 @@ qa  = ["pyacoustid~=1.3"]
 # because (a) the OpenCV runtime PySceneDetect needs is ~40 MB even in the
 # headless build, and (b) the keyframe-aligned default works fine for most
 # users. Scene mode is selected per-profile via ``segmentation.mode:
-# scene`` — see ``docs/profiles.md`` and ``core/scene_detect.py``. We pin
+# scene`` — see ``docs/en/profiles.md`` and ``core/scene_detect.py``. We pin
 # PySceneDetect 0.7 makes OpenCV a direct dependency and permits patched Click
 # releases. Do not add opencv-python-headless beside it: the two distributions
 # export the same cv2 package and are unsafe to install together.
@@ -99,8 +99,13 @@ web = [
 # install this. CI builds with --strict and deploys via the
 # .github/workflows/docs.yml pipeline on tag push.
 docs = [
-    "mkdocs-material~=9.5",
+    "mkdocs-material>=9.7,<9.8",
+    "mkdocs-static-i18n>=1.3.1,<2",
+    "jieba>=0.42.1,<0.43",
     "pymdown-extensions>=11.0.1,<12.0",
+]
+docs-test = [
+    "playwright>=1.56,<2",
 ]
 dev = [
     "pytest>=9.0.3,<10.0",
@@ -171,7 +176,6 @@ packages = ["src/video_uniquifier"]
 [tool.hatch.build]
 include = [
     "src/video_uniquifier/**/*.py",
-    "custom_profiles/facebook_reels_base.yaml",
     "src/video_uniquifier/gui/assets/*.svg",
     "src/video_uniquifier/profiles/*.yaml",
     "src/video_uniquifier/core/qa/templates/*.j2",
@@ -181,9 +185,6 @@ include = [
     "src/video_uniquifier/web/static/*.js",
     "src/video_uniquifier/web/static/*.css",
 ]
-
-[tool.hatch.build.targets.wheel.force-include]
-"custom_profiles/facebook_reels_base.yaml" = "video_uniquifier/core/reels/facebook_reels_base.yaml"
 
 [tool.ruff]
 line-length = 100
@@ -230,7 +231,7 @@ process_isolation = "forkserver"
 only_mutate = ["src/video_uniquifier/core/*"]
 pytest_add_cli_args_test_selection = ["tests/unit/"]
 pytest_add_cli_args = ["-x", "-q", "-m", "not integration and not visual"]
-also_copy = ["tools/", "docs/", "profiles/", "pyinstaller/", ".github/", "Makefile"]
+also_copy = ["tools/", "docs/", "examples/", "profiles/", "pyinstaller/", ".github/", "Makefile"]
 
 [tool.mypy]
 python_version = "3.11"

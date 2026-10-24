@@ -148,7 +148,7 @@ SIDEBAR_ITEMS: list[tuple[str, str]] = [
     ("Queue",          "v0.5.3"),
     ("Validation",     "v0.5.3"),
     ("Settings",       "v0.5.4"),
-    ("Reels",          "2.1.2-reels"),
+    ("Reels",          "2.2.0-reels"),
 ]
 
 

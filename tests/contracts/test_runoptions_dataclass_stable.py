@@ -3,7 +3,7 @@
 These are the three dataclasses that callers of ``run_full`` see —
 ``RunOptions`` flows in, ``RunSummary`` flows out, ``RunResult`` is
 what ``runner.run_ffmpeg`` returns one level lower. They are
-public surface per ``docs/api-contracts.md``.
+public surface per ``docs/en/api-contracts.md``.
 
 We only snapshot the *shape* (field names + repr of declared type +
 whether a default is present). The default *value* itself is not

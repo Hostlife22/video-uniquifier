@@ -18,7 +18,6 @@
 
 import sys
 from importlib.metadata import version
-from pathlib import Path
 from PyInstaller.utils.hooks import collect_data_files, collect_submodules, copy_metadata
 
 APP_VERSION = version("video-uniquifier")
@@ -28,8 +27,6 @@ datas = []
 datas += copy_metadata("video-uniquifier")
 for subdir in ("profiles", "core/qa/templates", "marketplace", "keys", "gui/assets"):
     datas += collect_data_files("video_uniquifier", subdir=subdir, include_py_files=False)
-datas += [(str(Path(SPECPATH).parent / "custom_profiles/facebook_reels_base.yaml"),
-           "video_uniquifier/core/reels")]
 
 # Transforms self-register on import via core/transforms/__init__.py. The
 # init imports every submodule by name so PyInstaller should follow them,

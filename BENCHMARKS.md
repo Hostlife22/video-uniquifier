@@ -869,7 +869,7 @@ Desktop run used a production-like `hard` mount and wedged the Linux VM during f
 network teardown. The harness now uses a bounded `soft` mount and faults client
 TCP/2049 with `iptables`, keeping Docker's control plane responsive. GitHub-hosted
 Ubuntu run `33881832592` passed the complete corrected matrix. This qualifies the
-application-level ephemeral lab only; `docs/distributed.md` still requires `hard`
+application-level ephemeral lab only; `docs/en/distributed.md` still requires `hard`
 mounts in production, and native cross-host deployment qualification remains required.
 
 Повторный локальный запуск 2026-09-05 на Docker Desktop также прошёл: 80/80 unique

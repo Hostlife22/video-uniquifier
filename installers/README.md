@@ -20,7 +20,7 @@ attached to each `v*` GitHub Release.
     project does not currently hold an Apple Developer ID (~$99/yr)
     or a Windows Code Signing certificate (~$200-400/yr). Users
     will see a Gatekeeper / SmartScreen warning the first time they
-    launch — `docs/install.md` documents the per-OS bypass
+    launch — `docs/en/install.md` documents the per-OS bypass
     (right-click → Open on macOS, "More info → Run anyway" on
     Windows) and how to verify the download via the SHA256SUMS file
     instead. Signing will land as a v1.0.x patch release once the

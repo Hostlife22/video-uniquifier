@@ -101,6 +101,16 @@ jobs:
       - name: Ruff check
         run: ruff check .
 
+      - name: Set up Node.js for integration example
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12'
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+
+      - name: Check BullMQ bridge example
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12'
+        run: node --test examples/facebook_reels/bullmq/worker.test.mjs
+
       # v0.7.0 R8 (revised v1.2.0 Task 26) — split fast vs. integration
       # tests.  The fast lane (unit + gui + smoke) runs on every matrix
       # cell (3 OS × 2 Py) so PR feedback stays under ~2 min.
@@ -149,7 +159,7 @@ jobs:
       # statement hits); the 80% floor accommodates that stricter
       # measure while the master-plan target (85% statement-only)
       # is already met. Ratchet target: 85% under branch=true by
-      # v1.1, tracked in `docs/api-contracts.md` follow-ups.
+      # v1.1, tracked in `docs/en/api-contracts.md` follow-ups.
       - name: Pytest (coverage gate — core/ only)
         if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12'
         env:

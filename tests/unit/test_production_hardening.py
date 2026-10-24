@@ -243,7 +243,7 @@ def test_metrics_have_bounded_states_and_no_correlation_labels() -> None:
 
 def test_transform_reference_lists_every_registered_transform() -> None:
     reference = (
-        Path(__file__).resolve().parents[2] / "docs" / "transform_reference.md"
+        Path(__file__).resolve().parents[2] / "docs" / "en" / "transform_reference.md"
     ).read_text(encoding="utf-8")
     builtins = [
         transform_id

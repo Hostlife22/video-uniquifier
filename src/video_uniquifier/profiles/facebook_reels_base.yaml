@@ -1,0 +1,28 @@
+# Native video-uniquifier 2.2.0 Profile. Business rules belong in a separate YAML.
+name: facebook_reels_base
+description: Quality-first Reels delivery for owned/licensed short drama.
+transforms:
+  - id: video.fit_aspect
+    enabled: true
+    params:
+      target_aspect: "9:16"
+      mode: pad_blur
+      target_width: 1080
+      target_height: 1920
+      allow_upscale: true
+      blur_sigma: 20.0
+  - id: audio.loudnorm
+    enabled: true
+    params:
+      integrated: -16.0
+      true_peak: -1.5
+      lra: 11.0
+audio_tracks: first
+keep_hdr: false
+output_container: mp4
+target_codec: h264
+target_loudness_lufs: -16.0
+seed_strategy: fixed
+seed: 42
+segmentation:
+  mode: keyframe

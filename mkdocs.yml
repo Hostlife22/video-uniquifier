@@ -1,121 +1,258 @@
-# video-uniquifier documentation site (v0.9.0 R6).
-#
-# Build locally:
-#   pip install -e ".[docs]"
-#   mkdocs serve              # live-reload on http://127.0.0.1:8000
-#   mkdocs build --strict     # CI / pre-deploy check
-#
-# Deploy:
-#   The GH Actions workflow .github/workflows/docs.yml pushes the
-#   built site to gh-pages on tag releases (v*.*.*). Local `mkdocs
-#   gh-deploy --force` works too but requires push rights to the
-#   gh-pages branch.
-
+# Build all three languages: make docs-build
+# English lives at /; Russian at /ru/; Simplified Chinese at /zh/.
+# Retain Unicode tokens; the client multi-language trimmer drops CJK.
+# Chinese word boundaries are provided by jieba at build time.
 site_name: video-uniquifier
-site_description: >
-  Production-grade re-encoder with controlled micro-transforms for
-  owned/licensed video content. Re-upload your own work; never
-  evade rights-holder detection.
+site_description: 'Production-grade re-encoder with controlled micro-transforms for owned/licensed video
+  content. Re-upload your own work; never evade rights-holder detection.
+
+  '
 site_url: https://hostlife22.github.io/video-uniquifier/
 repo_url: https://github.com/Hostlife22/video-uniquifier
 repo_name: Hostlife22/video-uniquifier
 edit_uri: edit/main/docs/
-
-# Strict mode promotes warnings (missing-from-nav files, broken
-# refs, unrecognised markdown) into errors. CI runs `mkdocs build
-# --strict` so a stale link breaks the build before publish.
 strict: true
-
 theme:
   name: material
   features:
-    - navigation.instant
-    - navigation.tracking
-    - navigation.expand
-    - navigation.top
-    - search.suggest
-    - search.highlight
-    - content.code.copy
-    - content.action.edit
+  - navigation.tracking
+  - navigation.expand
+  - navigation.top
+  - search.suggest
+  - search.highlight
+  - content.code.copy
+  - content.action.edit
   palette:
-    - media: "(prefers-color-scheme: dark)"
-      scheme: slate
-      primary: indigo
-      accent: indigo
-      toggle:
-        icon: material/weather-sunny
-        name: Switch to light mode
-    - media: "(prefers-color-scheme: light)"
-      scheme: default
-      primary: indigo
-      accent: indigo
-      toggle:
-        icon: material/weather-night
-        name: Switch to dark mode
-
+  - media: '(prefers-color-scheme: dark)'
+    scheme: slate
+    primary: indigo
+    accent: indigo
+    toggle:
+      icon: material/weather-sunny
+      name: Switch to light mode
+  - media: '(prefers-color-scheme: light)'
+    scheme: default
+    primary: indigo
+    accent: indigo
+    toggle:
+      icon: material/weather-night
+      name: Switch to dark mode
+  language: en
 nav:
-  - Home: index.md
-  - Getting started: getting-started.md
-  - Install: install.md
-  - GUI walkthrough: gui-walkthrough.md
-  - Web UI & Docker: web.md
-  - Profiles:
-      - Schema & transforms: profiles.md
-      - Transform reference: transform_reference.md
-      - Community marketplace: marketplace.md
-      - Plugin transforms: plugins.md
-  - Pipeline:
-      - Architecture: architecture.md
-      - Filter graph: filter_graph.md
-      - Seed strategy: seed_strategy.md
-      - Distributed batch: distributed.md
-  - QA:
-      - QA report: qa_report.md
-      - SSCD copy detection: sscd.md
-      - Corpus index: corpus.md
-      - Validation harness: validation_harness.md
-  - Operations:
-      - Calibration: calibrate.md
-      - Hardware qualification: hardware_qualification.md
-      - YouTube targets: youtube_targets.md
-      - Telemetry: telemetry.md
-      - Localization: i18n.md
-  - Project:
-      - Audit implementation plan: implementation-plan.md
-      - Audit implementation decisions: audit-implementation-decisions.md
-      - Audit implementation results: audit-implementation-results.md
-      - Versioning & compatibility: versioning.md
-      - API contracts: api-contracts.md
-      - Security policy: security.md
-      - Accessibility: accessibility.md
-
+- Home: index.md
+- Getting started: getting-started.md
+- Install: install.md
+- GUI walkthrough: gui-walkthrough.md
+- Video delivery / Reels:
+  - User guide: facebook-reels.md
+  - Implementation log: facebook-reels-development.md
+- Web UI & Docker: web.md
+- Profiles:
+  - Schema & transforms: profiles.md
+  - Transform reference: transform_reference.md
+  - Community marketplace: marketplace.md
+  - Plugin transforms: plugins.md
+- Pipeline:
+  - Architecture: architecture.md
+  - Filter graph: filter_graph.md
+  - Seed strategy: seed_strategy.md
+  - Distributed batch: distributed.md
+- QA:
+  - QA report: qa_report.md
+  - SSCD copy detection: sscd.md
+  - Corpus index: corpus.md
+  - Validation harness: validation_harness.md
+- Operations:
+  - Calibration: calibrate.md
+  - Hardware qualification: hardware_qualification.md
+  - YouTube targets: youtube_targets.md
+  - Telemetry: telemetry.md
+  - Application localization: i18n.md
+  - Documentation languages: documentation.md
+- Project:
+  - Versioning & compatibility: versioning.md
+  - API contracts: api-contracts.md
+  - Security policy: security.md
+  - Accessibility: accessibility.md
+- Development:
+  - GUI reference: gui.md
+  - UI design: ui-design.md
+  - GUI sweep: gui_sweep.md
+  - Manual GUI checklist: manual_gui_checklist.md
+  - Scale test runbook: runbook_scale_test.md
 markdown_extensions:
-  - admonition
-  - attr_list
-  - footnotes
-  - md_in_html
-  - tables
-  - toc:
-      permalink: true
-  - pymdownx.details
-  - pymdownx.highlight:
-      anchor_linenums: true
-  - pymdownx.inlinehilite
-  - pymdownx.snippets
-  - pymdownx.superfences
-  - pymdownx.tabbed:
-      alternate_style: true
-
+- admonition
+- attr_list
+- footnotes
+- md_in_html
+- tables
+- toc:
+    permalink: true
+- pymdownx.details
+- pymdownx.highlight:
+    anchor_linenums: true
+- pymdownx.inlinehilite
+- pymdownx.snippets
+- pymdownx.superfences
+- pymdownx.tabbed:
+    alternate_style: true
 plugins:
-  - search
+- search:
+    lang:
+    - en
+    separator: '[\s\u200b\-]+'
+    pipeline:
+    - stopWordFilter
+- i18n:
+    docs_structure: folder
+    fallback_to_default: true
+    reconfigure_material: true
+    reconfigure_search: false
+    languages:
+    - locale: en
+      default: true
+      name: English
+      build: true
+    - locale: ru
+      name: Русский
+      build: true
+      site_description: Обработка и перекодирование собственных и лицензированных видео.
+      nav_translations:
+        Home: Главная
+        Getting started: Начало работы
+        Install: Установка
+        GUI walkthrough: Руководство по интерфейсу
+        Video delivery / Reels: Подготовка видео / Reels
+        User guide: Руководство пользователя
+        Implementation log: Журнал реализации
+        Web UI & Docker: Веб-интерфейс и Docker
+        Profiles: Профили
+        Schema & transforms: Схема и преобразования
+        Transform reference: Справочник преобразований
+        Community marketplace: Каталог сообщества
+        Plugin transforms: Плагины преобразований
+        Pipeline: Конвейер
+        Architecture: Архитектура
+        Filter graph: Граф фильтров
+        Seed strategy: Стратегия seed
+        Distributed batch: Распределённая обработка
+        QA: Контроль качества
+        QA report: Отчёт качества
+        SSCD copy detection: Обнаружение копий SSCD
+        Corpus index: Библиотека эталонов
+        Validation harness: Проверочный стенд
+        Operations: Эксплуатация
+        Calibration: Калибровка
+        Hardware qualification: Проверка оборудования
+        YouTube targets: Требования YouTube
+        Telemetry: Телеметрия
+        Application localization: Локализация приложения
+        Documentation languages: Языки документации
+        Project: Проект
+        Audit implementation plan: План реализации аудита
+        Audit implementation decisions: Решения по аудиту
+        Audit implementation results: Результаты аудита
+        Versioning & compatibility: Версии и совместимость
+        API contracts: Контракты API
+        Security policy: Политика безопасности
+        Accessibility: Доступность
+        Development: Разработка
+        GUI reference: Справочник GUI
+        UI design: Дизайн интерфейса
+        GUI sweep: Проверка экранов
+        Manual GUI checklist: Ручная проверка GUI
+        Scale test runbook: Нагрузочное тестирование
+      theme:
+        palette:
+        - media: '(prefers-color-scheme: dark)'
+          scheme: slate
+          primary: indigo
+          accent: indigo
+          toggle:
+            icon: material/weather-sunny
+            name: Переключиться на светлую тему
+        - media: '(prefers-color-scheme: light)'
+          scheme: default
+          primary: indigo
+          accent: indigo
+          toggle:
+            icon: material/weather-night
+            name: Переключиться на тёмную тему
+    - locale: zh
+      name: 简体中文
+      build: true
+      site_description: 为自有或已获授权的视频进行处理与重新编码。
+      nav_translations:
+        Home: 首页
+        Getting started: 快速入门
+        Install: 安装
+        GUI walkthrough: 桌面界面指南
+        Video delivery / Reels: 视频交付 / Reels
+        User guide: 使用指南
+        Implementation log: 开发日志
+        Web UI & Docker: 网页界面与 Docker
+        Profiles: 配置文件
+        Schema & transforms: 结构与变换
+        Transform reference: 变换参考
+        Community marketplace: 社区配置库
+        Plugin transforms: 变换插件
+        Pipeline: 处理流水线
+        Architecture: 架构
+        Filter graph: 滤镜图
+        Seed strategy: 随机种子策略
+        Distributed batch: 分布式批处理
+        QA: 质量检查
+        QA report: 质量报告
+        SSCD copy detection: SSCD 副本检测
+        Corpus index: 参考库索引
+        Validation harness: 验证工具
+        Operations: 运维
+        Calibration: 自动调参
+        Hardware qualification: 硬件验证
+        YouTube targets: YouTube 输出要求
+        Telemetry: 遥测
+        Application localization: 应用本地化
+        Documentation languages: 文档语言
+        Project: 项目
+        Audit implementation plan: 审计实施计划
+        Audit implementation decisions: 审计实施决策
+        Audit implementation results: 审计实施结果
+        Versioning & compatibility: 版本与兼容性
+        API contracts: API 契约
+        Security policy: 安全政策
+        Accessibility: 无障碍
+        Development: 开发
+        GUI reference: 桌面界面参考
+        UI design: 界面设计
+        GUI sweep: 界面巡检
+        Manual GUI checklist: 手动界面检查
+        Scale test runbook: 负载测试手册
+      theme:
+        palette:
+        - media: '(prefers-color-scheme: dark)'
+          scheme: slate
+          primary: indigo
+          accent: indigo
+          toggle:
+            icon: material/weather-sunny
+            name: 切换为浅色主题
+        - media: '(prefers-color-scheme: light)'
+          scheme: default
+          primary: indigo
+          accent: indigo
+          toggle:
+            icon: material/weather-night
+            name: 切换为深色主题
+validation:
+  nav:
+    omitted_files: warn
+    not_found: warn
+  links:
+    not_found: warn
+    anchors: warn
+    unrecognized_links: info
+exclude_docs: 'research/**
 
-# Internal / developer-only artefacts that live under docs/ but
-# do not belong on the published site. mkdocs (≥ 1.6) honours
-# the glob list and skips them entirely.
-exclude_docs: |
-  bug-triage-*.md
-  gui.md
-  gui_sweep.md
-  manual_gui_checklist.md
-  runbook_scale_test.md
-  test-report-*.md
+  '
+hooks:
+- tools/docs_hooks.py
