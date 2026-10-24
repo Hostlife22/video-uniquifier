@@ -7,6 +7,7 @@ from unittest.mock import patch
 import pytest
 from PyQt6 import sip
 from PyQt6.QtCore import QAbstractAnimation, QCoreApplication, QEvent, Qt
+from PyQt6.QtMultimedia import QMediaPlayer
 from PyQt6.QtWidgets import (
     QApplication,
     QCheckBox,
@@ -472,6 +473,46 @@ def test_unavailable_preview_keeps_workflow_usable_and_closes(qtbot, tmp_path):
     assert not preview.play_button.isEnabled()
     preview.shutdown()
     assert preview.player.source().isEmpty()
+
+
+def test_clearing_an_absent_sample_preserves_the_original_decoder(qtbot, tmp_path, monkeypatch):
+    preview = StudioPreview()
+    qtbot.addWidget(preview)
+    source, sample = tmp_path / "source.mp4", tmp_path / "sample.mp4"
+    source.touch()
+    sample.touch()
+    loaded = []
+    monkeypatch.setattr(preview.player, "setSource", lambda url: loaded.append(Path(url.toLocalFile())))
+    preview.set_source(source)
+    original_frame = preview._frame
+    preview.set_result(None)
+    preview.set_result(None)
+    assert loaded == [source.resolve()]
+    assert preview._frame is original_frame
+    assert preview.current_path == source
+
+    preview.set_result(sample)
+    assert preview.current_path == sample
+    preview.set_result(None)
+    assert preview.current_path == source
+    assert loaded == [source.resolve(), sample.resolve(), source.resolve()]
+    preview.set_result(None)
+    assert len(loaded) == 3
+    preview.shutdown()
+
+
+@pytest.mark.parametrize("state", list(QMediaPlayer.PlaybackState))
+def test_preview_pause_only_controls_a_playing_native_decoder(qtbot, monkeypatch, state):
+    preview = StudioPreview()
+    qtbot.addWidget(preview)
+    paused = []
+    monkeypatch.setattr(preview.player, "playbackState", lambda: state)
+    monkeypatch.setattr(preview.player, "pause", lambda: paused.append(True))
+    preview._priming = True
+    preview.pause()
+    assert paused == ([True] if state == QMediaPlayer.PlaybackState.PlayingState else [])
+    assert not preview._priming and preview.audio.isMuted()
+    preview.shutdown()
 
 
 def test_batch_updates_correct_file_after_sort_and_counts_terminal_once(qtbot, tmp_path):

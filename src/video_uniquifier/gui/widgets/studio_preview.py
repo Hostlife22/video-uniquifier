@@ -207,6 +207,10 @@ class StudioPreview(QWidget):
         self._choose_track(0)
 
     def set_result(self, path: Path | None) -> None:
+        if path is None and self._paths[1] is None and self.track.currentIndex() == 0:
+            # Settings can invalidate an absent sample while the original is
+            # still loading. Keep that decoder and its first-frame state intact.
+            return
         self._paths[1] = path
         self._choose_track(1 if path is not None else 0)
 
@@ -310,7 +314,10 @@ class StudioPreview(QWidget):
     def pause(self) -> None:
         self._priming = False
         self.audio.setMuted(True)
-        self.player.pause()
+        # Qt's decoder may still be initializing while its state is Stopped.
+        # Sending a redundant native pause can block that initialization on Windows.
+        if self.player.playbackState() == QMediaPlayer.PlaybackState.PlayingState:
+            self.player.pause()
 
     def _select_sample(self) -> None:
         if self.select_sample.isEnabled() and self._paths[0] is not None:

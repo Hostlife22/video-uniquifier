@@ -25,7 +25,13 @@ jobs:
           python -m pip install --upgrade pip
           pip install --require-hashes -r requirements-lock.txt
           pip install -e '.[dev,gui,web]' --no-deps
-      - name: Ten distinct parameterized native desktop workflows
+      - name: Original-decoder preservation and native pause regressions
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: >-
+          python -m pytest tests/unit/test_gui_studio.py
+          -k "absent_sample or playing_native_decoder" -q
+      - name: Twenty distinct parameterized native desktop workflows
         timeout-minutes: 10
         env:
           QT_QPA_PLATFORM: offscreen
