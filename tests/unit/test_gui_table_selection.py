@@ -3,15 +3,12 @@
 from __future__ import annotations
 
 import pytest
-from PyQt6 import sip
 from PyQt6.QtCore import QItemSelectionModel, QPoint, Qt
 from PyQt6.QtWidgets import (
-    QAbstractButton,
     QAbstractItemView,
     QPushButton,
     QTableWidget,
     QTableWidgetItem,
-    QWidget,
 )
 
 from video_uniquifier import __version__
@@ -55,7 +52,11 @@ def test_corner_toggles_rows_with_partial_feedback_without_changing_effects(tabl
     checkbox.setFocus()
     qtbot.keyClick(checkbox, Qt.Key.Key_Space)
     assert checkbox.checkState() == Qt.CheckState.Checked
-    assert checkbox.geometry() == checkbox.parentWidget().rect()
+    assert checkbox.parentWidget() is table
+    assert checkbox.x() == table.verticalHeader().x()
+    assert checkbox.y() == table.horizontalHeader().y()
+    assert checkbox.width() == table.verticalHeader().width()
+    assert checkbox.height() == table.horizontalHeader().height()
 
 
 def test_partial_cell_selection_and_nonselectable_rows(table):
@@ -83,62 +84,46 @@ def test_empty_and_single_selection_tables_do_not_offer_select_all(table):
     assert not checkbox.isEnabled()
 
 
-def test_corner_installation_ignores_private_class_names_and_cell_buttons(qtbot, monkeypatch):
+def test_corner_installation_does_not_discover_native_children(qtbot, monkeypatch):
     table = QTableWidget(1, 1)
     qtbot.addWidget(table)
     table.setItem(0, 0, QTableWidgetItem("File"))
     action = QPushButton("Open file")
     table.setCellWidget(0, 0, action)
-    corner = table.findChild(QAbstractButton, options=Qt.FindChildOption.FindDirectChildrenOnly)
-    assert corner is not None
-    monkeypatch.setattr(corner, "metaObject", lambda: QAbstractButton.staticMetaObject)
+
+    def reject_native_discovery(*args, **kwargs):
+        raise AssertionError("Do not inspect Qt's private child widgets")
+
+    monkeypatch.setattr(table, "findChild", reject_native_discovery)
+    monkeypatch.setattr(table, "findChildren", reject_native_discovery)
     checkbox = install_selection_checkbox(table)
+    assert install_selection_checkbox(table) is checkbox
     table.show()
-    assert checkbox.parentWidget() is corner
-    assert checkbox.parentWidget() is not action
+    assert checkbox.parentWidget() is table
     checkbox.click()
     assert table.selectedIndexes()
 
 
-def test_corner_installation_recovers_when_typed_lookup_misses_native_wrapper(qtbot, monkeypatch):
-    table = QTableWidget(1, 1)
-    qtbot.addWidget(table)
-    table.setItem(0, 0, QTableWidgetItem("File"))
-    find = table.findChild
-
-    def generic_wrapper_lookup(kind, *args, **kwargs):
-        if kind is QAbstractButton:
-            return None
-        return find(kind, *args, **kwargs)
-
-    monkeypatch.setattr(table, "findChild", generic_wrapper_lookup)
-    checkbox = install_selection_checkbox(table)
-    table.show()
-    checkbox.click()
-    assert table.selectedIndexes()
-    assert checkbox.parentWidget().inherits("QAbstractButton")
-
-
-def test_corner_installation_uses_only_widget_apis_for_a_generic_native_wrapper(qtbot, monkeypatch):
-    table = QTableWidget(1, 1)
-    qtbot.addWidget(table)
-    table.setItem(0, 0, QTableWidgetItem("File"))
-    corner = table.findChild(QAbstractButton, options=Qt.FindChildOption.FindDirectChildrenOnly)
-    assert corner is not None
-    # A safe upcast reproduces a generic wrapper without fabricating a sibling
-    # C++ type, which can corrupt SIP's wrapper cache on another platform.
-    wrapper = sip.cast(corner, QWidget)
-    assert wrapper.inherits("QAbstractButton")
-    find = table.findChild
-    monkeypatch.setattr(table, "findChild", lambda kind, *args, **kwargs:
-                        None if kind is QAbstractButton else find(kind, *args, **kwargs))
-    find_many = table.findChildren
-    monkeypatch.setattr(table, "findChildren", lambda kind, *args, **kwargs:
-                        [wrapper] if kind is QWidget else find_many(kind, *args, **kwargs))
-    checkbox = install_selection_checkbox(table)
-    table.show()
-    checkbox.click()
-    assert table.selectedIndexes()
+@pytest.mark.parametrize(
+    "direction", [Qt.LayoutDirection.LeftToRight, Qt.LayoutDirection.RightToLeft],
+)
+def test_corner_tracks_header_geometry_and_visibility(table, qtbot, direction):
+    table.setLayoutDirection(direction)
+    table.resize(620, 360)
+    table.verticalHeader().setFixedWidth(72)
+    table.horizontalHeader().setFixedHeight(48)
+    qtbot.wait(20)
+    checkbox = table._selection_checkbox
+    assert checkbox.x() == table.verticalHeader().x()
+    assert checkbox.y() == table.horizontalHeader().y()
+    assert checkbox.width() == 72
+    assert checkbox.height() == 48
+    table.verticalHeader().hide()
+    qtbot.wait(20)
+    assert not checkbox.isVisible()
+    table.verticalHeader().show()
+    qtbot.wait(20)
+    assert checkbox.isVisible()
 
 
 def test_table_filter_selects_only_visible_rows_and_updates_corner(gui_window_factory, qapp):
