@@ -4,14 +4,14 @@ from __future__ import annotations
 
 import pytest
 from PyQt6 import sip
-from PyQt6.QtCore import QItemSelectionModel, QObject, QPoint, Qt
+from PyQt6.QtCore import QItemSelectionModel, QPoint, Qt
 from PyQt6.QtWidgets import (
     QAbstractButton,
     QAbstractItemView,
-    QHeaderView,
     QPushButton,
     QTableWidget,
     QTableWidgetItem,
+    QWidget,
 )
 
 from video_uniquifier import __version__
@@ -119,19 +119,22 @@ def test_corner_installation_recovers_when_typed_lookup_misses_native_wrapper(qt
     assert checkbox.parentWidget().inherits("QAbstractButton")
 
 
-def test_corner_installation_recovers_a_wrapper_with_a_sibling_python_type(qtbot, monkeypatch):
+def test_corner_installation_uses_only_widget_apis_for_a_generic_native_wrapper(qtbot, monkeypatch):
     table = QTableWidget(1, 1)
     qtbot.addWidget(table)
     table.setItem(0, 0, QTableWidgetItem("File"))
     corner = table.findChild(QAbstractButton, options=Qt.FindChildOption.FindDirectChildrenOnly)
     assert corner is not None
-    # Reproduce the CI wrapper mismatch without changing the underlying C++ button.
-    wrapper = sip.cast(sip.cast(corner, QObject), QHeaderView)
+    # A safe upcast reproduces a generic wrapper without fabricating a sibling
+    # C++ type, which can corrupt SIP's wrapper cache on another platform.
+    wrapper = sip.cast(corner, QWidget)
     assert wrapper.inherits("QAbstractButton")
     find = table.findChild
     monkeypatch.setattr(table, "findChild", lambda kind, *args, **kwargs:
                         None if kind is QAbstractButton else find(kind, *args, **kwargs))
-    monkeypatch.setattr(table, "children", lambda: [wrapper])
+    find_many = table.findChildren
+    monkeypatch.setattr(table, "findChildren", lambda kind, *args, **kwargs:
+                        [wrapper] if kind is QWidget else find_many(kind, *args, **kwargs))
     checkbox = install_selection_checkbox(table)
     table.show()
     checkbox.click()

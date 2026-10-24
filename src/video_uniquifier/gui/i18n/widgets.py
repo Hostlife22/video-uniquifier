@@ -7,6 +7,7 @@ English also works for legacy controls constructed without ``tr()``.
 
 from __future__ import annotations
 
+from PyQt6 import sip
 from PyQt6.QtCore import QCoreApplication, QObject, QSignalBlocker
 from PyQt6.QtWidgets import (
     QAbstractButton,
@@ -58,6 +59,10 @@ def _text(owner: QObject, prop: str, current: str) -> str:
 def retranslate_widgets(root: QWidget) -> None:
     """Translate known captions on a page, preserving its live state."""
     for widget in (root, *root.findChildren(QWidget)):
+        # Updating a caption can destroy native descendants later in this
+        # snapshot. Never pass a deleted QObject to QSignalBlocker.
+        if sip.isdeleted(widget):
+            continue
         # Changing a combo's display labels must not fire application handlers.
         blocker = QSignalBlocker(widget)
         for prop in ("toolTip", "statusTip", "accessibleName", "accessibleDescription"):

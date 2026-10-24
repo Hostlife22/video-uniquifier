@@ -7,6 +7,7 @@ import string
 from pathlib import Path
 
 import pytest
+from PyQt6 import sip
 from PyQt6.QtWidgets import (
     QComboBox,
     QGroupBox,
@@ -41,6 +42,24 @@ def test_chinese_covers_source_inventory_and_preserves_format_fields():
         assert sorted(field for _, field, _, _ in formatter.parse(source) if field) == sorted(
             field for _, field, _, _ in formatter.parse(translated) if field
         ), source
+
+
+def test_translation_skips_children_deleted_while_refreshing_captions(qtbot, qapp, monkeypatch):
+    root = QWidget()
+    qtbot.addWidget(root)
+    first = QLabel("Cancel", root)
+    removed = QLabel("Close", root)
+    set_text = first.setText
+
+    def replace_caption(text):
+        set_text(text)
+        sip.delete(removed)
+
+    monkeypatch.setattr(first, "setText", replace_caption)
+    install_translator(qapp, "zh_CN")
+    retranslate_widgets(root)
+    assert first.text() == TRANSLATIONS["zh_CN"]["Cancel"]
+    assert sip.isdeleted(removed)
 
 
 def test_chinese_covers_literal_tr_calls_and_navigation():

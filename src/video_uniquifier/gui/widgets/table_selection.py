@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from PyQt6 import sip
 from PyQt6.QtCore import (
     QEvent,
     QItemSelection,
@@ -21,13 +20,14 @@ from PyQt6.QtWidgets import (
     QStyleOptionButton,
     QStylePainter,
     QTableWidget,
+    QWidget,
 )
 
 from video_uniquifier.gui.design import Metrics
 
 
 class TableSelectionCheckBox(QCheckBox):
-    def __init__(self, table: QTableWidget, corner: QAbstractButton) -> None:
+    def __init__(self, table: QTableWidget, corner: QWidget) -> None:
         super().__init__(corner)
         self.table = table
         self.setObjectName("table_selection")
@@ -77,7 +77,7 @@ class TableSelectionCheckBox(QCheckBox):
 
     def eventFilter(self, watched: QObject | None, event: QEvent | None) -> bool:
         if (event is not None and event.type() in (QEvent.Type.Resize, QEvent.Type.Show)
-                and isinstance(watched, QAbstractButton)):
+                and isinstance(watched, QWidget)):
             self.setGeometry(watched.rect())
         return super().eventFilter(watched, event)
 
@@ -142,13 +142,15 @@ def install_selection_checkbox(table: QTableWidget) -> TableSelectionCheckBox:
     table.ensurePolished()
     # The corner is a direct button child; cell actions belong to the viewport.
     # Match the public base type rather than Qt's private implementation name.
-    corner = table.findChild(QAbstractButton, options=Qt.FindChildOption.FindDirectChildrenOnly)
+    corner: QWidget | None = table.findChild(
+        QAbstractButton, options=Qt.FindChildOption.FindDirectChildrenOnly,
+    )
     if corner is None:
         # A previous generic QObject traversal can leave a private Qt subclass
-        # with a base-class Python wrapper. Query the public C++ ancestry and
-        # cast explicitly instead of depending on the private corner class name.
-        corner = next((sip.cast(sip.cast(child, QObject), QAbstractButton)
-                       for child in table.children()
+        # with a base-class Python wrapper. Only QWidget APIs are needed here;
+        # keep that wrapper instead of casting it to a private implementation.
+        children = table.findChildren(QWidget, options=Qt.FindChildOption.FindDirectChildrenOnly)
+        corner = next((child for child in children
                        if child.inherits("QAbstractButton")), None)
     assert corner is not None, "Qt table corner button is unavailable"
     checkbox = TableSelectionCheckBox(table, corner)

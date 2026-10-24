@@ -15,6 +15,7 @@ from pathlib import Path
 
 from PyQt6.QtWidgets import QApplication, QWidget
 
+from video_uniquifier.core.qa import corpus
 from video_uniquifier.core.reels.runtime import json_object
 from video_uniquifier.gui import state as state_module
 from video_uniquifier.gui.app_pyqt import MainWindow
@@ -54,6 +55,7 @@ def main() -> None:
     state_module.CONFIG_DIR = preferences
     state_module.STATE_PATH = preferences / "state.json"
     state_module.HISTORY_PATH = preferences / "history.json"
+    corpus.DEFAULT_CORPUS_DIR = preferences / "corpus"
     EncoderSelector._start_detection = lambda self: None
     app = QApplication([])
     install_translator(app, "zh_CN")

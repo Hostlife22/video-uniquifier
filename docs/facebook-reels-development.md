@@ -8,9 +8,9 @@
   JSON files are exclusively created and flushed before atomic replacement.
 - PNG logo dimensions are checked before resizing: narrow inputs can otherwise
   expand far beyond the source pixel budget and exhaust worker memory.
-- Native table corners can be recovered from generic Python wrappers without
-  relying on a private Qt class name. Casts go through QObject to handle sibling
-  Python wrapper types observed on the macOS CI runner. Hidden delivery pages no longer widen the
+- Native table corners are found through their public C++ ancestry and used via
+  QWidget APIs, retaining generic Python wrappers without unsafe downcasts.
+  Translation skips descendants deleted during a caption refresh. Hidden delivery pages no longer widen the
   outer page; forms wrap long rows. Small-window checks cover English, Russian and
   Chinese, with reviewed visual baselines for all eleven screens.
 - Real 10/30/90-second exports passed technical QA. Native Cocoa acceptance passed
@@ -28,6 +28,9 @@
 - HDR integration also checks the unsupported-build case: macOS CI's FFmpeg may
   lack zscale, in which case explicit conversion must fail preflight without
   publishing a result. Hosts with zscale still run and verify the real conversion.
+- The integration step has a 30-minute total budget after Linux/macOS runners
+  exhausted the previous 15 minutes. The 180-second per-test cap is unchanged;
+  CI now records the twenty slowest tests. All integration tests remain enabled.
 
 ## Tabular desktop quality reports (2026-10-23)
 
