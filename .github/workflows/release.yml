@@ -25,25 +25,11 @@ jobs:
           python -m pip install --upgrade pip
           pip install --require-hashes -r requirements-lock.txt
           pip install -e '.[dev,gui,web]' --no-deps
-      - name: Isolated real desktop delivery
-        timeout-minutes: 5
+      - name: Ten distinct parameterized native desktop workflows
+        timeout-minutes: 10
         env:
           QT_QPA_PLATFORM: offscreen
         run: >-
           python -X faulthandler -m pytest
           tests/unit/test_gui_reels.py::test_desktop_real_preflight_sample_and_full_export
-          -s -vv -o faulthandler_timeout=120 -o faulthandler_exit_on_timeout=true
-      - name: Repeat desktop scenario ten times in one Qt process
-        timeout-minutes: 10
-        shell: bash
-        env:
-          QT_QPA_PLATFORM: offscreen
-        run: |
-          python -X faulthandler - <<'PYCODE'
-          import subprocess, sys
-          test = 'tests/unit/test_gui_reels.py::test_desktop_real_preflight_sample_and_full_export'
-          subprocess.run([sys.executable, '-X', 'faulthandler', '-m', 'pytest',
-                          '-s', '-vv', '--keep-duplicates',
-                          '-o', 'faulthandler_timeout=180',
-                          '-o', 'faulthandler_exit_on_timeout=true', *([test] * 10)], check=True)
-          PYCODE
+          -s -vv -o faulthandler_timeout=180 -o faulthandler_exit_on_timeout=true

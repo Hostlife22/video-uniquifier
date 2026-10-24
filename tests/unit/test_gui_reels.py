@@ -505,8 +505,11 @@ def test_worker_rejects_invalid_assets(tmp_path, asset_name):
     assert problems == ["asset_path"]
 
 
+@pytest.mark.parametrize("_iteration", range(10))
 @pytest.mark.integration
-def test_desktop_real_preflight_sample_and_full_export(screen, tiny_clip, tmp_path, qtbot):
+def test_desktop_real_preflight_sample_and_full_export(
+    screen, tiny_clip, tmp_path, qtbot, _iteration,
+):
     """Exercise real QThreads, core, ffmpeg, QA and GUI result handoff."""
     print("REELS: show", flush=True)
     screen.show()
