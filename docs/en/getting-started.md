@@ -75,7 +75,7 @@ video-uniq preflight ~/Videos/in.mp4 --profile review-soft.yaml
         -v $PWD/input:/data/input:ro \
         -v $PWD/output:/data/output \
         -v $PWD/work:/data/work \
-        ghcr.io/hostlife22/video-uniquifier:2.2.0
+        ghcr.io/hostlife22/video-uniquifier:v2.2.0
     ```
 
     Open http://127.0.0.1:8080 and fill in the form. Full guide
