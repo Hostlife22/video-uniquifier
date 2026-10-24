@@ -44,6 +44,9 @@ the last tag.
 
 ### Fixed
 
+- Retain every registered GUI test widget through Qt's deferred native deletion,
+  preserving queued events and preventing collection inside later style callbacks.
+
 - Preserve the original preview decoder when invalidating an absent sample, and
   send native pause only while playing. This avoids a Windows initialization stall
   triggered by delivery-setting changes. Native test stalls now produce thread
