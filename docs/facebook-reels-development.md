@@ -8,8 +8,9 @@
   JSON files are exclusively created and flushed before atomic replacement.
 - PNG logo dimensions are checked before resizing: narrow inputs can otherwise
   expand far beyond the source pixel budget and exhaust worker memory.
-- Native table corners are found through their public C++ ancestry and used via
-  QWidget APIs, retaining generic Python wrappers without unsafe downcasts.
+- Table selection uses an owned checkbox positioned from public header geometry,
+  avoiding private Qt corner discovery and SIP casts after a Linux native crash.
+  Resize, header visibility, both layout directions and teardown are covered.
   Translation enumerates public caption controls, blocks only combo/tab/table
   signals, and skips deleted descendants. Hidden delivery pages no longer widen the
   outer page; forms wrap long rows. Small-window checks cover English, Russian and
@@ -23,7 +24,7 @@
   generated footage and do not replace editorial listening/subtitle review.
 - Fast core contract tests cover source limits/HDR/subtitles, native audio selection
   and trim graphs, loudness caching, cadence diagnostics and queued cancellation.
-  Clean fast-test run: 2295 passed, one optional-branch skip; core coverage is
+  Clean fast-test run: 2298 passed, one optional-branch skip; core coverage is
   81.88%, above the required 80% gate. The loaded-HD preview integration checks
   sample actions on their new settings page and waits for Qt layout completion.
 - HDR integration also checks the unsupported-build case: macOS CI's FFmpeg may

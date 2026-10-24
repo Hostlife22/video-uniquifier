@@ -38,7 +38,8 @@ the last tag.
   exclusive temporary files with flushed writes before atomic replacement.
 - Reject oversized derived logo dimensions before allocating resized images.
 - Delivery pages fit platform-specific control widths without widening the outer
-  page, and table selection recovers native buttons with generic Python wrappers.
+  page. Table selection uses an owned checkbox positioned from public headers,
+  avoiding private native widgets and wrapper casts.
   Workflow captions retain literal ampersands; reviewed desktop visual baselines
   include the new delivery screen.
 - Comparison players report missing local videos before invoking native decoders.
@@ -49,9 +50,9 @@ the last tag.
   controls and page guides. Switching languages refreshes existing page captions
   without rebuilding screens or changing input values, paths and selections.
 
-- Table selection controls find the native corner through its public button type
-  after style polish, avoiding dependency on a private Qt class name. The file-search
-  regression uses native paths on Windows.
+- Table selection tracks header resizing, visibility and right-to-left layout;
+  model callbacks ignore table teardown. The file-search regression uses native
+  paths on Windows.
 
 ## [2.1.2] — 2026-10-06
 
