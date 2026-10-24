@@ -9,7 +9,8 @@
 - PNG logo dimensions are checked before resizing: narrow inputs can otherwise
   expand far beyond the source pixel budget and exhaust worker memory.
 - Native table corners can be recovered from generic Python wrappers without
-  relying on a private Qt class name. Hidden delivery pages no longer widen the
+  relying on a private Qt class name. Casts go through QObject to handle sibling
+  Python wrapper types observed on the macOS CI runner. Hidden delivery pages no longer widen the
   outer page; forms wrap long rows. Small-window checks cover English, Russian and
   Chinese, with reviewed visual baselines for all eleven screens.
 - Real 10/30/90-second exports passed technical QA. Native Cocoa acceptance passed
@@ -19,6 +20,9 @@
 - Evidence is kept under ignored `out/pr34-review/`: core and desktop acceptance
   JSON, HTTP acceptance JSON, screenshots, and test/build logs. These checks use
   generated footage and do not replace editorial listening/subtitle review.
+- Fast core contract tests cover source limits/HDR/subtitles, native audio selection
+  and trim graphs, loudness caching, cadence diagnostics and queued cancellation.
+  Combined fast-test core coverage is 81.8%, above the required 80% gate.
 
 ## Tabular desktop quality reports (2026-10-23)
 

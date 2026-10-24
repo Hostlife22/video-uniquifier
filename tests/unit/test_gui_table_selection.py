@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 import pytest
-from PyQt6.QtCore import QItemSelectionModel, QPoint, Qt
+from PyQt6 import sip
+from PyQt6.QtCore import QItemSelectionModel, QObject, QPoint, Qt
 from PyQt6.QtWidgets import (
     QAbstractButton,
     QAbstractItemView,
+    QHeaderView,
     QPushButton,
     QTableWidget,
     QTableWidgetItem,
@@ -115,6 +117,25 @@ def test_corner_installation_recovers_when_typed_lookup_misses_native_wrapper(qt
     checkbox.click()
     assert table.selectedIndexes()
     assert checkbox.parentWidget().inherits("QAbstractButton")
+
+
+def test_corner_installation_recovers_a_wrapper_with_a_sibling_python_type(qtbot, monkeypatch):
+    table = QTableWidget(1, 1)
+    qtbot.addWidget(table)
+    table.setItem(0, 0, QTableWidgetItem("File"))
+    corner = table.findChild(QAbstractButton, options=Qt.FindChildOption.FindDirectChildrenOnly)
+    assert corner is not None
+    # Reproduce the CI wrapper mismatch without changing the underlying C++ button.
+    wrapper = sip.cast(sip.cast(corner, QObject), QHeaderView)
+    assert wrapper.inherits("QAbstractButton")
+    find = table.findChild
+    monkeypatch.setattr(table, "findChild", lambda kind, *args, **kwargs:
+                        None if kind is QAbstractButton else find(kind, *args, **kwargs))
+    monkeypatch.setattr(table, "children", lambda: [wrapper])
+    checkbox = install_selection_checkbox(table)
+    table.show()
+    checkbox.click()
+    assert table.selectedIndexes()
 
 
 def test_table_filter_selects_only_visible_rows_and_updates_corner(gui_window_factory, qapp):

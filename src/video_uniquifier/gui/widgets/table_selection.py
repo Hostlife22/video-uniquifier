@@ -147,7 +147,8 @@ def install_selection_checkbox(table: QTableWidget) -> TableSelectionCheckBox:
         # A previous generic QObject traversal can leave a private Qt subclass
         # with a base-class Python wrapper. Query the public C++ ancestry and
         # cast explicitly instead of depending on the private corner class name.
-        corner = next((sip.cast(child, QAbstractButton) for child in table.children()
+        corner = next((sip.cast(sip.cast(child, QObject), QAbstractButton)
+                       for child in table.children()
                        if child.inherits("QAbstractButton")), None)
     assert corner is not None, "Qt table corner button is unavailable"
     checkbox = TableSelectionCheckBox(table, corner)
