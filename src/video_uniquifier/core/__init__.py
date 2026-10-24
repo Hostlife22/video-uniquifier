@@ -1,8 +1,8 @@
 """Public, SemVer-stable surface of ``video_uniquifier.core``.
 
-Re-exports the contracts that ``docs/api-contracts.md`` marks as
+Re-exports the contracts that ``docs/en/api-contracts.md`` marks as
 **stable**. Anything not re-exported here is considered internal and
-may move without an RFC — see ``docs/versioning.md`` for the policy.
+may move without an RFC — see ``docs/en/versioning.md`` for the policy.
 
 Importing through this module is the only supported way to use the
 core programmatically:

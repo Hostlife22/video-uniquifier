@@ -101,6 +101,16 @@ jobs:
       - name: Ruff check
         run: ruff check .
 
+      - name: Set up Node.js for integration example
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12'
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+
+      - name: Check BullMQ bridge example
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12'
+        run: node --test examples/facebook_reels/bullmq/worker.test.mjs
+
       # v0.7.0 R8 (revised v1.2.0 Task 26) — split fast vs. integration
       # tests.  The fast lane (unit + gui + smoke) runs on every matrix
       # cell (3 OS × 2 Py) so PR feedback stays under ~2 min.
@@ -132,12 +142,13 @@ jobs:
         # v1.2.0 Task 26 — promoted from ubuntu-3.12-only to all 6 cells.
         # Each integration test starts with ``@needs_ffmpeg`` so a missing
         # codec on a runner skips cleanly rather than failing.  The
-        # 15 min job-level timeout caps the worst-case wall-clock; the
+        # 30 min step timeout accommodates the expanded media/chaos suite on
+        # slower runners; the
         # 180 s per-test cap from pyproject keeps individual tests honest.
-        timeout-minutes: 15
+        timeout-minutes: 30
         env:
           QT_QPA_PLATFORM: offscreen
-        run: pytest -q -m integration
+        run: pytest -v -m integration --durations=20
 
       # v1.0.0 R3 — SemVer-gate on `core/` coverage. Runs once
       # (ubuntu-latest + 3.12) because line/branch coverage is
@@ -148,7 +159,7 @@ jobs:
       # statement hits); the 80% floor accommodates that stricter
       # measure while the master-plan target (85% statement-only)
       # is already met. Ratchet target: 85% under branch=true by
-      # v1.1, tracked in `docs/api-contracts.md` follow-ups.
+      # v1.1, tracked in `docs/en/api-contracts.md` follow-ups.
       - name: Pytest (coverage gate — core/ only)
         if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12'
         env:

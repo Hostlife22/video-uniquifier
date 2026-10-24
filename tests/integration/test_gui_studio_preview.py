@@ -92,9 +92,18 @@ def test_loaded_hd_preview_keeps_transport_inside_a_small_workspace(
     )
     assert window.rect().contains(screen.preview.seek_bar.mapTo(window, bottom))
     assert screen.sample_btn.isEnabled()
-    assert window.rect().contains(
-        screen.sample_btn.mapTo(window, screen.sample_btn.rect().bottomRight()),
-    )
+    assert not screen.sample_btn.isVisible()
     top, progress, log = screen.workspace_splitter.sizes()
-    assert top > 0 and log > 0
-    assert progress == 0 and screen.progress_scroll.isHidden()
+    assert top > 0 and progress == 0 and log == 0
+    assert screen.progress_scroll.isHidden() and screen.log_details.isHidden()
+
+    # Sample actions moved to their own settings workspace in the new workflow.
+    screen.workflow_navigation.setCurrentIndex(1)
+    qtbot.waitUntil(lambda: screen.sample_btn.isVisible() and window.rect().contains(
+        screen.sample_btn.mapTo(window, screen.sample_btn.rect().bottomRight()),
+    ), timeout=5000)
+    assert not screen.preview.isVisible()
+    screen.workflow_navigation.setCurrentIndex(2)
+    qtbot.waitUntil(screen.progress_scroll.isVisible)
+    top, progress, log = screen.workspace_splitter.sizes()
+    assert top == 0 and progress > 0 and log > 0

@@ -118,6 +118,16 @@ test-visual-update:  ## Refresh GUI screenshot baselines (intentional change).
 check: lint typecheck test  ## All quality gates: ruff + mypy + full pytest.
 	@echo "✓ all checks passed"
 
+# ---- documentation ---------------------------------------------------
+.PHONY: docs-build docs-serve
+docs-build:  ## Validate and build English, Russian and Chinese documentation.
+	$(PY) tools/check_docs.py
+	$(PY) -m mkdocs build --strict --site-dir _site
+	$(PY) tools/check_docs.py --site-dir _site
+
+docs-serve:  ## Preview the multilingual documentation with live reload.
+	$(PY) -m mkdocs serve
+
 # ---- run -------------------------------------------------------------
 .PHONY: gui
 gui:  ## Launch video-uniq-gui (desktop app).

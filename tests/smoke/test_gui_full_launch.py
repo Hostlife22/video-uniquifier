@@ -21,7 +21,8 @@ def test_main_window_launches_and_navigates() -> None:
     for i in range(win.sidebar.count()):
         win.sidebar.setCurrentRow(i)
         app.processEvents()
-        # Stack index follows sidebar selection.
-        assert win.stack.currentIndex() == i
+        # Screen identities stay stable even when the sidebar is regrouped.
+        from video_uniquifier.gui.widgets.navigation import NAV_ORDER
+        assert SIDEBAR_ITEMS[win.stack.currentIndex()][0] == NAV_ORDER[i]
 
     win.close()

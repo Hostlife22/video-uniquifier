@@ -39,6 +39,7 @@ SCREENS = {
     "Queue":          7,
     "Validation":     8,
     "Settings":       9,
+    "Reels":         10,
 }
 
 
@@ -91,8 +92,7 @@ def test_screen_snapshot(main_window, label: str) -> None:
     On first run (or with UPDATE_VISUAL_BASELINES=1) writes the baseline.
     On subsequent runs, fails if the file changed bytewise.
     """
-    idx = SCREENS[label]
-    main_window.sidebar.setCurrentRow(idx)
+    main_window._navigate_to(label)
     app = QApplication.instance()
     assert app is not None
     app.processEvents()

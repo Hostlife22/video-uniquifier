@@ -7,7 +7,7 @@ body:
     attributes:
       value: |
         Use this template for any change to a **stable contract** (see
-        [`docs/api-contracts.md`](https://github.com/Hostlife22/video-uniquifier/blob/main/docs/api-contracts.md)):
+        [`docs/en/api-contracts.md`](https://github.com/Hostlife22/video-uniquifier/blob/main/docs/en/api-contracts.md)):
         adding/removing/renaming/retyping fields on pydantic models,
         changing CLI flag semantics, removing shipped profiles, adding
         new `RunEvent.kind` literals.
@@ -82,7 +82,7 @@ body:
       label: Affected stable surfaces
       description: |
         List every stable contract this RFC touches. Use the
-        identifiers from `docs/api-contracts.md` (e.g. `Plan.segments`,
+        identifiers from `docs/en/api-contracts.md` (e.g. `Plan.segments`,
         `RunEvent.kind="progress"`, `cli.run --workers`, profile
         `cid_aware.yaml`).
     validations:
@@ -93,9 +93,9 @@ body:
     attributes:
       label: Before submitting
       options:
-        - label: I read `docs/versioning.md` and confirm this is an RFC-required change.
+        - label: I read `docs/en/versioning.md` and confirm this is an RFC-required change.
           required: true
-        - label: I am willing to update `docs/api-contracts.md` + regen snapshot goldens as part of the implementation PR.
+        - label: I am willing to update `docs/en/api-contracts.md` + regen snapshot goldens as part of the implementation PR.
           required: true
         - label: I understand the 7-day minimum comment window.
           required: true

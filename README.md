@@ -1,13 +1,21 @@
 # video-uniquifier
 
+[English](README.md) · [Русский](README.ru.md) · [简体中文](README.zh-CN.md)
+
 Video processing and re-encoding for content you own or are licensed to use.
 Preview changes, compare the result with the original, and process individual
 videos or batches through a desktop app, CLI, or web interface.
 
-**Source version: 2.1.2** ·
+**Source version: 2.2.0** ·
 [Downloads](https://github.com/Hostlife22/video-uniquifier/releases) ·
 [Documentation](https://hostlife22.github.io/video-uniquifier/) ·
 [Release notes](./CHANGELOG.md)
+
+**Video delivery / Reels:** the desktop **Workspace → Video delivery** route and
+`video-reels` worker provide delivery encoding, two-pass loudness normalization,
+quality reports, scene timelines and optional human-provided titles/logos.
+See the [delivery guide](./docs/en/facebook-reels.md) for GUI, CLI, HTTP and
+NestJS/BullMQ integration. No AI or publishing service is required.
 
 ![Video Uniquifier — dark studio desktop interface](./docs/screenshots/run-screen-en.png)
 
@@ -18,14 +26,16 @@ videos or batches through a desktop app, CLI, or web interface.
 - Large video player with playback, seeking, sound controls, and switching between
   the source and completed output. Source details include resolution, frame rate,
   duration, codec, and HDR status.
-- A settings inspector beside the preview, with compact Gentle / Medium / Strong
+- Separate source/preview, processing settings, and progress/result workspaces, with Gentle / Medium / Strong
   profile cards and expandable descriptions of their picture and sound changes.
-- Resizable preview, settings, result, and log panels. Panel sizes and table layouts
+- A four-step **Video delivery** route under **Workspace**: source, settings, sample review,
+  and full export, with a Reels vertical preset and optional title/logo controls.
+- Resizable result and log panels. Panel sizes and table layouts
   are remembered between sessions; primary processing actions stay visible.
 - Stage-specific progress, elapsed time, and remaining-time estimates when enough
   measurements are available. A global activity banner lets you follow active tasks
   while visiting other pages.
-- Dark studio and light themes, English and Russian localization, keyboard
+- Dark studio and light themes, English, Simplified Chinese and Russian localization, keyboard
   navigation, and a reduced-motion setting. Each page includes contextual help
   through **How to use** or **F1**.
 
@@ -42,7 +52,7 @@ videos or batches through a desktop app, CLI, or web interface.
   speed changes. HDR uses native video panels; the SDR sample workflow and raster
   divider are unavailable for HDR sources.
 
-See the [GUI guide](./docs/gui.md) for workspace and comparison controls.
+See the [GUI guide](./docs/en/gui.md) for workspace and comparison controls.
 
 ### Video processing
 
@@ -60,7 +70,7 @@ See the [GUI guide](./docs/gui.md) for workspace and comparison controls.
 - Transforms are composed into FFmpeg filter graphs. Compatibility checks validate
   their order and reject unsupported combinations before a long encode.
 
-The [transform reference](./docs/transform_reference.md) covers parameters,
+The [transform reference](./docs/en/transform_reference.md) covers parameters,
 ordering, quality costs, and HDR/timing compatibility.
 
 ### Audio processing
@@ -93,8 +103,8 @@ ordering, quality costs, and HDR/timing compatibility.
   and schema validation. Optional Ed25519 signature enforcement adds a catalog
   signing requirement.
 
-See [Profiles](./docs/profiles.md), [Seed strategies](./docs/seed_strategy.md),
-and the [community catalog](./docs/marketplace.md).
+See [Profiles](./docs/en/profiles.md), [Seed strategies](./docs/en/seed_strategy.md),
+and the [community catalog](./docs/en/marketplace.md).
 
 ### Encoders, HDR, and media preservation
 
@@ -112,8 +122,8 @@ and the [community catalog](./docs/marketplace.md).
   to the selected container. Supported speed changes also retime SRT subtitles and
   chapters; incompatible subtitle/data formats are rejected.
 
-See [Profiles](./docs/profiles.md) and
-[hardware qualification](./docs/hardware_qualification.md) for requirements and
+See [Profiles](./docs/en/profiles.md) and
+[hardware qualification](./docs/en/hardware_qualification.md) for requirements and
 device-specific validation limits.
 
 ### Preflight checks and resumable processing
@@ -151,8 +161,8 @@ device-specific validation limits.
 - A local reference library stores fingerprints in SQLite and supports comparison
   against indexed videos, helping inspect similarities between authorized variants.
 
-See [Quality reports](./docs/qa_report.md), [SSCD](./docs/sscd.md), and
-[Reference corpus](./docs/corpus.md). Similarity measurements are local diagnostics;
+See [Quality reports](./docs/en/qa_report.md), [SSCD](./docs/en/sscd.md), and
+[Reference corpus](./docs/en/corpus.md). Similarity measurements are local diagnostics;
 they do not predict external rights-management decisions or replace viewing and
 listening to the output.
 
@@ -166,7 +176,7 @@ listening to the output.
   If no candidate satisfies both constraints, the result is explicitly marked as
   not converged; full-file processing and review are still required.
 
-See the [calibration workflow](./docs/calibrate.md).
+See the [calibration workflow](./docs/en/calibrate.md).
 
 ### Batch processing, history, and distributed queues
 
@@ -183,7 +193,7 @@ See the [calibration workflow](./docs/calibrate.md).
   qualification on the actual deployment; it does not require Redis or an external
   queue database.
 
-See [Distributed batch](./docs/distributed.md).
+See [Distributed batch](./docs/en/distributed.md).
 
 ### CLI, web interface, and integrations
 
@@ -195,15 +205,15 @@ See [Distributed batch](./docs/distributed.md).
   and HTML/JSON report access through browser and API routes.
 - Docker and Compose definitions provide FFmpeg, persistent media/work mounts,
   and configurable resource limits. The web interface covers a smaller workflow
-  than the desktop app; see [Web UI & Docker](./docs/web.md).
+  than the desktop app; see [Web UI & Docker](./docs/en/web.md).
 - Extend video/audio transforms through Python plugins without modifying the core.
   Plugin manifests, capability checks, allowlists, and disable controls are described
-  in [Plugins](./docs/plugins.md).
+  in [Plugins](./docs/en/plugins.md).
 - Configure optional completion/failure notifications through Discord, Slack,
   Telegram, generic webhooks, or SMTP email, with a test action in desktop Settings.
 - Optional local telemetry records a summary event per completed or failed run.
   It starts disabled, stays on the device, and offers event export and deletion;
-  see [Telemetry](./docs/telemetry.md).
+  see [Telemetry](./docs/en/telemetry.md).
 
 ## Install
 
@@ -219,7 +229,7 @@ Desktop bundles include Python and the GUI dependencies.
 | macOS Apple Silicon | macOS ZIP containing the app | Install separately |
 | Windows | Windows ZIP containing the executable | Install separately |
 
-See the [installation guide](./docs/install.md) for setup, checksum verification,
+See the [installation guide](./docs/en/install.md) for setup, checksum verification,
 first-launch instructions, and installation on Intel Macs.
 
 ### From source
@@ -235,7 +245,7 @@ make gui
 ```
 
 Use a Python 3.11+ interpreter for `PYTHON`. Windows setup and optional
-dependencies are covered in the [installation guide](./docs/install.md).
+dependencies are covered in the [installation guide](./docs/en/install.md).
 
 ## First video
 
@@ -248,7 +258,7 @@ dependencies are covered in the [installation guide](./docs/install.md).
 The default sample is 15 seconds; you can choose its start and a 10, 15, or
 20-second duration. Sample processing is available for SDR sources.
 Each page's **How to use** button, or **F1**, opens its quick guide.
-See the [GUI guide](./docs/gui.md) for the full workflow.
+See the [GUI guide](./docs/en/gui.md) for the full workflow.
 
 ### CLI example
 
@@ -273,7 +283,7 @@ Use `make cli` for available commands, or add `--help` to a command for its opti
 | Strong | `aggressive.yaml` | Experimental processing requiring careful review |
 
 Shipped recipes also cover HDR and common delivery formats, including vertical
-and square video. See [Profiles](./docs/profiles.md) for the complete list,
+and square video. See [Profiles](./docs/en/profiles.md) for the complete list,
 transform settings, and instructions for creating your own recipe.
 
 Quality depends on the source and selected transforms. Review a sample and the
@@ -281,16 +291,26 @@ full output; diagnostic scores complement visual and listening checks.
 
 ## Documentation
 
-- [Web UI & Docker](./docs/web.md) — browser access and container deployment.
-- [Quality reports](./docs/qa_report.md) — measurements and their interpretation.
-- [Distributed batch](./docs/distributed.md) — processing across multiple machines.
-- [Plugins](./docs/plugins.md) — extending the transform registry.
-- [API contracts and naming migration](./docs/api-contracts.md) — Python integration
+- [Web UI & Docker](./docs/en/web.md) — browser access and container deployment.
+- [Quality reports](./docs/en/qa_report.md) — measurements and their interpretation.
+- [Distributed batch](./docs/en/distributed.md) — processing across multiple machines.
+- [Plugins](./docs/en/plugins.md) — extending the transform registry.
+- [API contracts and naming migration](./docs/en/api-contracts.md) — Python integration
   and compatibility details.
 - [Security policy](./SECURITY.md) — reporting vulnerabilities.
 
 The [documentation site](https://hostlife22.github.io/video-uniquifier/)
 contains the full reference and workflow guides.
+
+## Repository layout
+
+| Directory | Purpose |
+|---|---|
+| `src/video_uniquifier/` | Application code and packaged resources |
+| `src/video_uniquifier/profiles/` | Shipped native YAML profiles, including the Reels base profile |
+| `examples/facebook_reels/` | Sample business rules, packaging parameters and the external `bullmq/` bridge |
+| `docs/en/`, `docs/ru/`, `docs/zh/` | English, Russian and Simplified Chinese documentation |
+| `tests/`, `tools/`, `pyinstaller/` | Tests, developer utilities and desktop packaging |
 
 ## Development
 

@@ -1,0 +1,100 @@
+# Versioning and Compatibility
+
+The project follows [Semantic Versioning 2.0.0](https://semver.org/) for every contract listed in [API Contracts](api-contracts.md). The public API is
+**stable**: code that imports `video_uniquifier.core` or invokes
+`video-uniq` from a shell script can pin `video-uniquifier~=2.2` and expect non-breaking upgrades within the 2.x line. Version 2.0.0 introduces the new package, import, command and environment names; update integrations when migrating from the previous major version.
+
+## What counts as a "breaking change"
+
+A change is **MAJOR** (1.x → 2.0) when it does one of the following to a `stable`-labelled contract:
+
+| Surface | Breaking action |
+|---|---|
+| `core.Plan`, `core.Profile`, `core.SourceMeta`, `core.EncoderCandidate` | Removing a field; renaming a field; tightening a type (e.g. `int | None` → `int`); changing default semantics |
+| `core.RunEvent.kind` | Removing a `kind` literal; changing the payload schema of an existing `kind` |
+| `core.RunOptions`, `core.RunSummary` | Removing a field; renaming; tightening a type |
+| Plugin entry-point group `video_uniquifier.transforms` | Changing the protocol that registered transforms must satisfy |
+| CLI: `video-uniq <subcommand>` | Removing a subcommand; removing or renaming a flag; changing the exit-code contract |
+| YAML profile schema | Removing a top-level key; renaming a transform id; tightening `extra=forbid` to reject previously-accepted shapes |
+| Python API entry points: `build_plan`, `run_full`, `compute_plan_hash` | Changing the call signature in a non-additive way |
+| `Plan` JSON serialisation | A field that round-tripped in N.Y.Z no longer round-trips in (N+1).0.0 |
+
+A change is **MINOR** (1.0 → 1.1) when it does any of:
+
+- Adds a new optional field with a sensible default to a stable model
+- Adds a new `RunEvent.kind` literal
+- Adds a new CLI subcommand, flag, or environment variable
+- Adds a new shipped profile YAML
+- Adds a new transform (registered in `core/transforms/__init__.py`)
+- Deprecates (but does not remove) any of the above; emits a
+  `DeprecationWarning` for at least one full MINOR cycle before removal
+
+A change is **PATCH** (1.0.0 → 1.0.1) when it is bug-fix only: no contract surface moves, behavior under documented invariants is restored to the documented contract.
+
+## Stability labels
+
+Every model field and CLI flag carries one of three labels in [API Contracts](api-contracts.md):
+
+- **`stable`** — covered by the SemVer commitment above.
+- **`experimental`** — covered by the commitment, but a MINOR can remove it with a `DeprecationWarning`. Use at your own risk; pin to exact patch versions if you depend on experimental surface.
+- **`internal`** — not covered. Anything in `_*` modules,
+  `video_uniquifier.core._internal`, or marked internal in [API Contracts](api-contracts.md). May change in any release.
+
+A piece of API surface that has **no label**in [API Contracts](api-contracts.md) is**`internal`** by default. If you want to depend on it, open an RFC requesting promotion.
+
+## RFC process for breaking changes
+
+We are conservative about MAJOR bumps. Any PR that intends to break a `stable` contract must:
+
+1. **Open an RFC first.** Create a GitHub Discussion under category "RFCs" using the [RFC issue template](https://github.com/hostlife22/video-uniquifier/issues/new?template=rfc.yml). Title format: `RFC: <short summary>`.
+2. **State the four required sections** in the template:
+   - **Problem.** What current behavior is wrong, missing, or
+     painful. Include concrete user-visible symptoms or use-cases.
+   - **Proposal.** Exact new contract — field signatures,
+     filter-string changes, CLI shape. The PR can prototype later,
+     but the RFC must commit to the shape.
+   - **Alternatives.** What additive (non-breaking) approaches were
+     considered, and why they were rejected.
+   - **Migration plan.** What users need to do to upgrade. Include
+     a deprecation path if possible (warn for one MINOR, remove in
+     the next MAJOR).
+3. **Open for 7 days minimum.** RFCs cannot be accepted before 7 calendar days have passed since the Discussion was opened. This gives users in different timezones a chance to weigh in.
+4. **Maintainer sign-off.** A maintainer comments
+   `accepted` or `rejected` once consensus is clear. An accepted RFC unblocks a PR labeled `breaking-change`.
+5. **CHANGELOG entry.** Every accepted breaking change gets a dedicated bullet under the `### Removed` or `### Changed` heading of the next MAJOR release block, including a link back to the RFC.
+
+Trivial breaking changes (e.g. dropping support for Python 3.10 when it reaches end-of-life) still require an RFC, but maintainer-authored RFCs may use a shortened 3-day comment window.
+
+## Supported versions
+
+| Version line | Status | Bug fixes | Security fixes | Until |
+|---|---|---|---|---|
+| **2.2.x** | Active | yes | yes | TBD — see GitHub Releases |
+| 2.1.x and earlier | End-of-life | no | no | superseded |
+
+Security fixes for the active line are released as PATCH versions within 30 calendar days of a confirmed CRITICAL or HIGH disclosure. See [SECURITY.md](https://github.com/hostlife22/video-uniquifier/blob/main/SECURITY.md) for the disclosure policy.
+
+## Python version policy
+
+Version 2.2.0 requires Python 3.11 or newer. CI tests Python 3.11 and 3.12 on
+Ubuntu, macOS and Windows. Newer interpreters are not covered by that matrix until
+explicitly added. Changing the minimum supported Python version requires an RFC
+and a documented migration/deprecation policy for downstream packagers.
+
+## Profile YAML versioning
+
+Profiles are validated against the native `Profile` model and each transform's
+parameter schema. There is no separate `profile_schema_version` YAML field;
+unknown keys are rejected by `extra=forbid`. Application version 2.2.0 does not
+imply a YAML schema version of 2.2.0. Stable profile changes follow the SemVer/RFC
+policy and contract snapshots described in [API contracts](api-contracts.md).
+
+## How to depend on video-uniquifier safely
+
+| Use case | Recommended pin |
+|---|---|
+| Application that calls `video-uniq` from a shell script | `video-uniquifier~=2.2` (MINOR-stable) |
+| Library that imports `video_uniquifier.core` and uses `stable` surface only | `video-uniquifier~=2.2` |
+| Library that uses any `experimental` surface | `video-uniquifier==2.2.*` (PATCH-stable) |
+| Reproducible research artifact / paper | exact pin, e.g. `video-uniquifier==2.2.0` |
+| Editable install for development | `pip install -e ".[dev,gui]"` from a checkout |

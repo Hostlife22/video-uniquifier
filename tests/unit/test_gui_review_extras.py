@@ -42,6 +42,12 @@ def desktop(qapp, monkeypatch):
     install_translator(qapp, locale)
 
 
+@pytest.fixture
+def comparison_files(tmp_path):
+    for name in ("a.mp4", "b.mp4"):
+        (tmp_path / name).touch()
+
+
 def _source(path: Path, duration: float = 90) -> SourceMeta:
     return SourceMeta(path=path, container="mp4", size_bytes=100, duration_sec=duration,
                       video=[VideoStream(index=0, codec="h264", width=320, height=180,
@@ -329,6 +335,7 @@ def test_wipe_conversion_applies_presentation_rotation_and_mirroring():
     assert rotated.pixelColor(0, 0) == QColor("red")
 
 
+@pytest.mark.usefixtures("comparison_files")
 def test_shared_native_pan_maps_scroll_fraction_in_both_directions(qtbot, tmp_path):
     dialog = VideoCompareDialog(tmp_path / "a.mp4", tmp_path / "b.mp4")
     qtbot.addWidget(dialog)
@@ -341,6 +348,7 @@ def test_shared_native_pan_maps_scroll_fraction_in_both_directions(qtbot, tmp_pa
     assert first.value() == 75
 
 
+@pytest.mark.usefixtures("comparison_files")
 def test_close_detaches_panning_filters_before_child_widget_teardown(qtbot, tmp_path, monkeypatch):
     dialog = VideoCompareDialog(tmp_path / "a.mp4", tmp_path / "b.mp4")
     qtbot.addWidget(dialog)
@@ -363,6 +371,7 @@ def test_close_detaches_panning_filters_before_child_widget_teardown(qtbot, tmp_
     assert observed == []
 
 
+@pytest.mark.usefixtures("comparison_files")
 def test_hdr_frames_disable_raster_wipe_without_disabling_native_panels(qtbot, tmp_path):
     dialog = VideoCompareDialog(tmp_path / "a.mp4", tmp_path / "b.mp4")
     qtbot.addWidget(dialog)
@@ -452,7 +461,7 @@ def test_global_banner_survives_navigation_and_hides_after_completion(gui_window
     screen.status_label.setText("Video 42%")
     screen.progress_bar.setRange(0, 1000)
     screen.progress_bar.setValue(420)
-    window.sidebar.setCurrentRow(9)
+    window._navigate_to("Settings")
     window._refresh_activity()
     assert not window.activity_banner.isHidden()
     assert window.activity_banner.progress.value() == 420

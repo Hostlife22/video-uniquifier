@@ -7,6 +7,7 @@ from unittest.mock import patch
 import pytest
 from PyQt6 import sip
 from PyQt6.QtCore import QAbstractAnimation, QCoreApplication, QEvent, Qt
+from PyQt6.QtMultimedia import QMediaPlayer
 from PyQt6.QtWidgets import (
     QApplication,
     QCheckBox,
@@ -30,7 +31,6 @@ from video_uniquifier.gui.widgets.splitter import StudioSplitter
 from video_uniquifier.gui.widgets.studio_preview import StudioPreview
 from video_uniquifier.gui.widgets.studio_table import STATUS_ROLE, StudioTable, TableTools
 from video_uniquifier.gui.widgets.surfaces import Disclosure
-from video_uniquifier.gui.widgets.table_selection import TableSelectionCheckBox
 
 
 @pytest.fixture(autouse=True)
@@ -204,6 +204,7 @@ def test_log_is_full_width_below_result_and_collapses_to_one_row(gui_window_fact
     screen.log.log("Decoder failure", "error")
     QApplication.processEvents()
     assert screen.log_details.height() > collapsed_height
+    assert screen.workflow_steps.isHidden()
     assert screen.log.text.isVisible()
     assert window.rect().contains(
         screen.log.text.mapTo(window, screen.log.text.rect().bottomRight()),
@@ -214,6 +215,7 @@ def test_log_is_full_width_below_result_and_collapses_to_one_row(gui_window_fact
     QApplication.processEvents()
     assert screen.log_details.height() == collapsed_height
     assert screen.log_details.content.isHidden()
+    assert screen.workflow_navigation.isVisible()
     old.deleteLater()
 
 
@@ -233,6 +235,11 @@ def test_file_selection_precedes_preview_and_sample_action_needs_no_disclosure(
         screen.preview.mapTo(window, screen.preview.rect().topLeft()).y()
     )
     assert source_top.x() < output_top.x()
+    assert screen.settings_panel.isHidden()
+    screen.workflow_navigation.setCurrentIndex(1)
+    QApplication.processEvents()
+    assert screen.preview.isHidden()
+    assert screen.source_card.isHidden()
     assert screen.sample_btn.isVisible()
     assert screen.sample_controls.content.isHidden()
     assert screen.profile_details.content.isHidden()
@@ -261,10 +268,17 @@ def test_workspace_controls_and_disclosures_keep_their_panel_insets(
     QApplication.processEvents()
     screen = window.stack.widget(0)
     preview = screen.preview
+    # Check transport insets in its loaded layout; empty state has no transport.
+    preview.mode_bar.show()
+    preview.transport_bar.show()
+    preview.position.show()
+    QApplication.processEvents()
     sound_right = preview.sound.mapTo(preview, preview.sound.rect().bottomRight()).x()
     timecode_bottom = preview.position.mapTo(preview, preview.position.rect().bottomRight()).y()
     assert preview.width() - 1 - sound_right >= Space.MD
     assert preview.height() - 1 - timecode_bottom >= Space.MD
+    screen.workflow_navigation.setCurrentIndex(1)
+    QApplication.processEvents()
     panel = screen.settings_panel
     sample = screen.sample_btn
     assert sample.mapTo(panel, sample.rect().topLeft()).x() >= Space.MD
@@ -299,9 +313,12 @@ def test_every_page_uses_the_same_checkbox_indicator(
     indicators = []
     for page in range(window.stack.count()):
         window.sidebar.setCurrentRow(page)
-        for checkbox in window.stack.widget(page).findChildren(QCheckBox):
-            if isinstance(checkbox, TableSelectionCheckBox) and not checkbox.isVisible():
-                # Tables with hidden headers have no visible corner control to compare.
+        for disclosure in window.stack.currentWidget().findChildren(Disclosure):
+            disclosure.set_expanded(True)
+        QApplication.processEvents()
+        for checkbox in window.stack.currentWidget().findChildren(QCheckBox):
+            if not checkbox.isVisible():
+                # Only painted controls have indicator pixels to compare.
                 continue
             checkbox.setChecked(checked)
             checkbox.setEnabled(enabled)
@@ -322,14 +339,15 @@ def test_profile_table_checkbox_matches_standalone_controls(gui_window_factory, 
     window = gui_window_factory()
     window.state.set_theme(theme)
     window.show()
-    checkbox = window.stack.widget(0).preview.sound
+    window._navigate_to("Settings")
+    checkbox = window.stack.widget(9).reduced_motion_check
     checkbox.setChecked(True)
     QApplication.processEvents()
     option = QStyleOptionButton()
     checkbox.initStyleOption(option)
     rect = checkbox.style().subElementRect(QStyle.SubElement.SE_CheckBoxIndicator, option, checkbox)
     reference = checkbox.grab().toImage().copy(rect)
-    window.sidebar.setCurrentRow(4)
+    window._navigate_to("Profile Editor")
     table = window.stack.widget(4).table
     QApplication.processEvents()
     index = table.model().index(0, 1)
@@ -358,6 +376,7 @@ def test_compact_profile_selection_and_custom_controls_remain_reachable(
     window = gui_window_factory()
     window.show()
     screen = window.stack.widget(0)
+    screen.workflow_navigation.setCurrentIndex(1)
     qtbot.mouseClick(screen.profile_cards.buttons["medium"], Qt.MouseButton.LeftButton)
     assert Path(screen.profile_combo.currentData()).stem == "medium"
     screen.profile_details.toggle.click()
@@ -454,6 +473,48 @@ def test_unavailable_preview_keeps_workflow_usable_and_closes(qtbot, tmp_path):
     assert not preview.play_button.isEnabled()
     preview.shutdown()
     assert preview.player.source().isEmpty()
+
+
+def test_clearing_an_absent_sample_preserves_the_original_decoder(qtbot, tmp_path, monkeypatch):
+    preview = StudioPreview()
+    qtbot.addWidget(preview)
+    source, sample = tmp_path / "source.mp4", tmp_path / "sample.mp4"
+    source.touch()
+    sample.touch()
+    loaded = []
+    monkeypatch.setattr(
+        preview.player, "setSource", lambda url: loaded.append(Path(url.toLocalFile())),
+    )
+    preview.set_source(source)
+    original_frame = preview._frame
+    preview.set_result(None)
+    preview.set_result(None)
+    assert loaded == [source.resolve()]
+    assert preview._frame is original_frame
+    assert preview.current_path == source
+
+    preview.set_result(sample)
+    assert preview.current_path == sample
+    preview.set_result(None)
+    assert preview.current_path == source
+    assert loaded == [source.resolve(), sample.resolve(), source.resolve()]
+    preview.set_result(None)
+    assert len(loaded) == 3
+    preview.shutdown()
+
+
+@pytest.mark.parametrize("state", list(QMediaPlayer.PlaybackState))
+def test_preview_pause_only_controls_a_playing_native_decoder(qtbot, monkeypatch, state):
+    preview = StudioPreview()
+    qtbot.addWidget(preview)
+    paused = []
+    monkeypatch.setattr(preview.player, "playbackState", lambda: state)
+    monkeypatch.setattr(preview.player, "pause", lambda: paused.append(True))
+    preview._priming = True
+    preview.pause()
+    assert paused == ([True] if state == QMediaPlayer.PlaybackState.PlayingState else [])
+    assert not preview._priming and preview.audio.isMuted()
+    preview.shutdown()
 
 
 def test_batch_updates_correct_file_after_sort_and_counts_terminal_once(qtbot, tmp_path):

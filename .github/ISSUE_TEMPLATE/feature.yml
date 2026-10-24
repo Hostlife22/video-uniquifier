@@ -11,7 +11,7 @@ body:
         profiles. Changes that would alter `Plan`, `Profile`, `RunEvent`,
         an existing CLI flag, or a shipped profile require an
         [RFC](https://github.com/Hostlife22/video-uniquifier/issues/new?template=rfc.yml)
-        instead — see `docs/api-contracts.md` for the stable surface.
+        instead — see `docs/en/api-contracts.md` for the stable surface.
 
   - type: textarea
     id: problem

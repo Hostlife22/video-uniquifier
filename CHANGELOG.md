@@ -10,13 +10,68 @@ versioning follows the git tags `v0.1.0`, `v0.2.0`, `v0.3.x`, `v0.4.x`,
 The `[Unreleased]` section, if present, summarises post-tip changes since
 the last tag.
 
-## [Unreleased]
+## [2.2.0] — 2026-10-24
+
+### Added
+
+- Ship `facebook_reels_base.yaml` in the canonical packaged profiles directory.
+  Reels resolves it through package resources in source, wheel and desktop builds.
+
+- English, Russian and Simplified Chinese documentation under `docs/en/`,
+  `docs/ru/` and `docs/zh/`, with separate README files and a same-page language
+  selector. Docs CI validates page coverage, executable examples, unique section
+  IDs, localized links/search, and desktop/mobile browser behavior.
+
+- Desktop **Workspace → Video delivery** reuses the Reels core with four focused
+  steps, grouped video/audio/branding settings, native source/sample playback,
+  safe-area preview, cancellable background processing, QA results and history.
+  Simplified Chinese names describe the task; Reels is identified as the preset.
+
+- Experimental `video-reels` CLI and local worker API: strictly validated business
+  YAML, native fit/loudnorm/tonemap reuse, one-pass H.264 delivery, decode/loudness/
+  timing QA, atomic artifacts, scene timelines, synchronized trim, optional human
+  title/PNG logo and separate safe-area previews. Includes bounded jobs, cancellation,
+  retries, a NestJS/BullMQ HTTP bridge and synthetic 10/30/90-second acceptance.
+  No AI or publishing integration; stable engine schemas remain unchanged.
+
+### Changed
+
+- Separate the BullMQ integration under `examples/facebook_reels/bullmq/`;
+  run its Node.js 22 tests in CI and include examples in mutation-test sandboxes.
+
+- The ordinary processing workspace separates source/preview, settings, and
+  progress/result into navigable pages. Primary actions stay outside scrolling areas.
 
 ### Fixed
 
-- Table selection controls find the native corner through its public button type
-  after style polish, avoiding dependency on a private Qt class name. The file-search
-  regression uses native paths on Windows.
+- Retain every registered GUI test widget through Qt's deferred native deletion,
+  preserving queued events and preventing collection inside later style callbacks.
+
+- Preserve the original preview decoder when invalidating an absent sample, and
+  send native pause only while playing. This avoids a Windows initialization stall
+  triggered by delivery-setting changes. Native test stalls now produce thread
+  dumps and terminate within the existing 180-second per-test limit.
+
+- Reels storage and downloads resolve paths against the worker root, reject
+  escaping symlinks, and validate restored job identifiers. JSON reports use
+  exclusive temporary files with flushed writes before atomic replacement.
+- Reject oversized derived logo dimensions before allocating resized images.
+- Delivery pages fit platform-specific control widths without widening the outer
+  page. Table selection uses an owned checkbox positioned from public headers,
+  avoiding private native widgets and wrapper casts.
+  Workflow captions retain literal ampersands; reviewed desktop visual baselines
+  include the new delivery screen.
+- Comparison players report missing local videos before invoking native decoders.
+- Language refresh visits public caption controls without blocking native Qt
+  implementation widgets; combo/tab/table changes still preserve live settings.
+
+- Simplified Chinese covers desktop navigation, settings, processing, comparison
+  controls and page guides. Switching languages refreshes existing page captions
+  without rebuilding screens or changing input values, paths and selections.
+
+- Table selection tracks header resizing, visibility and right-to-left layout;
+  model callbacks ignore table teardown. The file-search regression uses native
+  paths on Windows.
 
 ## [2.1.2] — 2026-10-06
 
@@ -649,7 +704,7 @@ The original roadmap is retained in Git history at
   invalid-signature entries. New `[crypto]` extra pulls
   `cryptography>=42,<46` lazily. Bundled key set at
   `src/video_uniquifier/keys/marketplace.pub` supports multi-key
-  rotation. `docs/marketplace.md` gains a signing workflow + key
+  rotation. `docs/en/marketplace.md` gains a signing workflow + key
   rotation policy.
 - **Task 27: property + mutation + chaos test infrastructure**
   — `tests/property/` adds Hypothesis-driven property tests for
@@ -733,14 +788,14 @@ The original roadmap is retained in Git history at
     `.app` bundle (`codesign --deep --force --sign -`) so the bundle
     stabilises across macOS updates. `release.yml` invokes it on the
     macOS build leg.
-  - Windows stays unsigned (zero registrations); `docs/install.md`
+  - Windows stays unsigned (zero registrations); `docs/en/install.md`
     walks users through SmartScreen Path A (More info → Run anyway)
     and Path B (`Unblock-File`).
 - **Task 10: CycloneDX SBOM** — `release.yml` runs `cyclonedx-py
   environment` and ships `sbom.cdx.json` next to the archives.
 - **Task 11: cosign release signing** — every artifact (AppImage,
   `.app.zip`, `.exe.zip`, SBOM, SHA256SUMS) gets a `.cosign.bundle`
-  via GitHub OIDC. `docs/install.md` ships the verify-blob recipe.
+  via GitHub OIDC. `docs/en/install.md` ships the verify-blob recipe.
 - **Task 12: multi-arch Docker** — new `.github/workflows/docker.yml`
   builds linux/amd64 + linux/arm64 images on every `v*.*.*` tag,
   pushes to ghcr.io, attaches provenance + SBOM, and cosign-signs
@@ -827,24 +882,24 @@ The original roadmap is retained in Git history at
 
 **First stable release.** API surface (`Plan`, `Profile`, `RunEvent`,
 `RunOptions`, `RunSummary`) is frozen under SemVer; see
-[`docs/versioning.md`](docs/versioning.md) for the breaking-change
+[`docs/en/versioning.md`](docs/en/versioning.md) for the breaking-change
 contract and the RFC process for proposing changes.
 [`SECURITY.md`](SECURITY.md) ships the disclosure policy.
 
 No new user-facing features vs v0.9.0 — v1.0.0 is the production-ready
 manifest of the work shipped across v0.5.5 through v0.9.0. Distribution
 status: Linux AppImage signed; macOS/Windows shipped unsigned pending
-code-signing credentials (see `docs/install.md`).
+code-signing credentials (see `docs/en/install.md`).
 
 ### Added
 
-- **`docs/versioning.md`** — SemVer commitment, breaking-change
+- **`docs/en/versioning.md`** — SemVer commitment, breaking-change
   definitions per contract (Plan / Profile / CLI / RunEvent / Python
   API), RFC process for proposing breaking changes.
 - **`SECURITY.md`** — vulnerability disclosure policy, response
   timeline, supported-versions table, GitHub Private Vulnerability
   Reporting enabled.
-- **`docs/api-contracts.md`** — field-by-field stability table for the
+- **`docs/en/api-contracts.md`** — field-by-field stability table for the
   public surface; stable / experimental / internal labels.
 - **`tests/contracts/`** — snapshot tests for `Plan`, `Profile`,
   `RunEvent` serialisation. A diff means an intentional bump
@@ -853,7 +908,7 @@ code-signing credentials (see `docs/install.md`).
   ubuntu-latest; publishes JSON to gh-pages `perf-history/`; opens
   issue with label `perf-regression` on >15% degradation across two
   consecutive runs.
-- **`docs/accessibility.md`** — WCAG 2.1 AA conformance statement,
+- **`docs/en/accessibility.md`** — WCAG 2.1 AA conformance statement,
   per-screen screen-reader manual test guide.
 - **`installers/linux/AppImageBuilder.yml`** — signed AppImage with
   bundled ffmpeg static + Python 3.11 runtime.
@@ -1112,7 +1167,7 @@ hotfix sprint shortly after.
   ceiling. Severity=warn so the encode still proceeds; suggestion
   points at `method='asetrate'` for throughput-sensitive batches.
   +5 unit tests + 1 order-guard test. Backed by a measured wall-time
-  matrix in `docs/profiles.md#rubberband-performance-characteristic`.
+  matrix in `docs/en/profiles.md#rubberband-performance-characteristic`.
 - **`core/audio_windows.py::verify_audio_filters_available`** —
   defense-in-depth re-probe of `rubberband` filter availability
   immediately before the audio chain runs. Closes the
@@ -1131,7 +1186,7 @@ hotfix sprint shortly after.
   can't surface. Optional `--smoke-worker` flag fires a tiny
   `RunWorker` against `clip_a × soft.yaml` to exercise the
   worker bus end-to-end.
-- **`docs/gui_sweep.md`** — manual per-screen sweep checklist
+- **`docs/en/gui_sweep.md`** — manual per-screen sweep checklist
   (setup + 10 screens × interactions/verify/watch-for + triage
   table). Closes the GUI-deep-sweep backlog item from the
   2026-05-31 matrix triage.
@@ -1318,7 +1373,7 @@ Phase 18: real-CID validation harness.
 
 ### Added
 
-- **`docs/validation_harness.md`** — manual upload-observe-record loop
+- **`docs/en/validation_harness.md`** — manual upload-observe-record loop
   to validate the predictor against actual YouTube Content ID outcomes.
 - **`tools/generate_variants.py`** — produces N variants from one
   source for batch upload + observation.
@@ -1415,7 +1470,7 @@ Critical hotfix closing the Smitelli ±5 % pitch CID match-zone.
 - **`audio.haas_stereo` transform** — `adelay=0|N` mono-compatible variant
   of stereo phase inversion (Smitelli 2010 showed full inversion breaks
   audio CID). 15 ms in `cid_aware`, 25 ms in `cid_aggressive`.
-- `docs/profiles.md` — Smitelli citation table documenting verified
+- `docs/en/profiles.md` — Smitelli citation table documenting verified
   pitch / noise / phase thresholds.
 
 ### Changed

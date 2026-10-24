@@ -21,7 +21,7 @@ When to use:
 - You intentionally added a new field, RunEvent kind, or shipped
   profile (MINOR bump).
 - You intentionally removed or renamed one (MAJOR bump, RFC
-  required first — see ``docs/versioning.md``).
+  required first — see ``docs/en/versioning.md``).
 - A pydantic upgrade legitimately changed the JSON-schema shape
   in a non-breaking way (PATCH — usually a pin tightening too).
 
@@ -81,7 +81,7 @@ def main() -> int:
         "[regen] Confirm afterwards:\n"
         "[regen]   * pyproject.toml version is bumped per SemVer\n"
         "[regen]   * CHANGELOG.md has an entry for the change\n"
-        "[regen]   * docs/api-contracts.md reflects new surface\n"
+        "[regen]   * docs/en/api-contracts.md reflects new surface\n"
         "[regen]   * for breaking changes, an accepted RFC exists\n",
         file=sys.stderr,
     )

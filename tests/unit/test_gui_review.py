@@ -32,6 +32,24 @@ def desktop(qapp, monkeypatch):
     monkeypatch.setattr(QMediaPlayer, "setSource", lambda self, _source: None)
 
 
+@pytest.fixture
+def comparison_files(tmp_path):
+    for name in ("source.mp4", "result.mp4"):
+        (tmp_path / name).touch()
+
+
+def test_missing_comparison_media_never_reaches_the_native_decoder(qtbot, tmp_path, monkeypatch):
+    opened = []
+    monkeypatch.setattr(QMediaPlayer, "setSource", lambda self, source: opened.append(source))
+    dialog = VideoCompareDialog(tmp_path / "missing.mp4")
+    qtbot.addWidget(dialog)
+    assert dialog._has_error
+    assert dialog.tr("Video file is missing or no longer accessible.") in dialog.message.text()
+    assert opened == []
+    assert all(player.source().isEmpty() for player in dialog.players)
+    assert dialog.close()
+
+
 def _source(path: Path, duration: float = 9.0, *, hdr: bool = False) -> SourceMeta:
     return SourceMeta(
         path=path, container="mp4", duration_sec=duration, size_bytes=100,
@@ -204,6 +222,7 @@ def test_hdr_sample_button_explains_the_limitation(qtbot, tmp_path):
     assert screen.run_btn.isEnabled()
 
 
+@pytest.mark.usefixtures("comparison_files")
 def test_frame_step_discards_a_cache_from_a_different_position(qtbot, tmp_path):
     dialog = VideoCompareDialog(tmp_path / "source.mp4")
     qtbot.addWidget(dialog)
@@ -236,6 +255,7 @@ def test_completed_comparison_keeps_the_actual_pair_when_inputs_change(qtbot, tm
     assert screen._review_pair == (source, output)
 
 
+@pytest.mark.usefixtures("comparison_files")
 def test_transport_maps_duration_and_mutes_the_unselected_track(qtbot, tmp_path):
     dialog = VideoCompareDialog(tmp_path / "source.mp4", tmp_path / "result.mp4")
     qtbot.addWidget(dialog)
@@ -252,6 +272,7 @@ def test_transport_maps_duration_and_mutes_the_unselected_track(qtbot, tmp_path)
     assert all(output.isMuted() for output in dialog.outputs)
 
 
+@pytest.mark.usefixtures("comparison_files")
 def test_time_sync_uses_the_common_range_and_pixel_zoom_respects_screen_dpr(qtbot, tmp_path):
     dialog = VideoCompareDialog(tmp_path / "source.mp4", tmp_path / "result.mp4")
     qtbot.addWidget(dialog)
@@ -271,6 +292,48 @@ def test_time_sync_uses_the_common_range_and_pixel_zoom_respects_screen_dpr(qtbo
     assert dialog.panels[1].isHidden()
     dialog.close()
     assert all(player.source().isEmpty() for player in dialog.players)
+
+
+@pytest.mark.parametrize("sync", ["time", "duration"])
+@pytest.mark.usefixtures("comparison_files")
+def test_trimmed_reference_maps_both_seek_and_playback_rate(qtbot, tmp_path, sync):
+    dialog = VideoCompareDialog(tmp_path / "source.mp4", tmp_path / "result.mp4",
+                                source_range=(2, 27))
+    qtbot.addWidget(dialog)
+    dialog._durations = [30000, 20000]
+    dialog.sync_combo.setCurrentIndex(dialog.sync_combo.findData(sync))
+    assert dialog._limit() == 20000
+    assert dialog._reference_position(4000) == (6000 if sync == "time" else 7000)
+    assert dialog.players[0].playbackRate() == (1 if sync == "time" else 1.25)
+    dialog.seek(40000)
+    assert dialog._position == 20000
+
+
+@pytest.mark.usefixtures("comparison_files")
+def test_result_only_transport_does_not_require_a_reference(qtbot, tmp_path):
+    dialog = VideoCompareDialog(None, tmp_path / "result.mp4")
+    qtbot.addWidget(dialog)
+    dialog._duration(1, 2000)
+    assert dialog._limit() == 2000 and dialog.play_btn.isEnabled()
+    assert not dialog.sync_combo.isEnabled()
+    assert not dialog.view_combo.isEnabled()
+    assert dialog.audio_combo.currentData() == 1
+    dialog.toggle_play()
+    assert dialog._playing and not dialog.outputs[1].isMuted()
+    dialog.pause()
+    assert all(output.isMuted() for output in dialog.outputs)
+
+
+@pytest.mark.parametrize("span", [(-1, 2), (2, 2), (3, 1), (0, float("inf")),
+                                  (float("nan"), 1)])
+def test_invalid_reference_range_is_rejected(tmp_path, span):
+    with pytest.raises(ValueError, match="Source review range"):
+        VideoCompareDialog(tmp_path / "source.mp4", source_range=span)
+
+
+def test_review_requires_at_least_one_video():
+    with pytest.raises(ValueError, match="Choose a video"):
+        VideoCompareDialog(None)
 
 
 @pytest.mark.parametrize("start,length", [(-1, 10), (float("nan"), 10), (0, 21), (0, 0)])

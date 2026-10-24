@@ -13,7 +13,7 @@ name: Release
 #   - Linux AppImage: ✅ self-contained — no X.509 cert needed; verified
 #                     via the SHA256SUMS file attached to the release.
 #   - macOS .app.zip: ❌ UNSIGNED — Gatekeeper warns on first launch.
-#                     See docs/install.md for the right-click → Open
+#                     See docs/en/install.md for the right-click → Open
 #                     bypass. Signing deferred to a v1.0.x patch once
 #                     APPLE_TEAM_ID / APPLE_DEV_ID_CERT secrets exist.
 #   - Windows .zip:   ❌ UNSIGNED — SmartScreen warns. Same story —
@@ -135,7 +135,7 @@ jobs:
       - name: Ad-hoc codesign .app bundle (macOS)
         # v1.1.0 Task 8: ad-hoc signature stabilises the bundle across
         # macOS updates. Does NOT pass Gatekeeper on its own — users
-        # still right-click → Open the first time per docs/install.md.
+        # still right-click → Open the first time per docs/en/install.md.
         # Full notarization remains a backlog item if an Apple Developer
         # Program account materialises.
         if: runner.os == 'macOS'

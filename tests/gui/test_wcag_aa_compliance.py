@@ -37,7 +37,7 @@ static tokens:
                                             announce "list", "button" etc).
 
 These checks are PROGRAMMATIC; the human conformance statement lives in
-`docs/accessibility.md` and the manual screen-reader test guide is the
+`docs/en/accessibility.md` and the manual screen-reader test guide is the
 authoritative AAA reference for end users.
 """
 

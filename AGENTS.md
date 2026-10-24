@@ -5,7 +5,7 @@
 This Python 3.11+ project uses a `src` layout. Application code lives in
 `src/video_uniquifier/`: `core/` contains UI-independent processing, `cli/` the Typer
 commands, `gui/` the PyQt6 desktop application, and `web/` the FastAPI interface.
-Shipped YAML profiles are under `profiles/`. Tests mirror behavior by scope in
+Shipped YAML profiles are under `src/video_uniquifier/profiles/`. Tests mirror behavior by scope in
 `tests/unit`, `tests/integration`, `tests/gui`, `tests/smoke`, `tests/contracts`,
 `tests/property`, and `tests/visual`. Documentation, contract RFCs, utility
 scripts, and packaging definitions live in `docs/`, `specs/`, `tools/`, and
@@ -51,4 +51,4 @@ Allowed types include `feat`, `fix`, `perf`, `refactor`, `docs`, `test`, `ci`,
 change, link issues (`Closes #123`), pass `make check`, and include screenshots for
 GUI changes. Stable API, CLI, event, or profile changes require an approved RFC,
 updated contract snapshots, documentation, and a `CHANGELOG.md` entry; see
-`CONTRIBUTING.md` and `docs/api-contracts.md`.
+`CONTRIBUTING.md` and `docs/en/api-contracts.md`.

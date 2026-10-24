@@ -412,7 +412,7 @@ def test_phase7_m6_encoder_cache_uses_json_mode_for_dump(
 def test_phase7_l8_runbook_scale_test_doc_exists() -> None:
     """The long-form scale-validation runbook is checked in."""
     repo_root = Path(__file__).resolve().parents[2]
-    doc = repo_root / "docs" / "runbook_scale_test.md"
+    doc = repo_root / "docs" / "en" / "runbook_scale_test.md"
     assert doc.exists(), f"expected runbook at {doc}"
     text = doc.read_text(encoding="utf-8")
     assert "Scale validation" in text
