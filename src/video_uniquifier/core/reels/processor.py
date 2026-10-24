@@ -40,6 +40,7 @@ from video_uniquifier.core.reels.runtime import (
     ReelsError,
     atomic_json,
     check_cancel,
+    confined_path,
     content_hash,
     execute,
 )
@@ -113,8 +114,9 @@ def process_video(
         raise ReelsError("job_id", "Invalid job id.")
     token = cancel_token or CancelToken()
     status = on_status or (lambda _state, _progress: None)
-    work = root / "work" / job_id
-    final = root / "results" / job_id
+    root = root.resolve()
+    work = confined_path(root, root / "work" / job_id)
+    final = confined_path(root, root / "results" / job_id)
     if final.exists() or work.exists():
         raise ReelsError("job_exists", "Job id already exists; retry with a fresh attempt id.")
     work.mkdir(parents=True)
@@ -169,7 +171,7 @@ def process_video(
         report["delivery_fps"] = fps
         if rules.scenes.detect_enabled:
             timeline = detect_timeline(source_path, source.duration_sec, rules, work, token)
-            atomic_json(work / "scenes.json", timeline)
+            atomic_json(work / "scenes.json", timeline, root=root)
             report["scenes"] = {"status": "detected", "artifact": "scenes.json", **timeline}
             if scan["variable_frame_rate"]:
                 report["warnings"].append("VFR scene timestamps are approximate; "
@@ -194,7 +196,8 @@ def process_video(
             "ffmpeg": report["ffmpeg_version"],
         }, sort_keys=True).encode()).hexdigest()
         measurement, audio_state = measure_audio(plan, rules, duration,
-                                                 root / "cache" / f"{cache_key}.json", token)
+                                                 confined_path(root, root / "cache" /
+                                                               f"{cache_key}.json"), token)
         report["audio_normalization"] = {"status": audio_state,
                                           "passes": 0 if audio_state in {"missing", "disabled"}
                                           else 2,
@@ -257,7 +260,7 @@ def process_video(
         report["elapsed_sec"] = time.monotonic() - started
         report["status"] = "success"
         os.replace(temporary_output, work / "output.mp4")
-        atomic_json(work / "report.json", report)
+        atomic_json(work / "report.json", report, root=root)
         final.parent.mkdir(parents=True, exist_ok=True)
         check_cancel(token)
         os.replace(work, final)
@@ -271,7 +274,7 @@ def process_video(
                       error={"code": error.code, "message": str(error),
                              "retryable": error.retryable},
                       elapsed_sec=time.monotonic() - started)
-        atomic_json(root / "failures" / f"{job_id}.json", report)
+        atomic_json(root / "failures" / f"{job_id}.json", report, root=root)
         if not rules.worker.temp_keep_on_failure:
             shutil.rmtree(work, ignore_errors=True)
         raise error from exc

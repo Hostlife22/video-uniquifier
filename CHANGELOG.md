@@ -33,6 +33,13 @@ the last tag.
 
 ### Fixed
 
+- Reels storage and downloads resolve paths against the worker root, reject
+  escaping symlinks, and validate restored job identifiers. JSON reports use
+  exclusive temporary files with flushed writes before atomic replacement.
+- Reject oversized derived logo dimensions before allocating resized images.
+- Delivery pages fit platform-specific control widths without widening the outer
+  page, and table selection recovers native buttons with generic Python wrappers.
+
 - Simplified Chinese covers desktop navigation, settings, processing, comparison
   controls and page guides. Switching languages refreshes existing page captions
   without rebuilding screens or changing input values, paths and selections.

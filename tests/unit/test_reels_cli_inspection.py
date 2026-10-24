@@ -98,14 +98,31 @@ def test_faststart_checks_real_atom_order(tmp_path, atoms, expected):
 
 def test_atomic_report_preserves_previous_json_if_serialization_fails(tmp_path):
     path = tmp_path / "report.json"
-    atomic_json(path, {"status": "success"})
+    atomic_json(path, {"status": "success"}, root=tmp_path)
     with pytest.raises(ValueError):
-        atomic_json(path, {"measurement": float("nan")})
+        atomic_json(path, {"measurement": float("nan")}, root=tmp_path)
     assert json_object(path) == {"status": "success"}
     assert list(tmp_path.iterdir()) == [path]
     path.write_text("[]")
     with pytest.raises(ValueError, match="object"):
         json_object(path)
+
+
+def test_atomic_report_rejects_escape_and_symlink_paths(tmp_path):
+    root = tmp_path / "jobs"
+    root.mkdir()
+    secret = tmp_path / "secret.json"
+    secret.write_text('{"private": true}')
+    with pytest.raises(ReelsError, match="root"):
+        atomic_json(root / ".." / "secret.json", {"private": False}, root=root)
+    link = root / "report.json"
+    try:
+        link.symlink_to(secret)
+    except OSError as exc:
+        pytest.skip(f"symlinks unavailable: {exc}")
+    with pytest.raises(ReelsError, match="root"):
+        atomic_json(link, {"private": False}, root=root)
+    assert json_object(secret) == {"private": True}
 
 
 def test_quality_gate_reports_bad_format_sync_decode_and_clipping(tmp_path, monkeypatch):

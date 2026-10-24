@@ -5,10 +5,10 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import tempfile
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
-from uuid import uuid4
 
 from video_uniquifier.core.errors import PipelineError, VideoUniquifierError
 from video_uniquifier.core.pipeline import BuiltCommand
@@ -27,12 +27,26 @@ def check_cancel(token: CancelToken) -> None:
         raise ReelsError("cancelled", "Task cancelled by the user.")
 
 
-def atomic_json(path: Path, value: object) -> None:
+def confined_path(root: Path, path: Path) -> Path:
+    """Resolve symlinks and reject paths outside the caller's trusted storage root."""
+    root = root.resolve()
+    path = path.resolve()
+    if not path.is_relative_to(root) or path == root:
+        raise ReelsError("storage_path", "Storage path must stay inside the configured root.")
+    return path
+
+
+def atomic_json(path: Path, value: object, *, root: Path) -> None:
+    path = confined_path(root, path)
+    serialized = json.dumps(value, ensure_ascii=False, indent=2, allow_nan=False)
     path.parent.mkdir(parents=True, exist_ok=True)
-    temporary = path.with_name(f".{path.name}.{uuid4().hex}.tmp")
+    descriptor, name = tempfile.mkstemp(prefix=f".{path.name}.", suffix=".tmp", dir=path.parent)
+    temporary = Path(name)
     try:
-        temporary.write_text(json.dumps(value, ensure_ascii=False, indent=2, allow_nan=False),
-                             encoding="utf-8")
+        with os.fdopen(descriptor, "w", encoding="utf-8") as handle:
+            handle.write(serialized)
+            handle.flush()
+            os.fsync(handle.fileno())
         os.replace(temporary, path)
     finally:
         temporary.unlink(missing_ok=True)

@@ -91,7 +91,9 @@ class ReelsScreen(ScreenBase):
         self.navigation.currentChanged.connect(self._show_step)
         layout.addWidget(self.navigation)
         self.pages = QStackedWidget()
-        self.pages.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Ignored)
+        # Hidden steps must not impose their platform-specific minimum width on
+        # the outer scroll area. Each page lays out within the available width.
+        self.pages.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Ignored)
         layout.addWidget(self.pages, stretch=1)
         self._build_source_page()
         self._build_settings_page()

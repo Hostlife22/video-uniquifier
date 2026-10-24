@@ -98,6 +98,25 @@ def test_corner_installation_ignores_private_class_names_and_cell_buttons(qtbot,
     assert table.selectedIndexes()
 
 
+def test_corner_installation_recovers_when_typed_lookup_misses_native_wrapper(qtbot, monkeypatch):
+    table = QTableWidget(1, 1)
+    qtbot.addWidget(table)
+    table.setItem(0, 0, QTableWidgetItem("File"))
+    find = table.findChild
+
+    def generic_wrapper_lookup(kind, *args, **kwargs):
+        if kind is QAbstractButton:
+            return None
+        return find(kind, *args, **kwargs)
+
+    monkeypatch.setattr(table, "findChild", generic_wrapper_lookup)
+    checkbox = install_selection_checkbox(table)
+    table.show()
+    checkbox.click()
+    assert table.selectedIndexes()
+    assert checkbox.parentWidget().inherits("QAbstractButton")
+
+
 def test_table_filter_selects_only_visible_rows_and_updates_corner(gui_window_factory, qapp):
     window = gui_window_factory()
     window.show()

@@ -40,7 +40,7 @@ def local_api(tmp_path, monkeypatch):
         directory.mkdir(parents=True)
         (directory / "output.mp4").write_bytes(b"processed")
         atomic_json(directory / "report.json", {"job_id": job_id, "preset_id": rules.preset_id,
-                                               "status": "success"})
+                                               "status": "success"}, root=root)
         on_status("success", 1.0)
         return directory
 
@@ -127,7 +127,7 @@ def test_manager_confines_paths_and_restores_interrupted_states(tmp_path):
     root.mkdir()
     identifier = "a" * 32
     atomic_json(root / "jobs.json", {"jobs": [{"job_id": identifier, "status": "processing",
-                                              "updated_at": 1}]})
+                                              "updated_at": 1}]}, root=root)
     manager = JobManager(root, {rules.preset_id: rules}, tmp_path)
     try:
         record = manager.snapshot(identifier)
@@ -144,3 +144,68 @@ def test_manager_confines_paths_and_restores_interrupted_states(tmp_path):
 def test_presets_have_consistent_ids(tmp_path):
     with pytest.raises(ValueError, match="preset_id"):
         build_reels_app(tmp_path, {"wrong": ReelsRules()})
+
+
+def symlink_or_skip(link, target, *, directory=False):
+    try:
+        link.symlink_to(target, target_is_directory=directory)
+    except OSError as exc:
+        pytest.skip(f"symlinks unavailable: {exc}")
+
+
+@pytest.mark.parametrize("artifact", ["report.json", "output.mp4"])
+def test_downloads_reject_artifact_symlinks_outside_job_root(local_api, tmp_path, artifact):
+    client, manager, ready = local_api
+    identifier = upload(client).json()["job_id"]
+    ready.set()
+    wait_status(client, identifier, {"success"})
+    secret = tmp_path / "private.txt"
+    secret.write_text("private content")
+    path = manager.root / "results" / identifier / artifact
+    path.unlink()
+    symlink_or_skip(path, secret)
+    route = "report" if artifact == "report.json" else f"files/{artifact}"
+    response = client.get(f"/api/video-jobs/{identifier}/{route}")
+    assert response.status_code == 404
+    assert b"private content" not in response.content
+
+
+@pytest.mark.parametrize("identifier", ["/" + "a" * 31, "../" + "a" * 29, "g" * 32])
+def test_restore_rejects_non_hexadecimal_job_identifiers(tmp_path, identifier):
+    root = tmp_path / "jobs"
+    root.mkdir()
+    atomic_json(root / "jobs.json", {"jobs": [{"job_id": identifier, "status": "success",
+                                              "updated_at": 1}]}, root=root)
+    rules = ReelsRules()
+    manager = JobManager(root, {rules.preset_id: rules}, tmp_path)
+    try:
+        with pytest.raises(KeyError):
+            manager.snapshot(identifier)
+    finally:
+        manager.close()
+
+
+def test_upload_root_cannot_be_a_symlink_outside_worker_root(tmp_path):
+    root = tmp_path / "jobs"
+    root.mkdir()
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    symlink_or_skip(root / "uploads", outside, directory=True)
+    rules = ReelsRules()
+    with pytest.raises(ReelsError, match="root"):
+        manager = JobManager(root, {rules.preset_id: rules}, tmp_path)
+        manager.close()
+    assert not list(outside.iterdir())
+
+
+def test_restore_ignores_malformed_records_and_preserves_valid_jobs(tmp_path):
+    identifier = "a" * 32
+    atomic_json(tmp_path / "jobs.json", {"jobs": [None, [], "invalid", {
+        "job_id": identifier, "status": "processing", "updated_at": 1,
+    }]}, root=tmp_path)
+    rules = ReelsRules()
+    manager = JobManager(tmp_path, {rules.preset_id: rules}, tmp_path)
+    try:
+        assert manager.snapshot(identifier)["error"]["code"] == "worker_restarted"
+    finally:
+        manager.close()

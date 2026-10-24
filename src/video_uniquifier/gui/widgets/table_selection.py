@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from PyQt6 import sip
 from PyQt6.QtCore import (
     QEvent,
     QItemSelection,
@@ -142,6 +143,12 @@ def install_selection_checkbox(table: QTableWidget) -> TableSelectionCheckBox:
     # The corner is a direct button child; cell actions belong to the viewport.
     # Match the public base type rather than Qt's private implementation name.
     corner = table.findChild(QAbstractButton, options=Qt.FindChildOption.FindDirectChildrenOnly)
+    if corner is None:
+        # A previous generic QObject traversal can leave a private Qt subclass
+        # with a base-class Python wrapper. Query the public C++ ancestry and
+        # cast explicitly instead of depending on the private corner class name.
+        corner = next((sip.cast(child, QAbstractButton) for child in table.children()
+                       if child.inherits("QAbstractButton")), None)
     assert corner is not None, "Qt table corner button is unavailable"
     checkbox = TableSelectionCheckBox(table, corner)
     # Keep the Python subclass alive even though its parent is a native Qt corner.

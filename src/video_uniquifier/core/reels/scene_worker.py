@@ -13,7 +13,7 @@ def main() -> None:
     source, threshold, minimum, destination = sys.argv[1:]
     boundaries = detect_scene_boundaries(Path(source), threshold=float(threshold),
                                          min_length_sec=float(minimum))
-    atomic_json(Path(destination), boundaries)
+    atomic_json(Path(destination), boundaries, root=Path(destination).parent)
 
 
 if __name__ == "__main__":

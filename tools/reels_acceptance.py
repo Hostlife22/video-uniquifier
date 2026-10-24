@@ -49,7 +49,7 @@ def run_acceptance(root: Path, rules: ReelsRules) -> dict[str, object]:
         print(f"{seconds}s passed: {destination}", flush=True)
     summary: dict[str, object] = {"status": "passed", "synthetic_media": True,
                                  "manual_dialogue_review": "still_required", "cases": results}
-    atomic_json(root / "acceptance.json", summary)
+    atomic_json(root / "acceptance.json", summary, root=root)
     return summary
 
 

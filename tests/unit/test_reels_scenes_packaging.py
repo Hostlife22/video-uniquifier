@@ -77,6 +77,21 @@ def test_logo_conflicts_are_rejected_before_encoding(assets, options, expected_c
     assert caught.value.code == expected_code
 
 
+def test_tall_logo_is_rejected_before_allocating_a_resized_image(tmp_path, monkeypatch):
+    Image.new("RGBA", (1, 4000), "red").save(tmp_path / "logo.png")
+    rules = ReelsRules.model_validate({"packaging": {"enabled": True, "logo": {
+        "enabled": True, "source": "logo.png", "width_px": 1080,
+    }}})
+
+    def unexpected_resize(*_args, **_kwargs):
+        pytest.fail("out-of-bounds logo reached image resize")
+
+    monkeypatch.setattr(Image.Image, "resize", unexpected_resize)
+    with pytest.raises(ReelsError) as caught:
+        render_layers(rules, tmp_path, tmp_path, 10, CancelToken())
+    assert caught.value.code == "packaging_bounds"
+
+
 def test_outside_safe_area_warns_when_it_does_not_obscure_subtitles(assets):
     rules = ReelsRules.model_validate({"packaging": {"enabled": True, "logo": {
         "enabled": True, "source": "logo.png", "margin_y_px": 0,

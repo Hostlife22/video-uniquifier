@@ -16,7 +16,7 @@ from pydantic import ValidationError
 
 from video_uniquifier.core.reels.config import PackagingRules, ReelsRules
 from video_uniquifier.core.reels.jobs import JobManager
-from video_uniquifier.core.reels.runtime import ReelsError
+from video_uniquifier.core.reels.runtime import ReelsError, confined_path
 from video_uniquifier.web.middleware.upload_limit import ContentLengthLimitMiddleware
 
 _ARTIFACTS = frozenset({"output.mp4", "preview.mp4", "safe-area.png", "scenes.json"})
@@ -128,7 +128,12 @@ def build_reels_app(
     @app.get("/api/video-jobs/{identifier}/report")
     def report_route(identifier: str) -> FileResponse:
         known_job(identifier)
-        path = manager.report_path(identifier)
+        try:
+            path = manager.report_path(identifier)
+        except ReelsError as exc:
+            if exc.code != "storage_path":
+                raise
+            raise HTTPException(404, "Report unavailable.") from exc
         if not path.is_file():
             raise HTTPException(404, "No report was written before the worker restarted.")
         return FileResponse(path, media_type="application/json", filename="report.json")
@@ -138,7 +143,10 @@ def build_reels_app(
         record = known_job(identifier)
         if record["status"] != "success" or filename not in _ARTIFACTS:
             raise HTTPException(404, "Artifact unavailable.")
-        path = manager.root / "results" / identifier / filename
+        try:
+            path = confined_path(manager.root, manager.root / "results" / identifier / filename)
+        except ReelsError as exc:
+            raise HTTPException(404, "Artifact unavailable.") from exc
         if not path.is_file():
             raise HTTPException(404, "Artifact unavailable.")
         return FileResponse(path, filename=filename)

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 import threading
 import time
 from concurrent.futures import Future, ThreadPoolExecutor
@@ -12,7 +13,7 @@ from uuid import uuid4
 from video_uniquifier import __version__
 from video_uniquifier.core.reels.config import ReelsRules
 from video_uniquifier.core.reels.processor import process_video
-from video_uniquifier.core.reels.runtime import ReelsError, atomic_json, json_object
+from video_uniquifier.core.reels.runtime import ReelsError, atomic_json, confined_path, json_object
 from video_uniquifier.core.runner import CancelToken
 
 TERMINAL = frozenset({"success", "failed", "cancelled"})
@@ -27,7 +28,7 @@ class JobManager:
         self.asset_root = asset_root.resolve()
         self.presets = {key: value.model_copy(deep=True) for key, value in presets.items()}
         self.max_pending_jobs = max_pending_jobs
-        self.uploads = self.root / "uploads"
+        self.uploads = confined_path(self.root, self.root / "uploads")
         self.uploads.mkdir(parents=True, exist_ok=True)
         self._lock = threading.RLock()
         self._records: dict[str, dict[str, Any]] = {}
@@ -40,13 +41,20 @@ class JobManager:
         self._restore()
 
     def _restore(self) -> None:
-        store = self.root / "jobs.json"
+        store = confined_path(self.root, self.root / "jobs.json")
         if not store.exists():
             return
         raw = json_object(store)
-        for item in raw.get("jobs", [])[-1000:]:
+        items = raw.get("jobs", [])
+        if not isinstance(items, list):
+            return
+        for item in items[-1000:]:
+            if not isinstance(item, dict):
+                continue
             identifier = item.get("job_id")
-            if not isinstance(identifier, str) or len(identifier) != 32:
+            if not isinstance(identifier, str) or re.fullmatch(r"[0-9a-f]{32}", identifier) is None:
+                continue
+            if not isinstance(item.get("updated_at"), (int, float)):
                 continue
             if item.get("status") not in TERMINAL:
                 item.update(status="failed", error={"code": "worker_restarted",
@@ -57,7 +65,7 @@ class JobManager:
         # The durable queue belongs to BullMQ; local terminal records survive a
         # restart and are bounded. Deployment uses a single API process.
         records = sorted(self._records.values(), key=lambda r: r["updated_at"])[-1000:]
-        atomic_json(self.root / "jobs.json", {"jobs": records})
+        atomic_json(self.root / "jobs.json", {"jobs": records}, root=self.root)
 
     def submit(self, source: Path, rules: ReelsRules, *, job_id: str | None = None) -> str:
         if not source.resolve().is_relative_to(self.uploads) or source.is_symlink():
@@ -115,7 +123,8 @@ class JobManager:
                     atomic_json(failure, {"job_id": identifier, "preset_id": rules.preset_id,
                                          "engine_version": __version__, "source": None,
                                          "output": None, "warnings": [], "quality_check": None,
-                                         "status": record["status"], "error": record["error"]})
+                                         "status": record["status"], "error": record["error"]},
+                                root=self.root)
                 self._save()
 
     def snapshot(self, identifier: str) -> dict[str, Any]:
@@ -141,7 +150,7 @@ class JobManager:
                         "engine_version": __version__, "source": None, "output": None,
                         "warnings": [], "quality_check": None, "status": "cancelled",
                         "error": record["error"],
-                    })
+                    }, root=self.root)
                 record["updated_at"] = time.time()
                 self._save()
             return self.snapshot(identifier)
@@ -161,8 +170,8 @@ class JobManager:
         if record["status"] not in TERMINAL:
             raise ReelsError("report_pending", "Report is available when processing terminates.")
         if record["status"] == "success":
-            return self.root / "results" / identifier / "report.json"
-        return self.root / "failures" / f"{identifier}.json"
+            return confined_path(self.root, self.root / "results" / identifier / "report.json")
+        return confined_path(self.root, self.root / "failures" / f"{identifier}.json")
 
     def close(self) -> None:
         with self._lock:

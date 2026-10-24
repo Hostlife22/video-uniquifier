@@ -110,6 +110,17 @@ def test_manual_trim_changes_video_and_audio_together(tiny_clip, tmp_path):
         process_video(tiny_clip, rules_for(scenes={"trim_start_sec": 3.0}), tmp_path / "bad")
 
 
+@pytest.mark.parametrize("audio", [{"enabled": False}, {"loudnorm": {"enabled": False}}])
+def test_disabled_normalization_preserves_trimmed_audio(tiny_clip, tmp_path, audio):
+    rules = rules_for(audio=audio, scenes={"trim_start_sec": 0.4, "trim_end_sec": 0.5})
+    result = process_video(tiny_clip, rules, tmp_path / "jobs")
+    report = json.loads((result / "report.json").read_text())
+    assert report["audio_normalization"]["status"] == "disabled"
+    assert len(report["output"]["audio"]) == 1
+    assert report["quality_check"]["status"] == "passed"
+    assert report["quality_check"]["timing"]["end_drift_ms"] <= 100
+
+
 def test_hdr_requires_explicit_native_tonemapping(tmp_path):
     source = make_clip(tmp_path / "hdr.mp4", "hdr")
     with pytest.raises(ReelsError) as caught:

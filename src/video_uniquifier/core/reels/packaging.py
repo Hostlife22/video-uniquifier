@@ -76,16 +76,18 @@ def render_layers(
             if image.format != "PNG" or image.width * image.height > 16_000_000:
                 raise ReelsError("logo_format", "Logo must be a PNG image within 16 megapixels.")
             height = max(1, round(image.height * logo.width_px / image.width))
+            x = (rules.video.width - logo.margin_x_px - logo.width_px
+                 if logo.anchor.endswith("right") else logo.margin_x_px)
+            y = (rules.video.height - logo.margin_y_px - height
+                 if logo.anchor.startswith("bottom") else logo.margin_y_px)
+            box = (x, y, x + logo.width_px, y + height)
+            # A narrow source can expand into billions of pixels despite the
+            # source-size limit. Check derived dimensions before allocating.
+            _check_box(box, rules, "Logo", warnings)
             resized = image.convert("RGBA").resize(
                 (logo.width_px, height), Image.Resampling.LANCZOS)
         resized.putalpha(resized.getchannel("A").point(
             [round(i * logo.opacity) for i in range(256)]))
-        x = (rules.video.width - logo.margin_x_px - logo.width_px
-             if logo.anchor.endswith("right") else logo.margin_x_px)
-        y = (rules.video.height - logo.margin_y_px - height
-             if logo.anchor.startswith("bottom") else logo.margin_y_px)
-        box = (x, y, x + logo.width_px, y + height)
-        _check_box(box, rules, "Logo", warnings)
         canvas = Image.new("RGBA", canvas_size)
         canvas.alpha_composite(resized, (x, y))
         destination = work / "logo-layer.png"

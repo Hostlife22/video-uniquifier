@@ -115,7 +115,7 @@ def measure_audio(
         result = measure(plan.source.path, params, pre_filter_complex=audio_prefilter(
             plan, rules, duration), pre_output_label="reels_audio", cancel_token=token)
         if all(math.isfinite(value) for value in result.model_dump().values()):
-            atomic_json(cache, result.model_dump())
+            atomic_json(cache, result.model_dump(), root=cache.parent)
     check_cancel(token)
     if result.input_i == -math.inf and result.input_tp == -math.inf:
         return result, "silent"

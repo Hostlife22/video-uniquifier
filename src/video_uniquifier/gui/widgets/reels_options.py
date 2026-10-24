@@ -19,6 +19,7 @@ from PyQt6.QtWidgets import (
     QPlainTextEdit,
     QPushButton,
     QScrollArea,
+    QSizePolicy,
     QSpinBox,
     QTabWidget,
     QVBoxLayout,
@@ -180,6 +181,7 @@ class ReelsOptions(QTabWidget):
 
     def _page(self, label: str) -> QVBoxLayout:
         content = QWidget()
+        content.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Preferred)
         layout = QVBoxLayout(content)
         layout.setContentsMargins(Space.XL, Space.LG, Space.XL, Space.LG)
         layout.setSpacing(Space.LG)
@@ -195,6 +197,7 @@ class ReelsOptions(QTabWidget):
         if checkable:
             group.setChecked(False)
         form = QFormLayout(group)
+        form.setRowWrapPolicy(QFormLayout.RowWrapPolicy.WrapLongRows)
         form.setFieldGrowthPolicy(QFormLayout.FieldGrowthPolicy.AllNonFixedFieldsGrow)
         form.setContentsMargins(Space.LG, Space.LG, Space.LG, Space.LG)
         form.setSpacing(Space.MD)
@@ -204,6 +207,8 @@ class ReelsOptions(QTabWidget):
     def _combo(self, form: QFormLayout, label: str,
                items: list[tuple[str, Any]]) -> QComboBox:
         combo = QComboBox()
+        combo.setSizeAdjustPolicy(QComboBox.SizeAdjustPolicy.AdjustToMinimumContentsLengthWithIcon)
+        combo.setMinimumContentsLength(14)
         for title, data in items:
             combo.addItem(self.tr(title), data)
         combo.setAccessibleName(self.tr(label))
