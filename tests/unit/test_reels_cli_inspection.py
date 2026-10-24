@@ -115,6 +115,8 @@ def test_atomic_report_rejects_escape_and_symlink_paths(tmp_path):
     secret.write_text('{"private": true}')
     with pytest.raises(ReelsError, match="root"):
         atomic_json(root / ".." / "secret.json", {"private": False}, root=root)
+    with pytest.raises(ReelsError, match="root"):
+        atomic_json(tmp_path / "jobs-private" / "report.json", {}, root=root)
     link = root / "report.json"
     try:
         link.symlink_to(secret)

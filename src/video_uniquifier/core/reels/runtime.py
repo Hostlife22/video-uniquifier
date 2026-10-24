@@ -29,11 +29,13 @@ def check_cancel(token: CancelToken) -> None:
 
 def confined_path(root: Path, path: Path) -> Path:
     """Resolve symlinks and reject paths outside the caller's trusted storage root."""
-    root = root.resolve()
-    path = path.resolve()
-    if not path.is_relative_to(root) or path == root:
+    trusted = os.path.realpath(root)
+    resolved = os.path.realpath(path)
+    # Include the separator so a sibling such as jobs-private cannot match jobs.
+    prefix = trusted.rstrip(os.sep) + os.sep
+    if not resolved.startswith(prefix) or resolved == trusted:
         raise ReelsError("storage_path", "Storage path must stay inside the configured root.")
-    return path
+    return Path(resolved)
 
 
 def atomic_json(path: Path, value: object, *, root: Path) -> None:
