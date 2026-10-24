@@ -16,6 +16,7 @@ from PyQt6.QtWidgets import (
     QLabel,
     QLineEdit,
     QPlainTextEdit,
+    QScrollArea,
     QTableWidget,
     QTabWidget,
     QTextEdit,
@@ -26,6 +27,10 @@ from video_uniquifier.gui.i18n.translations import SOURCE_KEYS, TRANSLATIONS
 
 _SOURCES = frozenset(SOURCE_KEYS)
 _REVERSE = {value: key for table in TRANSLATIONS.values() for key, value in table.items()}
+_CAPTION_TYPES: tuple[type[QWidget], ...] = (
+    QAbstractButton, QComboBox, QGroupBox, QLabel, QLineEdit, QPlainTextEdit,
+    QScrollArea, QTableWidget, QTabWidget, QTextEdit,
+)
 
 
 def _text(owner: QObject, prop: str, current: str) -> str:
@@ -58,13 +63,16 @@ def _text(owner: QObject, prop: str, current: str) -> str:
 
 def retranslate_widgets(root: QWidget) -> None:
     """Translate known captions on a page, preserving its live state."""
-    for widget in (root, *root.findChildren(QWidget)):
+    # Generic QWidget traversal also wraps private Qt implementation objects.
+    # Enumerate public caption controls instead of touching native internals.
+    widgets = [root]
+    for kind in _CAPTION_TYPES:
+        widgets.extend(root.findChildren(kind))
+    for widget in widgets:
         # Updating a caption can destroy native descendants later in this
         # snapshot. Never pass a deleted QObject to QSignalBlocker.
         if sip.isdeleted(widget):
             continue
-        # Changing a combo's display labels must not fire application handlers.
-        blocker = QSignalBlocker(widget)
         for prop in ("toolTip", "statusTip", "accessibleName", "accessibleDescription"):
             current = str(widget.property(prop) or "")
             translated = _text(widget, prop, current)
@@ -80,14 +88,20 @@ def retranslate_widgets(root: QWidget) -> None:
         elif isinstance(widget, (QLineEdit, QPlainTextEdit, QTextEdit)):
             widget.setPlaceholderText(_text(widget, "placeholder", widget.placeholderText()))
         elif isinstance(widget, QComboBox) and not widget.isEditable():
+            # Caption changes must not fire application configuration handlers.
+            blocker = QSignalBlocker(widget)
             for index in range(widget.count()):
                 widget.setItemText(index, _text(widget, f"item:{index}", widget.itemText(index)))
+            del blocker
         elif isinstance(widget, QTabWidget):
+            blocker = QSignalBlocker(widget)
             for index in range(widget.count()):
                 widget.setTabText(index, _text(widget, f"tab:{index}", widget.tabText(index)))
+            del blocker
         elif isinstance(widget, QTableWidget):
+            blocker = QSignalBlocker(widget)
             for index in range(widget.columnCount()):
                 item = widget.horizontalHeaderItem(index)
                 if item is not None:
                     item.setText(_text(widget, f"header:{index}", item.text()))
-        del blocker
+            del blocker

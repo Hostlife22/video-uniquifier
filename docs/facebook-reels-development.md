@@ -10,7 +10,8 @@
   expand far beyond the source pixel budget and exhaust worker memory.
 - Native table corners are found through their public C++ ancestry and used via
   QWidget APIs, retaining generic Python wrappers without unsafe downcasts.
-  Translation skips descendants deleted during a caption refresh. Hidden delivery pages no longer widen the
+  Translation enumerates public caption controls, blocks only combo/tab/table
+  signals, and skips deleted descendants. Hidden delivery pages no longer widen the
   outer page; forms wrap long rows. Small-window checks cover English, Russian and
   Chinese, with reviewed visual baselines for all eleven screens.
 - Real 10/30/90-second exports passed technical QA. Native Cocoa acceptance passed
@@ -35,6 +36,10 @@
   matching the existing studio preview. Missing-file errors and early close are
   tested alongside real playback. CI prints integration test names so native
   process exits can be attributed to a specific test instead of an anonymous dot.
+- GUI test windows remain strongly referenced until Qt's deferred deletions are
+  flushed. Cancellation watcher tests use native Python processes on every OS
+  rather than Git Bash/MSYS sleep wrappers; the seven-second bound and separate
+  native process-tree cancellation integration remain unchanged.
 
 ## Tabular desktop quality reports (2026-10-23)
 

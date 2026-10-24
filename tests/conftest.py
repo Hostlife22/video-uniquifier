@@ -36,6 +36,8 @@ def gui_window_factory(qtbot):
     be garbage-collected inside a native delegate's paint callback after the
     test function releases its local variable.
     """
+    from PyQt6.QtCore import QCoreApplication, QEvent
+
     from video_uniquifier.gui.app_pyqt import MainWindow
 
     windows = []
@@ -46,7 +48,11 @@ def gui_window_factory(qtbot):
         qtbot.addWidget(window)
         return window
 
-    return create
+    yield create
+    # pytest-qt has already closed registered windows and called deleteLater.
+    # Flush those deferred deletions while their Python wrappers are still held
+    # by this generator, rather than collecting them inside a later paint event.
+    QCoreApplication.sendPostedEvents(None, QEvent.Type.DeferredDelete)
 
 
 @pytest.fixture(autouse=True)

@@ -16,6 +16,7 @@ from PyQt6.QtWidgets import (
     QPushButton,
     QTableWidget,
     QTableWidgetItem,
+    QTabWidget,
     QVBoxLayout,
     QWidget,
 )
@@ -60,6 +61,37 @@ def test_translation_skips_children_deleted_while_refreshing_captions(qtbot, qap
     retranslate_widgets(root)
     assert first.text() == TRANSLATIONS["zh_CN"]["Cancel"]
     assert sip.isdeleted(removed)
+
+
+def test_translation_avoids_generic_native_widget_traversal(qtbot, qapp, monkeypatch):
+    from video_uniquifier.gui.i18n import widgets
+
+    root = QWidget()
+    qtbot.addWidget(root)
+    label = QLabel("Cancel", root)
+    combo = QComboBox(root)
+    combo.addItem("Original", "source")
+    combo.addItem("Processed", "output")
+    combo.setCurrentIndex(1)
+    find = root.findChildren
+    blocker = widgets.QSignalBlocker
+    changes = []
+    combo.currentTextChanged.connect(changes.append)
+
+    def public_controls(kind, *args, **kwargs):
+        assert kind is not QWidget, "private Qt internals must not be traversed"
+        return find(kind, *args, **kwargs)
+
+    def block_caption_signals(widget):
+        assert isinstance(widget, (QComboBox, QTabWidget, QTableWidget))
+        return blocker(widget)
+
+    monkeypatch.setattr(root, "findChildren", public_controls)
+    monkeypatch.setattr(widgets, "QSignalBlocker", block_caption_signals)
+    install_translator(qapp, "zh_CN")
+    retranslate_widgets(root)
+    assert label.text() == TRANSLATIONS["zh_CN"]["Cancel"]
+    assert combo.currentData() == "output" and changes == []
 
 
 def test_chinese_covers_literal_tr_calls_and_navigation():

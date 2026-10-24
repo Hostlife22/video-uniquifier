@@ -42,6 +42,8 @@ the last tag.
   Workflow captions retain literal ampersands; reviewed desktop visual baselines
   include the new delivery screen.
 - Comparison players report missing local videos before invoking native decoders.
+- Language refresh visits public caption controls without blocking native Qt
+  implementation widgets; combo/tab/table changes still preserve live settings.
 
 - Simplified Chinese covers desktop navigation, settings, processing, comparison
   controls and page guides. Switching languages refreshes existing page captions
