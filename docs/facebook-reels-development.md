@@ -25,6 +25,9 @@
   Clean fast-test run: 2295 passed, one optional-branch skip; core coverage is
   81.88%, above the required 80% gate. The loaded-HD preview integration checks
   sample actions on their new settings page and waits for Qt layout completion.
+- HDR integration also checks the unsupported-build case: macOS CI's FFmpeg may
+  lack zscale, in which case explicit conversion must fail preflight without
+  publishing a result. Hosts with zscale still run and verify the real conversion.
 
 ## Tabular desktop quality reports (2026-10-23)
 

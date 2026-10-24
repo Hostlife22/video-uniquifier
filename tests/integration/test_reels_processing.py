@@ -127,6 +127,16 @@ def test_hdr_requires_explicit_native_tonemapping(tmp_path):
         process_video(source, rules_for(), tmp_path / "blocked", job_id="hdr")
     assert caught.value.code == "hdr_requires_tonemap"
     assert not (tmp_path / "blocked" / "results").exists()
+    filters = subprocess.run(["ffmpeg", "-hide_banner", "-filters"], check=True,
+                             capture_output=True, text=True, timeout=10).stdout
+    if "zscale" not in filters:
+        with pytest.raises(ReelsError) as unavailable:
+            process_video(source, rules_for(video={"hdr_policy": "tonemap_sdr"}),
+                           tmp_path / "converted")
+        assert unavailable.value.code == "preflight_failed"
+        assert "tonemap.zscale.missing" in str(unavailable.value)
+        assert not (tmp_path / "converted" / "results").exists()
+        return
     result = process_video(source, rules_for(video={"hdr_policy": "tonemap_sdr"}),
                            tmp_path / "converted")
     report = json.loads((result / "report.json").read_text())
