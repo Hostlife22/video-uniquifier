@@ -90,11 +90,8 @@ def _stop_background_workers(screen: QWidget) -> None:
 
 
 @pytest.fixture(scope="module")
-def app() -> QApplication:
-    inst = QApplication.instance()
-    if inst is None:
-        return QApplication([])
-    return inst
+def app(qapp) -> QApplication:
+    return qapp
 
 
 def _interactive_widgets(root: QWidget) -> list[QWidget]:
@@ -136,6 +133,7 @@ def test_theme_qss_defines_explicit_focus_outline(theme: str) -> None:
 
 @pytest.mark.parametrize("label,_lands_in", SIDEBAR_ITEMS)
 def test_interactive_widgets_are_keyboard_focusable(
+    qtbot,
     app: QApplication,
     label: str,
     _lands_in: str,
@@ -148,6 +146,7 @@ def test_interactive_widgets_are_keyboard_focusable(
     """
     state = AppState()
     screen = _build_screen(label, _lands_in, state)
+    qtbot.addWidget(screen)
     try:
         unreachable: list[str] = []
         for w in _interactive_widgets(screen):
@@ -176,6 +175,7 @@ def test_interactive_widgets_are_keyboard_focusable(
 
 @pytest.mark.parametrize("label,_lands_in", SIDEBAR_ITEMS)
 def test_buttons_meet_minimum_target_size(
+    qtbot,
     app: QApplication,
     label: str,
     _lands_in: str,
@@ -189,6 +189,7 @@ def test_buttons_meet_minimum_target_size(
     """
     state = AppState()
     screen = _build_screen(label, _lands_in, state)
+    qtbot.addWidget(screen)
     try:
         too_small: list[str] = []
         for btn in screen.findChildren(QPushButton):
@@ -215,6 +216,7 @@ def test_buttons_meet_minimum_target_size(
 
 @pytest.mark.parametrize("label,_lands_in", SIDEBAR_ITEMS)
 def test_screen_widget_has_identifying_handle(
+    qtbot,
     app: QApplication,
     label: str,
     _lands_in: str,
@@ -228,6 +230,7 @@ def test_screen_widget_has_identifying_handle(
     """
     state = AppState()
     screen = _build_screen(label, _lands_in, state)
+    qtbot.addWidget(screen)
     try:
         cls = type(screen).__name__
         assert cls != "QWidget", (

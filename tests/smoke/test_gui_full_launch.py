@@ -3,16 +3,15 @@
 from __future__ import annotations
 
 import pytest
-from PyQt6.QtWidgets import QApplication
 
 
 @pytest.mark.smoke
-def test_main_window_launches_and_navigates() -> None:
+def test_main_window_launches_and_navigates(gui_window_factory, qapp) -> None:
     """Open MainWindow, traverse all 10 sidebar entries, no exceptions."""
-    from video_uniquifier.gui.app_pyqt import SIDEBAR_ITEMS, MainWindow
+    from video_uniquifier.gui.app_pyqt import SIDEBAR_ITEMS
 
-    app = QApplication.instance() or QApplication([])
-    win = MainWindow()
+    app = qapp
+    win = gui_window_factory()
     win.show()
     app.processEvents()
 
@@ -24,5 +23,3 @@ def test_main_window_launches_and_navigates() -> None:
         # Screen identities stay stable even when the sidebar is regrouped.
         from video_uniquifier.gui.widgets.navigation import NAV_ORDER
         assert SIDEBAR_ITEMS[win.stack.currentIndex()][0] == NAV_ORDER[i]
-
-    win.close()

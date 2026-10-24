@@ -13,20 +13,18 @@ from video_uniquifier.gui.state import AppState
 
 
 @pytest.fixture(scope="module")
-def app() -> QApplication:
-    inst = QApplication.instance()
-    if inst is None:
-        return QApplication([])
-    return inst
+def app(qapp) -> QApplication:
+    return qapp
 
 
-def test_validation_step_navigation(app: QApplication, tmp_path: Path,
+def test_validation_step_navigation(qtbot, app: QApplication, tmp_path: Path,
                                      monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr("video_uniquifier.gui.state.CONFIG_DIR", tmp_path)
     monkeypatch.setattr("video_uniquifier.gui.state.STATE_PATH", tmp_path / "s.json")
     monkeypatch.setattr("video_uniquifier.gui.state.HISTORY_PATH", tmp_path / "h.json")
     state = AppState()
     screen = ValidationScreen(state)
+    qtbot.addWidget(screen)
 
     assert screen.stack.currentIndex() == 0
     screen._go_next()
@@ -43,6 +41,7 @@ def test_validation_step_navigation(app: QApplication, tmp_path: Path,
 
 
 def test_gen_btn_reenabled_after_finished(
+    qtbot,
     app: QApplication, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """Regression: after a generation run completes, gen_worker must be
@@ -54,6 +53,7 @@ def test_gen_btn_reenabled_after_finished(
     monkeypatch.setattr("video_uniquifier.gui.state.HISTORY_PATH", tmp_path / "h.json")
     state = AppState()
     screen = ValidationScreen(state)
+    qtbot.addWidget(screen)
 
     # Simulate the preconditions that would make _refresh_gen_btn enable
     # the button once gen_worker is None.
@@ -79,7 +79,7 @@ def test_gen_btn_reenabled_after_finished(
     assert screen.gen_btn.isEnabled()
 
 
-def test_validation_save_csv_appends_row(app: QApplication, tmp_path: Path,
+def test_validation_save_csv_appends_row(qtbot, app: QApplication, tmp_path: Path,
                                           monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr("video_uniquifier.gui.state.CONFIG_DIR", tmp_path)
     monkeypatch.setattr("video_uniquifier.gui.state.STATE_PATH", tmp_path / "s.json")
@@ -95,6 +95,7 @@ def test_validation_save_csv_appends_row(app: QApplication, tmp_path: Path,
 
     state = AppState()
     screen = ValidationScreen(state)
+    qtbot.addWidget(screen)
     # Pretend a variant was generated.
     screen.record_table.insertRow(0)
     screen.record_table.setItem(0, 0, QTableWidgetItem("variant_001"))

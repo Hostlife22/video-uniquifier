@@ -10,16 +10,14 @@ import json
 from pathlib import Path
 
 import pytest
-from PyQt6.QtWidgets import QApplication
 
 pytestmark = pytest.mark.integration
 
 
 @pytest.fixture
-def app():
-    app = QApplication.instance() or QApplication([])
-    yield app
-    app.processEvents()
+def app(qapp):
+    yield qapp
+    qapp.processEvents()
 
 
 def test_qa_viewer_builds_with_two_tabs(app, qtbot) -> None:

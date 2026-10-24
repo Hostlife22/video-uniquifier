@@ -161,12 +161,12 @@ def test_correlate_worker_cancel_terminates_child(
 
 
 def test_validation_screen_on_correlate_does_not_block_gui(
+    request: pytest.FixtureRequest,
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """ValidationScreen._on_correlate must hand work off to a worker
     instead of calling subprocess inline. The previous implementation
     froze the UI thread for up to 60 seconds."""
-    from PyQt6.QtWidgets import QApplication
 
     from video_uniquifier.gui.screens import validation as validation_mod
     from video_uniquifier.gui.screens.validation import ValidationScreen
@@ -200,9 +200,10 @@ def test_validation_screen_on_correlate_does_not_block_gui(
 
     monkeypatch.setattr(validation_mod, "CorrelateWorker", _RecordingWorker)
 
-    _ = QApplication.instance() or QApplication([])
+    qtbot = request.getfixturevalue("qtbot")
     state = AppState()
     screen = ValidationScreen(state)
+    qtbot.addWidget(screen)
 
     screen._on_correlate()
 

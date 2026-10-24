@@ -11,6 +11,7 @@ Headless: relies on QT_QPA_PLATFORM=offscreen (set globally in conftest).
 from __future__ import annotations
 
 import pytest
+from PyQt6.QtCore import QCoreApplication, QEvent
 from PyQt6.QtWidgets import QApplication, QPushButton, QWidget
 
 pytestmark = pytest.mark.smoke
@@ -56,13 +57,13 @@ EXPECTED_WIDGETS: dict[str, list[str]] = {
 
 
 @pytest.fixture(scope="module")
-def main_window(tmp_path_factory):
+def main_window(qapp, tmp_path_factory):
     """One MainWindow shared by every screen test in this module."""
     from video_uniquifier.core.qa import corpus
     from video_uniquifier.gui import state
     from video_uniquifier.gui.app_pyqt import MainWindow
 
-    app = QApplication.instance() or QApplication([])
+    app = qapp
     config = tmp_path_factory.mktemp("smoke_gui_config")
     with pytest.MonkeyPatch.context() as patch:
         patch.setattr(state, "CONFIG_DIR", config)
@@ -73,7 +74,9 @@ def main_window(tmp_path_factory):
         win.show()
         app.processEvents()
         yield win
-        win.close()
+        assert win.close()
+        win.deleteLater()
+        QCoreApplication.sendPostedEvents(None, QEvent.Type.DeferredDelete)
         app.processEvents()
 
 

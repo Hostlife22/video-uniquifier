@@ -12,11 +12,8 @@ from video_uniquifier.gui.state import AppState, HistoryEntry
 
 
 @pytest.fixture(scope="module")
-def app() -> QApplication:
-    inst = QApplication.instance()
-    if inst is None:
-        return QApplication([])
-    return inst
+def app(qapp) -> QApplication:
+    return qapp
 
 
 def _isolate_state(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> AppState:
@@ -39,31 +36,34 @@ def _entry(i: int) -> HistoryEntry:
     )
 
 
-def test_history_screen_renders_entries(app: QApplication, tmp_path: Path,
+def test_history_screen_renders_entries(qtbot, app: QApplication, tmp_path: Path,
                                           monkeypatch: pytest.MonkeyPatch) -> None:
     state = _isolate_state(tmp_path, monkeypatch)
     state.push_history(_entry(1))
     state.push_history(_entry(2))
     screen = HistoryScreen(state)
+    qtbot.addWidget(screen)
     assert screen.table.rowCount() == 2
 
 
-def test_history_screen_filter(app: QApplication, tmp_path: Path,
+def test_history_screen_filter(qtbot, app: QApplication, tmp_path: Path,
                                  monkeypatch: pytest.MonkeyPatch) -> None:
     state = _isolate_state(tmp_path, monkeypatch)
     state.push_history(_entry(1))
     state.push_history(_entry(2))
     screen = HistoryScreen(state)
+    qtbot.addWidget(screen)
     screen.filter_edit.setText("nonexistent_term")
     assert screen.table.rowCount() == 0
     screen.filter_edit.setText("")
     assert screen.table.rowCount() == 2
 
 
-def test_history_screen_auto_refresh_on_push(app: QApplication, tmp_path: Path,
+def test_history_screen_auto_refresh_on_push(qtbot, app: QApplication, tmp_path: Path,
                                                monkeypatch: pytest.MonkeyPatch) -> None:
     state = _isolate_state(tmp_path, monkeypatch)
     screen = HistoryScreen(state)
+    qtbot.addWidget(screen)
     assert screen.table.rowCount() == 0
     state.push_history(_entry(1))
     assert screen.table.rowCount() == 1

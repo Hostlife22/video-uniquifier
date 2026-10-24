@@ -17,17 +17,15 @@ from video_uniquifier.gui.widgets.segment_timeline import SegmentTimeline
 
 
 @pytest.fixture(scope="module")
-def app() -> QApplication:
-    inst = QApplication.instance()
-    if inst is None:
-        return QApplication([])
-    return inst
+def app(qapp) -> QApplication:
+    return qapp
 
 
 # ---- FilePickerRow ----
-def test_file_picker_emits_on_set_path(app: QApplication, tmp_path: Path) -> None:
+def test_file_picker_emits_on_set_path(qtbot, app: QApplication, tmp_path: Path) -> None:
     state = AppState()
     picker = FilePickerRow("Input:", "input", "*.mp4", state)
+    qtbot.addWidget(picker)
     received: list[Path | None] = []
     picker.path_changed.connect(received.append)
     test_path = tmp_path / "x.mp4"
@@ -37,9 +35,10 @@ def test_file_picker_emits_on_set_path(app: QApplication, tmp_path: Path) -> Non
     assert picker.current_path() == test_path
 
 
-def test_file_picker_dedup_same_path(app: QApplication, tmp_path: Path) -> None:
+def test_file_picker_dedup_same_path(qtbot, app: QApplication, tmp_path: Path) -> None:
     state = AppState()
     picker = FilePickerRow("Input:", "input", "*.mp4", state)
+    qtbot.addWidget(picker)
     received: list[Path | None] = []
     picker.path_changed.connect(received.append)
     p = tmp_path / "x.mp4"
@@ -49,14 +48,16 @@ def test_file_picker_dedup_same_path(app: QApplication, tmp_path: Path) -> None:
 
 
 # ---- PreflightPanel ----
-def test_preflight_panel_hidden_when_empty(app: QApplication) -> None:
+def test_preflight_panel_hidden_when_empty(qtbot, app: QApplication) -> None:
     panel = PreflightPanel()
+    qtbot.addWidget(panel)
     panel.set_findings([])
     assert not panel.isVisible() or panel.isHidden()
 
 
-def test_preflight_panel_emits_has_fail(app: QApplication) -> None:
+def test_preflight_panel_emits_has_fail(qtbot, app: QApplication) -> None:
     panel = PreflightPanel()
+    qtbot.addWidget(panel)
     fail_signals: list[bool] = []
     panel.has_fail.connect(fail_signals.append)
     panel.set_findings([
@@ -65,8 +66,9 @@ def test_preflight_panel_emits_has_fail(app: QApplication) -> None:
     assert fail_signals == [True]
 
 
-def test_preflight_panel_no_fail_on_warn_only(app: QApplication) -> None:
+def test_preflight_panel_no_fail_on_warn_only(qtbot, app: QApplication) -> None:
     panel = PreflightPanel()
+    qtbot.addWidget(panel)
     fail_signals: list[bool] = []
     panel.has_fail.connect(fail_signals.append)
     panel.set_findings([
@@ -76,23 +78,26 @@ def test_preflight_panel_no_fail_on_warn_only(app: QApplication) -> None:
 
 
 # ---- SegmentTimeline ----
-def test_segment_timeline_init_and_update(app: QApplication) -> None:
+def test_segment_timeline_init_and_update(qtbot, app: QApplication) -> None:
     timeline = SegmentTimeline()
+    qtbot.addWidget(timeline)
     timeline.init(5)
     assert timeline.statuses() == ["pending"] * 5
     timeline.update_segment(2, "done")
     assert timeline.statuses()[2] == "done"
 
 
-def test_segment_timeline_out_of_range_safe(app: QApplication) -> None:
+def test_segment_timeline_out_of_range_safe(qtbot, app: QApplication) -> None:
     timeline = SegmentTimeline()
+    qtbot.addWidget(timeline)
     timeline.init(3)
     timeline.update_segment(10, "done")  # should not crash
     assert timeline.statuses() == ["pending"] * 3
 
 
-def test_segment_timeline_reset(app: QApplication) -> None:
+def test_segment_timeline_reset(qtbot, app: QApplication) -> None:
     timeline = SegmentTimeline()
+    qtbot.addWidget(timeline)
     timeline.init(3)
     timeline.update_segment(0, "done")
     timeline.reset()
@@ -100,22 +105,25 @@ def test_segment_timeline_reset(app: QApplication) -> None:
 
 
 # ---- LogConsole ----
-def test_log_console_appends(app: QApplication) -> None:
+def test_log_console_appends(qtbot, app: QApplication) -> None:
     console = LogConsole(max_lines=100)
+    qtbot.addWidget(console)
     console.log("hello", "info")
     console.log("world", "log")
     assert console.line_count() == 2
 
 
-def test_log_console_caps_lines(app: QApplication) -> None:
+def test_log_console_caps_lines(qtbot, app: QApplication) -> None:
     console = LogConsole(max_lines=10)
+    qtbot.addWidget(console)
     for i in range(25):
         console.log(f"line {i}", "info")
     assert console.line_count() == 10
 
 
-def test_log_console_filter_hides_other_levels(app: QApplication) -> None:
+def test_log_console_filter_hides_other_levels(qtbot, app: QApplication) -> None:
     console = LogConsole(max_lines=100)
+    qtbot.addWidget(console)
     console.log("a", "info")
     console.log("b", "error")
     console.filter_combo.setCurrentText("error")
@@ -141,8 +149,9 @@ def test_kpi_pill_color_vmaf_higher_better() -> None:
     assert _pill_color_key("vmaf_mean", 70.0) == "kpi_red"
 
 
-def test_kpi_pills_set_qa_populates_pills(app: QApplication) -> None:
+def test_kpi_pills_set_qa_populates_pills(qtbot, app: QApplication) -> None:
     pills = KpiPills()
+    qtbot.addWidget(pills)
     pills.set_qa({
         "phash_similarity": 0.72,
         "vmaf_mean": 87.5,
@@ -153,8 +162,9 @@ def test_kpi_pills_set_qa_populates_pills(app: QApplication) -> None:
     assert pills._layout.count() == 4
 
 
-def test_unavailable_phash_is_not_a_green_zero(app: QApplication) -> None:
+def test_unavailable_phash_is_not_a_green_zero(qtbot, app: QApplication) -> None:
     pills = KpiPills()
+    qtbot.addWidget(pills)
     pills.set_qa({"phash_samples": 0, "phash_similarity": 0.0, "cid_predict_self": None})
     labels = pills.findChildren(QLabel)
     phash = next(label for label in labels if "pHash worst" in label.text())

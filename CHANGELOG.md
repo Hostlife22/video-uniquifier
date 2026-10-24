@@ -44,8 +44,9 @@ the last tag.
 
 ### Fixed
 
-- Retain every registered GUI test widget through Qt's deferred native deletion,
-  preserving queued events and preventing collection inside later style callbacks.
+- GUI tests share one session-scoped QApplication, register legacy standalone
+  screens for cleanup and retain their wrappers through deferred native deletion.
+  This preserves queued events and keeps windows within the application lifetime.
 
 - Preserve the original preview decoder when invalidating an absent sample, and
   send native pause only while playing. This avoids a Windows initialization stall
