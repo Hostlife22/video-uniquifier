@@ -1,0 +1,823 @@
+{
+  "$defs": {
+    "AudioRules": {
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "default": true,
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "codec": {
+          "const": "aac",
+          "default": "aac",
+          "title": "Codec",
+          "type": "string"
+        },
+        "bitrate": {
+          "const": "128k",
+          "default": "128k",
+          "title": "Bitrate",
+          "type": "string"
+        },
+        "sample_rate": {
+          "const": 48000,
+          "default": 48000,
+          "title": "Sample Rate",
+          "type": "integer"
+        },
+        "channels": {
+          "const": 2,
+          "default": 2,
+          "title": "Channels",
+          "type": "integer"
+        },
+        "loudnorm": {
+          "$ref": "#/$defs/LoudnessRules"
+        },
+        "change_pitch": {
+          "const": false,
+          "default": false,
+          "title": "Change Pitch",
+          "type": "boolean"
+        },
+        "change_tempo": {
+          "const": false,
+          "default": false,
+          "title": "Change Tempo",
+          "type": "boolean"
+        },
+        "add_noise": {
+          "const": false,
+          "default": false,
+          "title": "Add Noise",
+          "type": "boolean"
+        },
+        "missing_audio": {
+          "const": "silent_video_ok",
+          "default": "silent_video_ok",
+          "title": "Missing Audio",
+          "type": "string"
+        },
+        "max_av_drift_ms": {
+          "default": 100,
+          "maximum": 500,
+          "minimum": 1,
+          "title": "Max Av Drift Ms",
+          "type": "integer"
+        }
+      },
+      "title": "AudioRules",
+      "type": "object"
+    },
+    "GeometryRules": {
+      "additionalProperties": false,
+      "properties": {
+        "vertical_source": {
+          "const": "fit",
+          "default": "fit",
+          "title": "Vertical Source",
+          "type": "string"
+        },
+        "nonvertical_source": {
+          "default": "pad_blur",
+          "enum": [
+            "pad_blur",
+            "fit",
+            "crop"
+          ],
+          "title": "Nonvertical Source",
+          "type": "string"
+        },
+        "allow_center_crop": {
+          "default": false,
+          "title": "Allow Center Crop",
+          "type": "boolean"
+        },
+        "blur_sigma": {
+          "default": 20.0,
+          "exclusiveMinimum": 0,
+          "maximum": 80,
+          "title": "Blur Sigma",
+          "type": "number"
+        }
+      },
+      "title": "GeometryRules",
+      "type": "object"
+    },
+    "LogoRules": {
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "default": false,
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source"
+        },
+        "anchor": {
+          "default": "top_right",
+          "enum": [
+            "top_right",
+            "top_left",
+            "bottom_right",
+            "bottom_left"
+          ],
+          "title": "Anchor",
+          "type": "string"
+        },
+        "width_px": {
+          "default": 120,
+          "maximum": 1080,
+          "minimum": 8,
+          "title": "Width Px",
+          "type": "integer"
+        },
+        "margin_x_px": {
+          "default": 65,
+          "maximum": 1920,
+          "minimum": 0,
+          "title": "Margin X Px",
+          "type": "integer"
+        },
+        "margin_y_px": {
+          "default": 300,
+          "maximum": 1920,
+          "minimum": 0,
+          "title": "Margin Y Px",
+          "type": "integer"
+        },
+        "opacity": {
+          "default": 0.9,
+          "exclusiveMinimum": 0,
+          "maximum": 1,
+          "title": "Opacity",
+          "type": "number"
+        }
+      },
+      "title": "LogoRules",
+      "type": "object"
+    },
+    "LoudnessRules": {
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "default": true,
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "passes": {
+          "const": 2,
+          "default": 2,
+          "title": "Passes",
+          "type": "integer"
+        },
+        "integrated_lufs": {
+          "default": -16.0,
+          "maximum": -10,
+          "minimum": -30,
+          "title": "Integrated Lufs",
+          "type": "number"
+        },
+        "true_peak_dbtp": {
+          "default": -1.5,
+          "maximum": -1,
+          "minimum": -6,
+          "title": "True Peak Dbtp",
+          "type": "number"
+        },
+        "lra": {
+          "default": 11.0,
+          "maximum": 20,
+          "minimum": 1,
+          "title": "Lra",
+          "type": "number"
+        },
+        "skip_if_silent": {
+          "default": true,
+          "title": "Skip If Silent",
+          "type": "boolean"
+        }
+      },
+      "title": "LoudnessRules",
+      "type": "object"
+    },
+    "PackagingRules": {
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "default": false,
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "template_id": {
+          "default": "reels_default_v1",
+          "pattern": "^[a-zA-Z0-9_-]{1,64}$",
+          "title": "Template Id",
+          "type": "string"
+        },
+        "cover_insert_enabled": {
+          "const": false,
+          "default": false,
+          "title": "Cover Insert Enabled",
+          "type": "boolean"
+        },
+        "watermark_removal": {
+          "const": false,
+          "default": false,
+          "title": "Watermark Removal",
+          "type": "boolean"
+        },
+        "logo": {
+          "$ref": "#/$defs/LogoRules"
+        },
+        "title": {
+          "$ref": "#/$defs/TitleRules"
+        },
+        "safe_area": {
+          "$ref": "#/$defs/SafeAreaRules"
+        },
+        "safe_area_preview_enabled": {
+          "default": true,
+          "title": "Safe Area Preview Enabled",
+          "type": "boolean"
+        },
+        "protect_existing_hard_subtitles": {
+          "default": true,
+          "title": "Protect Existing Hard Subtitles",
+          "type": "boolean"
+        },
+        "subtitle_zone": {
+          "$ref": "#/$defs/SubtitleZone"
+        }
+      },
+      "title": "PackagingRules",
+      "type": "object"
+    },
+    "PublishRules": {
+      "additionalProperties": false,
+      "properties": {
+        "platform": {
+          "const": "facebook",
+          "default": "facebook",
+          "title": "Platform",
+          "type": "string"
+        },
+        "surface": {
+          "const": "reels",
+          "default": "reels",
+          "title": "Surface",
+          "type": "string"
+        },
+        "channel": {
+          "const": "organic",
+          "default": "organic",
+          "title": "Channel",
+          "type": "string"
+        },
+        "posting_method": {
+          "default": "manual_app",
+          "enum": [
+            "manual_app",
+            "api"
+          ],
+          "title": "Posting Method",
+          "type": "string"
+        }
+      },
+      "title": "PublishRules",
+      "type": "object"
+    },
+    "QualityRules": {
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "default": true,
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "require_video_stream": {
+          "const": true,
+          "default": true,
+          "title": "Require Video Stream",
+          "type": "boolean"
+        },
+        "expected_aspect_tolerance": {
+          "default": 0.01,
+          "exclusiveMinimum": 0,
+          "maximum": 0.05,
+          "title": "Expected Aspect Tolerance",
+          "type": "number"
+        },
+        "max_duration_delta_sec": {
+          "default": 0.5,
+          "exclusiveMinimum": 0,
+          "maximum": 0.5,
+          "title": "Max Duration Delta Sec",
+          "type": "number"
+        },
+        "max_av_drift_ms": {
+          "default": 100,
+          "maximum": 500,
+          "minimum": 1,
+          "title": "Max Av Drift Ms",
+          "type": "integer"
+        },
+        "require_video_decode_check": {
+          "default": true,
+          "title": "Require Video Decode Check",
+          "type": "boolean"
+        },
+        "sample_preview_seconds": {
+          "default": 10,
+          "maximum": 180,
+          "minimum": 1,
+          "title": "Sample Preview Seconds",
+          "type": "integer"
+        },
+        "sample_preview_enabled": {
+          "default": true,
+          "title": "Sample Preview Enabled",
+          "type": "boolean"
+        },
+        "compare_against_source": {
+          "default": true,
+          "title": "Compare Against Source",
+          "type": "boolean"
+        },
+        "no_external_platform_detection_claims": {
+          "const": true,
+          "default": true,
+          "title": "No External Platform Detection Claims",
+          "type": "boolean"
+        }
+      },
+      "title": "QualityRules",
+      "type": "object"
+    },
+    "SafeAreaRules": {
+      "additionalProperties": false,
+      "properties": {
+        "left_fraction": {
+          "default": 0.06,
+          "exclusiveMaximum": 0.5,
+          "minimum": 0,
+          "title": "Left Fraction",
+          "type": "number"
+        },
+        "right_fraction": {
+          "default": 0.06,
+          "exclusiveMaximum": 0.5,
+          "minimum": 0,
+          "title": "Right Fraction",
+          "type": "number"
+        },
+        "top_fraction": {
+          "default": 0.14,
+          "exclusiveMaximum": 0.5,
+          "minimum": 0,
+          "title": "Top Fraction",
+          "type": "number"
+        },
+        "bottom_fraction": {
+          "default": 0.3,
+          "exclusiveMaximum": 0.5,
+          "minimum": 0,
+          "title": "Bottom Fraction",
+          "type": "number"
+        }
+      },
+      "title": "SafeAreaRules",
+      "type": "object"
+    },
+    "SceneRules": {
+      "additionalProperties": false,
+      "properties": {
+        "detect_enabled": {
+          "default": true,
+          "title": "Detect Enabled",
+          "type": "boolean"
+        },
+        "detector": {
+          "const": "pyscenedetect_content",
+          "default": "pyscenedetect_content",
+          "title": "Detector",
+          "type": "string"
+        },
+        "threshold": {
+          "default": 27.0,
+          "exclusiveMinimum": 0,
+          "maximum": 255,
+          "title": "Threshold",
+          "type": "number"
+        },
+        "min_scene_length_sec": {
+          "default": 2.0,
+          "exclusiveMinimum": 0,
+          "maximum": 3600,
+          "title": "Min Scene Length Sec",
+          "type": "number"
+        },
+        "preserve_original_order": {
+          "const": true,
+          "default": true,
+          "title": "Preserve Original Order",
+          "type": "boolean"
+        },
+        "auto_reorder": {
+          "const": false,
+          "default": false,
+          "title": "Auto Reorder",
+          "type": "boolean"
+        },
+        "auto_drop_scenes": {
+          "const": false,
+          "default": false,
+          "title": "Auto Drop Scenes",
+          "type": "boolean"
+        },
+        "trim_start_sec": {
+          "default": 0.0,
+          "minimum": 0,
+          "title": "Trim Start Sec",
+          "type": "number"
+        },
+        "trim_end_sec": {
+          "default": 0.0,
+          "minimum": 0,
+          "title": "Trim End Sec",
+          "type": "number"
+        },
+        "auto_insert_transitions": {
+          "const": false,
+          "default": false,
+          "title": "Auto Insert Transitions",
+          "type": "boolean"
+        },
+        "blackdetect_enabled": {
+          "default": true,
+          "title": "Blackdetect Enabled",
+          "type": "boolean"
+        },
+        "blackdetect_report_only": {
+          "const": true,
+          "default": true,
+          "title": "Blackdetect Report Only",
+          "type": "boolean"
+        },
+        "silence_detect_enabled": {
+          "default": true,
+          "title": "Silence Detect Enabled",
+          "type": "boolean"
+        },
+        "silence_detect_report_only": {
+          "const": true,
+          "default": true,
+          "title": "Silence Detect Report Only",
+          "type": "boolean"
+        }
+      },
+      "title": "SceneRules",
+      "type": "object"
+    },
+    "SubtitleZone": {
+      "additionalProperties": false,
+      "properties": {
+        "bottom_fraction": {
+          "default": 0.3,
+          "exclusiveMaximum": 0.75,
+          "minimum": 0,
+          "title": "Bottom Fraction",
+          "type": "number"
+        }
+      },
+      "title": "SubtitleZone",
+      "type": "object"
+    },
+    "TitleRules": {
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "default": false,
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "text": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Text"
+        },
+        "font_path": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Font Path"
+        },
+        "font_size_px": {
+          "default": 54,
+          "maximum": 160,
+          "minimum": 12,
+          "title": "Font Size Px",
+          "type": "integer"
+        },
+        "color": {
+          "default": "#FFFFFF",
+          "title": "Color",
+          "type": "string"
+        },
+        "outline_px": {
+          "default": 3,
+          "maximum": 10,
+          "minimum": 0,
+          "title": "Outline Px",
+          "type": "integer"
+        },
+        "max_lines": {
+          "default": 2,
+          "maximum": 4,
+          "minimum": 1,
+          "title": "Max Lines",
+          "type": "integer"
+        },
+        "position": {
+          "default": "top_safe",
+          "enum": [
+            "top_safe",
+            "center_safe",
+            "bottom_safe"
+          ],
+          "title": "Position",
+          "type": "string"
+        },
+        "start_sec": {
+          "default": 0.0,
+          "minimum": 0,
+          "title": "Start Sec",
+          "type": "number"
+        },
+        "end_sec": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "End Sec"
+        }
+      },
+      "title": "TitleRules",
+      "type": "object"
+    },
+    "VideoRules": {
+      "additionalProperties": false,
+      "properties": {
+        "width": {
+          "default": 1080,
+          "enum": [
+            720,
+            1080
+          ],
+          "title": "Width",
+          "type": "integer"
+        },
+        "height": {
+          "default": 1920,
+          "enum": [
+            1280,
+            1920
+          ],
+          "title": "Height",
+          "type": "integer"
+        },
+        "aspect_ratio": {
+          "const": "9:16",
+          "default": "9:16",
+          "title": "Aspect Ratio",
+          "type": "string"
+        },
+        "pixel_format": {
+          "const": "yuv420p",
+          "default": "yuv420p",
+          "title": "Pixel Format",
+          "type": "string"
+        },
+        "codec": {
+          "const": "libx264",
+          "default": "libx264",
+          "title": "Codec",
+          "type": "string"
+        },
+        "crf": {
+          "default": 21,
+          "maximum": 23,
+          "minimum": 18,
+          "title": "Crf",
+          "type": "integer"
+        },
+        "preset": {
+          "default": "veryfast",
+          "enum": [
+            "veryfast",
+            "medium"
+          ],
+          "title": "Preset",
+          "type": "string"
+        },
+        "fps_mode": {
+          "default": "auto",
+          "enum": [
+            "auto",
+            "cfr30"
+          ],
+          "title": "Fps Mode",
+          "type": "string"
+        },
+        "fallback_fps": {
+          "const": 30,
+          "default": 30,
+          "title": "Fallback Fps",
+          "type": "integer"
+        },
+        "faststart": {
+          "default": true,
+          "title": "Faststart",
+          "type": "boolean"
+        },
+        "upscale_warning": {
+          "default": true,
+          "title": "Upscale Warning",
+          "type": "boolean"
+        },
+        "hdr_policy": {
+          "default": "fail_with_advice",
+          "enum": [
+            "fail_with_advice",
+            "tonemap_sdr"
+          ],
+          "title": "Hdr Policy",
+          "type": "string"
+        },
+        "geometry": {
+          "$ref": "#/$defs/GeometryRules"
+        }
+      },
+      "title": "VideoRules",
+      "type": "object"
+    },
+    "WorkerRules": {
+      "additionalProperties": false,
+      "properties": {
+        "ffmpeg_threads": {
+          "anyOf": [
+            {
+              "const": "auto",
+              "type": "string"
+            },
+            {
+              "maximum": 32,
+              "minimum": 1,
+              "type": "integer"
+            }
+          ],
+          "default": "auto",
+          "title": "Ffmpeg Threads"
+        },
+        "max_cpu_jobs": {
+          "default": 2,
+          "maximum": 2,
+          "minimum": 1,
+          "title": "Max Cpu Jobs",
+          "type": "integer"
+        },
+        "max_retries": {
+          "default": 1,
+          "maximum": 3,
+          "minimum": 0,
+          "title": "Max Retries",
+          "type": "integer"
+        },
+        "temp_keep_on_failure": {
+          "default": false,
+          "title": "Temp Keep On Failure",
+          "type": "boolean"
+        },
+        "atomic_output": {
+          "const": true,
+          "default": true,
+          "title": "Atomic Output",
+          "type": "boolean"
+        },
+        "allow_input_extensions": {
+          "items": {
+            "enum": [
+              "mp4",
+              "mov",
+              "mkv",
+              "webm"
+            ],
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Allow Input Extensions",
+          "type": "array"
+        },
+        "max_input_mb": {
+          "default": 2048,
+          "maximum": 8192,
+          "minimum": 1,
+          "title": "Max Input Mb",
+          "type": "integer"
+        },
+        "max_duration_sec": {
+          "default": 7200.0,
+          "exclusiveMinimum": 0,
+          "maximum": 14400,
+          "title": "Max Duration Sec",
+          "type": "number"
+        },
+        "max_pixels": {
+          "default": 8847360,
+          "maximum": 33177600,
+          "minimum": 4096,
+          "title": "Max Pixels",
+          "type": "integer"
+        },
+        "wall_timeout_sec": {
+          "default": 14400,
+          "maximum": 86400,
+          "minimum": 1,
+          "title": "Wall Timeout Sec",
+          "type": "integer"
+        }
+      },
+      "title": "WorkerRules",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": 1,
+      "default": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "preset_id": {
+      "default": "facebook_reels_drama_v1",
+      "pattern": "^[a-zA-Z0-9_-]{1,64}$",
+      "title": "Preset Id",
+      "type": "string"
+    },
+    "publish": {
+      "$ref": "#/$defs/PublishRules"
+    },
+    "video": {
+      "$ref": "#/$defs/VideoRules"
+    },
+    "packaging": {
+      "$ref": "#/$defs/PackagingRules"
+    },
+    "audio": {
+      "$ref": "#/$defs/AudioRules"
+    },
+    "scenes": {
+      "$ref": "#/$defs/SceneRules"
+    },
+    "quality_gate": {
+      "$ref": "#/$defs/QualityRules"
+    },
+    "worker": {
+      "$ref": "#/$defs/WorkerRules"
+    }
+  },
+  "title": "ReelsRules",
+  "type": "object"
+}

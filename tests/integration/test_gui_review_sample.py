@@ -102,6 +102,48 @@ def test_real_media_seek_play_and_frame_step(qtbot, tiny_clip):
     dialog.close()
 
 
+def test_trimmed_delivery_stays_aligned_during_seek_and_play(qtbot, tiny_clip, tmp_path):
+    from video_uniquifier.gui.widgets.video_compare import VideoCompareDialog
+    candidate = tmp_path / "trimmed.mp4"
+    subprocess.run([
+        "ffmpeg", "-v", "error", "-ss", "0.5", "-i", str(tiny_clip),
+        "-t", "1", "-an", "-c:v", "libx264", str(candidate),
+    ], check=True, capture_output=True, timeout=30)
+    dialog = VideoCompareDialog(tiny_clip, candidate, source_range=(.5, 1.5))
+    qtbot.addWidget(dialog)
+    dialog.show()
+    qtbot.waitUntil(lambda: all(not size.isEmpty() for size in dialog._sizes), timeout=20000)
+    qtbot.waitUntil(lambda: dialog._frame_times[0] >= 450000, timeout=5000)
+    assert 950 <= dialog._limit() <= 1050
+    dialog.seek(500)
+    qtbot.waitUntil(lambda: dialog._frame_times[0] >= 950000
+                   and dialog._frame_times[1] >= 450000, timeout=5000)
+    dialog.toggle_play()
+    qtbot.waitUntil(lambda: dialog._position >= 700, timeout=5000)
+    assert abs(dialog.players[0].position() - dialog.players[1].position() - 500) <= 150
+    dialog.pause()
+    dialog.close()
+
+
+def test_completed_video_plays_without_loading_a_reference(qtbot, tiny_clip):
+    from PyQt6.QtCore import Qt
+
+    from video_uniquifier.gui.widgets.video_compare import VideoCompareDialog
+    dialog = VideoCompareDialog(None, tiny_clip)
+    qtbot.addWidget(dialog)
+    dialog.show()
+    qtbot.waitUntil(lambda: not dialog._sizes[1].isEmpty(), timeout=20000)
+    assert dialog.players[0].source().isEmpty()
+    assert dialog._limit() >= 1900
+    assert dialog.panels[0].isHidden()
+    dialog.toggle_play()
+    qtbot.waitUntil(lambda: dialog._position >= 300, timeout=5000)
+    assert not dialog.outputs[1].isMuted()
+    qtbot.keyClick(dialog, Qt.Key.Key_Escape)
+    assert dialog._closed and not dialog.isVisible()
+    assert dialog.players[1].source().isEmpty()
+
+
 @pytest.mark.parametrize("origin", [0, 5])
 def test_frame_lookup_preserves_vfr_intervals_and_normalizes_origin(tiny_clip, tmp_path, origin):
     from video_uniquifier.core._review_frames import _review_frame_window

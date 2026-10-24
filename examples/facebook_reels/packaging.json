@@ -1,0 +1,22 @@
+{
+  "enabled": true,
+  "template_id": "drama_episode_v1",
+  "title": {
+    "enabled": true,
+    "text": "短剧名称 · 第 1 集",
+    "font_path": "fonts/authorized-chinese.ttf",
+    "font_size_px": 48,
+    "position": "top_safe",
+    "start_sec": 0.0,
+    "end_sec": 5.0
+  },
+  "logo": {
+    "enabled": true,
+    "source": "brand/logo.png",
+    "width_px": 100,
+    "margin_x_px": 65,
+    "margin_y_px": 450,
+    "anchor": "top_right",
+    "opacity": 0.9
+  }
+}

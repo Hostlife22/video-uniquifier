@@ -131,6 +131,8 @@ video-uniq = "video_uniquifier.cli.app:app"
 video-uniq-gui = "video_uniquifier.gui.app_pyqt:main"
 # v0.9.0 R4 / F13 — headless FastAPI server. Requires `[web]` extra.
 video-uniq-web = "video_uniquifier.web.cli:main"
+# Experimental business wrapper; requires [scene] for default scene detection.
+video-reels = "video_uniquifier.cli.reels:app"
 
 # v0.8.0 R1 — third-party transform plugins register here. A plugin package
 # advertises an entry point whose value is an import path to a module that
@@ -169,6 +171,7 @@ packages = ["src/video_uniquifier"]
 [tool.hatch.build]
 include = [
     "src/video_uniquifier/**/*.py",
+    "custom_profiles/facebook_reels_base.yaml",
     "src/video_uniquifier/gui/assets/*.svg",
     "src/video_uniquifier/profiles/*.yaml",
     "src/video_uniquifier/core/qa/templates/*.j2",
@@ -178,6 +181,9 @@ include = [
     "src/video_uniquifier/web/static/*.js",
     "src/video_uniquifier/web/static/*.css",
 ]
+
+[tool.hatch.build.targets.wheel.force-include]
+"custom_profiles/facebook_reels_base.yaml" = "video_uniquifier/core/reels/facebook_reels_base.yaml"
 
 [tool.ruff]
 line-length = 100

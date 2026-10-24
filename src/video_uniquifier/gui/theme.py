@@ -11,11 +11,11 @@ ThemeName = Literal["dark", "light", "system"]
 
 
 DARK_TOKENS = {
-    "bg":             "#101419",
-    "bg_alt":         "#191F27",
-    "bg_deep":        "#0C1015",
+    "bg":             "#15191F",
+    "bg_alt":         "#1E242C",
+    "bg_deep":        "#101419",
     "fg":             "#F2F5F7",
-    "fg_dim":         "#A0ADBD",
+    "fg_dim":         "#A8B3C2",
     "accent":         "#6BD9BD",
     "accent_hover":   "#8DE5CE",
     "accent_warm":    "#9FE8D4",
@@ -159,7 +159,8 @@ QLabel#eyebrow {{ color: {fg_dim}; font-size: {caption}px; }}
 QLabel#title {{ font-size: {title}px; font-weight: bold; background: transparent; }}
 QLabel#section_title {{ font-size: {section}px; font-weight: bold; }}
 QLabel#hint, QLabel#status, QLabel#subtitle {{ color: {fg_dim}; }}
-QLabel#subtitle {{ font-size: {label}px; }}
+QLabel#subtitle {{ font-size: {body}px; }}
+QLabel#empty_title {{ font-size: {brand}px; font-weight: bold; }}
 QLabel#field_label {{ font-weight: bold; color: {fg}; }}
 QLabel#path {{ color: {fg}; background: transparent; }}
 QLabel#source_metadata {{ color: {fg_dim}; }}
@@ -174,6 +175,51 @@ QFrame#section_card[variant="flat"] {{
     background: transparent; border: none; border-bottom: 1px solid {border}; border-radius: 0px;
 }}
 QWidget#video_stage {{ background: {bg_deep}; border-radius: {radius}px; }}
+QWidget#preview_panel {{
+    background: {bg_alt}; border: 1px solid {border}; border-radius: {radius}px;
+}}
+QWidget#import_empty {{
+    background: {bg_deep}; border: 1px dashed {border}; border-radius: {radius}px;
+}}
+QWidget#import_empty QLabel {{ background: transparent; border: none; }}
+QWidget#processing_inspector {{
+    background: {bg_alt}; border: 1px solid {border}; border-radius: {radius}px;
+}}
+QScrollArea#inspector_scroll, QScrollArea#inspector_scroll > QWidget > QWidget,
+QWidget#inspector_content, QWidget#sample_actions {{ background: {bg_alt}; }}
+QWidget#profile_cards {{ background: transparent; }}
+QWidget#preview_controls {{ background: transparent; }}
+QWidget#sample_actions {{ border-top: 1px solid {border}; }}
+QFrame#workflow_steps {{
+    background: {bg_alt}; border: 1px solid {border}; border-radius: {radius}px;
+}}
+QFrame#workflow_navigation {{ background: transparent; border: none; }}
+QPushButton#workflow_nav {{
+    background: {bg_alt}; border: 1px solid {border};
+    color: {fg_dim}; padding: {sm}px; border-radius: {control_radius}px;
+}}
+QPushButton#workflow_nav:checked {{
+    background: {selected_bg}; color: {selected_fg}; border-color: {accent}; font-weight: bold;
+}}
+QPushButton#workflow_nav:hover {{ border-color: {accent}; }}
+QLabel#workflow_feedback {{ color: {fg_dim}; padding: {sm}px 0px; }}
+QLabel#workflow_feedback[error="true"] {{ color: {accent_warm}; }}
+QLabel#safe_area_preview {{ background: {bg_deep}; border-radius: {radius}px; }}
+QFrame#workflow_step {{ background: transparent; border: none; }}
+QFrame#workflow_step QLabel {{ background: transparent; }}
+QLabel#step_number {{
+    background: {bg}; color: {fg_dim}; border: 1px solid {border};
+    border-radius: 14px; font-size: {caption}px; font-weight: bold;
+}}
+QLabel#step_title {{ font-weight: bold; color: {fg_dim}; }}
+QFrame#workflow_step[state="current"] QLabel#step_number {{
+    background: {accent}; color: {accent_fg}; border-color: {accent};
+}}
+QFrame#workflow_step[state="done"] QLabel#step_number {{
+    background: {selected_bg}; color: {selected_fg}; border-color: {accent};
+}}
+QFrame#workflow_step[state="current"] QLabel#step_title,
+QFrame#workflow_step[state="done"] QLabel#step_title {{ color: {fg}; }}
 QSplitter::handle {{ background: transparent; }}
 QPushButton[variant="quiet"], QPushButton#table_action {{
     background: transparent; border-color: transparent; color: {fg_dim};
@@ -192,7 +238,9 @@ QSlider::handle:horizontal:disabled {{ background: {border}; }}
 QPushButton#profile_card {{
     padding: 0px; text-align: left; min-height: {profile_card_height}px;
 }}
-QPushButton#profile_card:checked {{ border-color: {accent}; background: {selected_bg}; }}
+QPushButton#profile_card:checked {{
+    border: 2px solid {accent}; background: {selected_bg};
+}}
 QPushButton#profile_card QLabel {{ background: transparent; }}
 QWidget#action_bar {{ background: {bg_deep}; border-top: 1px solid {border}; }}
 QWidget#field_surface {{
@@ -201,7 +249,7 @@ QWidget#field_surface {{
 QWidget#field_surface[dragActive="true"] {{ border: 2px solid {accent}; }}
 QPushButton {{
     background: {bg_alt}; color: {fg}; padding: {sm}px {lg}px;
-    border: 2px solid {border}; border-radius: {control_radius}px; min-height: 20px;
+    border: 1px solid {border}; border-radius: {control_radius}px; min-height: 22px;
     font-weight: 500;
 }}
 QPushButton:hover:!disabled {{ background: {hover}; }}
@@ -211,6 +259,9 @@ QPushButton#page_help:checked {{
 }}
 QPushButton:disabled {{
     background: {disabled_bg}; color: {disabled_fg}; border-color: {disabled_bg};
+}}
+QPushButton[variant="quiet"]:disabled {{
+    background: transparent; border-color: transparent; color: {disabled_fg};
 }}
 QPushButton#run, QPushButton[variant="primary"] {{
     background: {accent}; color: {accent_fg}; border-color: {accent}; font-weight: bold;
@@ -225,12 +276,12 @@ QPushButton#cancel:enabled {{ color: {danger_hover}; }}
 QPushButton#cancel:hover:enabled {{ background: {danger}; color: {badge_fail_fg}; }}
 QPushButton#disclosure {{
     color: {fg_dim}; border: 2px solid transparent; background: transparent;
-    padding-left: 0px; text-align: left;
+    padding-left: 0px; text-align: left; min-height: 20px;
 }}
 QPushButton#disclosure:hover {{ color: {fg}; }}
 QComboBox, QLineEdit, QSpinBox, QDoubleSpinBox {{
     background: {bg_alt}; color: {fg}; padding: {sm}px {md}px;
-    border-radius: {control_radius}px; border: 2px solid {border}; min-height: 20px;
+    border-radius: {control_radius}px; border: 1px solid {border}; min-height: 22px;
     selection-background-color: {selected_bg}; selection-color: {selected_fg};
 }}
 QComboBox:disabled, QLineEdit:disabled, QSpinBox:disabled, QDoubleSpinBox:disabled {{

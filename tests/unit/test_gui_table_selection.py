@@ -134,7 +134,7 @@ def test_all_page_tables_have_explicit_selection_and_footer_stays_centered(
     for index in range(window.stack.count()):
         window.sidebar.setCurrentRow(index)
         qapp.processEvents()
-        for table in window.stack.widget(index).findChildren(QTableWidget):
+        for table in window.stack.currentWidget().findChildren(QTableWidget):
             checkbox = table.findChild(TableSelectionCheckBox)
             assert checkbox is not None
             assert install_selection_checkbox(table) is checkbox

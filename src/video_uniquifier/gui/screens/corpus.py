@@ -136,13 +136,13 @@ class CorpusScreen(ScreenBase):
             ts = datetime.fromtimestamp(e.added_at).isoformat(timespec="seconds")
             self.table.setItem(r, 2, QTableWidgetItem(ts))
             self.table.setItem(r, 3, QTableWidgetItem(str(e.sample_count)))
-            has_audio = "yes" if e.audio_fingerprint else "no"
+            has_audio = self.tr("Yes") if e.audio_fingerprint else self.tr("No")
             self.table.setItem(r, 4, QTableWidgetItem(has_audio))
-        self.status_label.setText(f"{len(entries)} entries")
+        self.status_label.setText(self.tr("{count} entries").format(count=len(entries)))
         self._drop_list_worker()
 
     def _on_list_failed(self, message: str) -> None:
-        self.status_label.setText(f"refresh failed: {message}")
+        self.status_label.setText(self.tr("Refresh failed: {message}").format(message=message))
         self._drop_list_worker()
 
     def _drop_list_worker(self) -> None:
