@@ -14,7 +14,7 @@ This page is the authoritative reference for `video-uniquifier`'s
 Version 2.0.0 renames the distribution to `video-uniquifier`, Python imports to
 `video_uniquifier`, and executables to `video-uniq`, `video-uniq-gui` and
 `video-uniq-web`. Update plugin entry points to `video_uniquifier.transforms` and environment prefixes to `VIDEO_UNIQ_*`, `VIDEO_UNIQUIFIER_*` and `VU_*`. Old import/command aliases are removed. GUI settings/history migrate by copying the previous data directory when no new state exists; previous caches remain separate and are rebuilt. Historical benchmarks/releases keep their original artifact names. The owner-authorized naming decision is recorded in
-`specs/29-project-rename-rfc.md` in the repository.
+[specs/29-project-rename-rfc.md](https://github.com/Hostlife22/video-uniquifier/blob/d6af67ac05eb0689f958f18cca08cfdb6cb7c4db/specs/29-project-rename-rfc.md) in the archived revision.
 
 The supported entry point is the `video_uniquifier.core` barrel:
 

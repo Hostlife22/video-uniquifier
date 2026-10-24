@@ -2,7 +2,7 @@
 
 Подробные [результаты](../../docs/audit-implementation-results.md),
 [план и статусы](../../docs/implementation-plan.md) и
-[исследование](../../docs/research/2026-10-04-video-uniquification/index.md)
+[исследование](https://github.com/Hostlife22/video-uniquifier/blob/d6af67ac05eb0689f958f18cca08cfdb6cb7c4db/docs/research/2026-10-04-video-uniquification/index.md)
 сохранены в документации. Код, регрессионные тесты и инструменты подготовки/
 оценки корпуса остаются в проекте.
 

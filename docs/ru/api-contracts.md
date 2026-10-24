@@ -20,7 +20,7 @@
 Версия 2.0.0 переименовывает дистрибутив в `video-uniquifier`, Python импорты в
 `video_uniquifier`, а исполняемые файлы в `video-uniq`, `video-uniq-gui` и
 `video-uniq-web`. Обновите точки входа плагина на `video_uniquifier.transforms` и префиксы окружения на `VIDEO_UNIQ_*`, `VIDEO_UNIQUIFIER_*` и `VU_*`. Старые алиасы импорта/команд удалены. Настройки GUI/история мигрируют путем копирования предыдущей директории данных, если новое состояние отсутствует; предыдущие кэши остаются отдельными и восстанавливаются заново. Исторические бенчмарки/релизы сохраняют свои оригинальные имена артефактов. Решение по автору-владельцу относительно именования зафиксировано в
-`specs/29-project-rename-rfc.md` в репозитории.
+[specs/29-project-rename-rfc.md](https://github.com/Hostlife22/video-uniquifier/blob/d6af67ac05eb0689f958f18cca08cfdb6cb7c4db/specs/29-project-rename-rfc.md) в архивной ревизии.
 
 Поддерживаемая точка входа — это бочка `video_uniquifier.core`:
 

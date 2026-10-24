@@ -115,7 +115,7 @@ See `docs/en/gui.md` for the screen-by-screen tour and `pyinstaller/` for the de
 `specs/` contains retained RFCs for geometry and QA contracts; see `specs/README.md`.
 Completed implementation plans and version roadmaps are available in Git history.
 Use `docs/en/architecture.md` and `docs/en/api-contracts.md` for current behavior, and
-`PRODUCTION_PLAN.md` / `RISK_REGISTER.md` for outstanding production work.
+`RISK_REGISTER.md` for outstanding production work.
 
 ## Docs
 

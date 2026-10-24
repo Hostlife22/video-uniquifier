@@ -340,7 +340,7 @@ Skips include the separately opted-in hardware matrix, heavy GUI E2E and the
 missing-PyQt branch in this GUI-equipped environment; they are not qualification
 of those paths. Real audio regressions also passed on Linux FFmpeg 5/6. CI
 `34030418205` passed all six OS/Python jobs; release/Docker proofs are recorded in
-`PRODUCTION_CHECKLIST.md`. The separate 180-minute job started before these fixes;
+[PRODUCTION_CHECKLIST.md](https://github.com/Hostlife22/video-uniquifier/blob/d6af67ac05eb0689f958f18cca08cfdb6cb7c4db/PRODUCTION_CHECKLIST.md). The separate 180-minute job started before these fixes;
 its completed historical results are now recorded at the top of this document.
 
 - 4K soft cell: 31.436 s, encode 82.72 s, sampled process-tree RSS 2,456,372 KiB,

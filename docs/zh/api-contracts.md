@@ -20,7 +20,7 @@
 版本 2.0.0 将分发包重命名为 `video-uniquifier`，Python 导入改为
 `video_uniquifier`，可执行文件改为 `video-uniq`、`video-uniq-gui` 和
 `video-uniq-web`。将插件入口点更新为 `video_uniquifier.transforms`，环境前缀更新为 `VIDEO_UNIQ_*`、`VIDEO_UNIQUIFIER_*` 和 `VU_*`。旧的导入/命令别名已被移除。当不存在新状态时，GUI 设置/历史记录通过复制先前的数据目录进行迁移；以前的缓存保持独立并重新生成。历史基准测试/发布保留其原始工件名称。所有者授权的命名决定记录在
-`specs/29-project-rename-rfc.md` 的存储库中。
+[specs/29-project-rename-rfc.md](https://github.com/Hostlife22/video-uniquifier/blob/d6af67ac05eb0689f958f18cca08cfdb6cb7c4db/specs/29-project-rename-rfc.md) 的历史版本中。
 
 支持的入口点是 `video_uniquifier.core` 桶：
 
