@@ -261,9 +261,12 @@ class VideoCompareDialog(QDialog):
             self.audio_combo.setEnabled(False)
         self._view_changed()
         self._update_transport()
-        for player, path in zip(self.players, self._paths, strict=True):
+        for side, (player, path) in enumerate(zip(self.players, self._paths, strict=True)):
             if path is not None:
-                player.setSource(QUrl.fromLocalFile(str(path.resolve())))
+                if path.is_file():
+                    player.setSource(QUrl.fromLocalFile(str(path.resolve())))
+                else:
+                    self._error(side, self.tr("Video file is missing or no longer accessible."))
 
     @property
     def master_index(self) -> int:

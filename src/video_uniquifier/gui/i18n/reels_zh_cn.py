@@ -1,6 +1,7 @@
 """Chinese captions for the focused desktop delivery workflow."""
 
 STRINGS = {
+    "Video file is missing or no longer accessible.": "视频文件不存在或已无法访问。",
     "Reels vertical preset · set up, preview and export in four steps.":
         "Reels 竖屏预设 · 按四步完成参数设置、样片检查与成片导出。",
     "Vertical format and delivery checks": "竖屏格式 · 成片检查",

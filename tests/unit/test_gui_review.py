@@ -32,6 +32,24 @@ def desktop(qapp, monkeypatch):
     monkeypatch.setattr(QMediaPlayer, "setSource", lambda self, _source: None)
 
 
+@pytest.fixture
+def comparison_files(tmp_path):
+    for name in ("source.mp4", "result.mp4"):
+        (tmp_path / name).touch()
+
+
+def test_missing_comparison_media_never_reaches_the_native_decoder(qtbot, tmp_path, monkeypatch):
+    opened = []
+    monkeypatch.setattr(QMediaPlayer, "setSource", lambda self, source: opened.append(source))
+    dialog = VideoCompareDialog(tmp_path / "missing.mp4")
+    qtbot.addWidget(dialog)
+    assert dialog._has_error
+    assert dialog.tr("Video file is missing or no longer accessible.") in dialog.message.text()
+    assert opened == []
+    assert all(player.source().isEmpty() for player in dialog.players)
+    assert dialog.close()
+
+
 def _source(path: Path, duration: float = 9.0, *, hdr: bool = False) -> SourceMeta:
     return SourceMeta(
         path=path, container="mp4", duration_sec=duration, size_bytes=100,
@@ -204,6 +222,7 @@ def test_hdr_sample_button_explains_the_limitation(qtbot, tmp_path):
     assert screen.run_btn.isEnabled()
 
 
+@pytest.mark.usefixtures("comparison_files")
 def test_frame_step_discards_a_cache_from_a_different_position(qtbot, tmp_path):
     dialog = VideoCompareDialog(tmp_path / "source.mp4")
     qtbot.addWidget(dialog)
@@ -236,6 +255,7 @@ def test_completed_comparison_keeps_the_actual_pair_when_inputs_change(qtbot, tm
     assert screen._review_pair == (source, output)
 
 
+@pytest.mark.usefixtures("comparison_files")
 def test_transport_maps_duration_and_mutes_the_unselected_track(qtbot, tmp_path):
     dialog = VideoCompareDialog(tmp_path / "source.mp4", tmp_path / "result.mp4")
     qtbot.addWidget(dialog)
@@ -252,6 +272,7 @@ def test_transport_maps_duration_and_mutes_the_unselected_track(qtbot, tmp_path)
     assert all(output.isMuted() for output in dialog.outputs)
 
 
+@pytest.mark.usefixtures("comparison_files")
 def test_time_sync_uses_the_common_range_and_pixel_zoom_respects_screen_dpr(qtbot, tmp_path):
     dialog = VideoCompareDialog(tmp_path / "source.mp4", tmp_path / "result.mp4")
     qtbot.addWidget(dialog)
@@ -274,6 +295,7 @@ def test_time_sync_uses_the_common_range_and_pixel_zoom_respects_screen_dpr(qtbo
 
 
 @pytest.mark.parametrize("sync", ["time", "duration"])
+@pytest.mark.usefixtures("comparison_files")
 def test_trimmed_reference_maps_both_seek_and_playback_rate(qtbot, tmp_path, sync):
     dialog = VideoCompareDialog(tmp_path / "source.mp4", tmp_path / "result.mp4",
                                 source_range=(2, 27))
@@ -287,6 +309,7 @@ def test_trimmed_reference_maps_both_seek_and_playback_rate(qtbot, tmp_path, syn
     assert dialog._position == 20000
 
 
+@pytest.mark.usefixtures("comparison_files")
 def test_result_only_transport_does_not_require_a_reference(qtbot, tmp_path):
     dialog = VideoCompareDialog(None, tmp_path / "result.mp4")
     qtbot.addWidget(dialog)

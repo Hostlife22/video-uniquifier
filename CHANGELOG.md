@@ -41,6 +41,7 @@ the last tag.
   page, and table selection recovers native buttons with generic Python wrappers.
   Workflow captions retain literal ampersands; reviewed desktop visual baselines
   include the new delivery screen.
+- Comparison players report missing local videos before invoking native decoders.
 
 - Simplified Chinese covers desktop navigation, settings, processing, comparison
   controls and page guides. Switching languages refreshes existing page captions

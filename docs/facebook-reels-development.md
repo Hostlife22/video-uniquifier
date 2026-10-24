@@ -31,6 +31,10 @@
 - The integration step has a 30-minute total budget after Linux/macOS runners
   exhausted the previous 15 minutes. The 180-second per-test cap is unchanged;
   CI now records the twenty slowest tests. All integration tests remain enabled.
+- Comparison checks local file availability before invoking a native decoder,
+  matching the existing studio preview. Missing-file errors and early close are
+  tested alongside real playback. CI prints integration test names so native
+  process exits can be attributed to a specific test instead of an anonymous dot.
 
 ## Tabular desktop quality reports (2026-10-23)
 

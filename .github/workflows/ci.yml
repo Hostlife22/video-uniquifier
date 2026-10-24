@@ -138,7 +138,7 @@ jobs:
         timeout-minutes: 30
         env:
           QT_QPA_PLATFORM: offscreen
-        run: pytest -q -m integration --durations=20
+        run: pytest -v -m integration --durations=20
 
       # v1.0.0 R3 — SemVer-gate on `core/` coverage. Runs once
       # (ubuntu-latest + 3.12) because line/branch coverage is
