@@ -1,4 +1,4 @@
-name: Ubuntu Qt native coverage diagnostics
+name: Ubuntu Qt allocation-sensitive diagnostics
 on:
   workflow_dispatch:
     inputs:
@@ -11,6 +11,10 @@ jobs:
   desktop:
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        mode: [native, debugger]
     steps:
       - uses: actions/checkout@v7
         with:
@@ -27,11 +31,26 @@ jobs:
           python -m pip install --upgrade pip
           pip install --require-hashes -r requirements-lock.txt
           pip install -e '.[dev,gui,web]' --no-deps
-      - name: Repeat full coverage under native debugger
+      - name: Repeat exact quiet coverage invocation
         env:
           QT_QPA_PLATFORM: offscreen
+          DIAGNOSTIC_MODE: ${{ matrix.mode }}
         run: |
-          for attempt in 1 2 3; do
-            echo "Coverage repetition $attempt"
-            gdb --return-child-result --batch -ex 'set pagination off' -ex 'run' -ex 'thread apply all bt' --args python -X faulthandler -m pytest -vv -m 'not integration and not visual' --cov=video_uniquifier.core --cov-report=term --cov-fail-under=80 || exit $?
+          ulimit -c unlimited
+          sudo sysctl -w kernel.core_pattern="$PWD/core.qt.%p"
+          for attempt in 1 2 3 4 5 6; do
+            echo "Coverage repetition $attempt ($DIAGNOSTIC_MODE)"
+            if [ "$DIAGNOSTIC_MODE" = debugger ]; then
+              gdb --return-child-result --batch -ex 'set pagination off' -ex 'run' -ex 'thread apply all bt' --args python -X faulthandler -m pytest -q -m 'not integration and not visual' --cov=video_uniquifier.core --cov-report=term --cov-fail-under=80 || exit $?
+            else
+              python -X faulthandler -m pytest -q -m 'not integration and not visual' --cov=video_uniquifier.core --cov-report=term --cov-fail-under=80 || {
+                result=$?
+                for core in core.qt.*; do
+                  if [ -f "$core" ]; then
+                    gdb --batch -ex 'set pagination off' -ex 'thread apply all bt' "$(command -v python)" "$core"
+                  fi
+                done
+                exit "$result"
+              }
+            fi
           done
