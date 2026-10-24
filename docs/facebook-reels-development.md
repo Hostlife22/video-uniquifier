@@ -1,5 +1,25 @@
 # Facebook Reels implementation log
 
+## PR review corrections (2026-10-24)
+
+- Worker JSON writes and downloads normalize and confine paths to the configured
+  storage root, including symlinks and sibling-directory prefixes. Restored job
+  identifiers must be hexadecimal, and malformed records are skipped. Temporary
+  JSON files are exclusively created and flushed before atomic replacement.
+- PNG logo dimensions are checked before resizing: narrow inputs can otherwise
+  expand far beyond the source pixel budget and exhaust worker memory.
+- Native table corners can be recovered from generic Python wrappers without
+  relying on a private Qt class name. Hidden delivery pages no longer widen the
+  outer page; forms wrap long rows. Small-window checks cover English, Russian and
+  Chinese, with reviewed visual baselines for all eleven screens.
+- Real 10/30/90-second exports passed technical QA. Native Cocoa acceptance passed
+  source/sample/export, decoded playback, comparison, quality reports and small
+  windows. Real loopback HTTP acceptance passed authenticated upload, processing,
+  cancellation, retry, download and rejection of escaping artifact symlinks.
+- Evidence is kept under ignored `out/pr34-review/`: core and desktop acceptance
+  JSON, HTTP acceptance JSON, screenshots, and test/build logs. These checks use
+  generated footage and do not replace editorial listening/subtitle review.
+
 ## Tabular desktop quality reports (2026-10-23)
 
 - Delivery's quality-report action opens a native window with source/output columns

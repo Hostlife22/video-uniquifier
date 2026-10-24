@@ -49,7 +49,8 @@ class WorkflowNavigation(QFrame):
 
     def _retranslate(self) -> None:
         for index, (button, title) in enumerate(zip(self.buttons, self.titles, strict=True)):
-            button.setText(f"{index + 1:02}  {self.tr(title)}")
+            caption = self.tr(title).replace("&", "&&")
+            button.setText(f"{index + 1:02}  {caption}")
             button.setAccessibleName(f"{index + 1}. {self.tr(title)}")
 
     def changeEvent(self, event: QEvent | None) -> None:

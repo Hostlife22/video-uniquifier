@@ -39,6 +39,7 @@ SCREENS = {
     "Queue":          7,
     "Validation":     8,
     "Settings":       9,
+    "Reels":         10,
 }
 
 

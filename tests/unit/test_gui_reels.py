@@ -90,10 +90,11 @@ def test_branding_requires_files_and_preserves_advanced_fields(qtbot, tmp_path):
 
 @pytest.mark.parametrize("theme", ["dark", "light"])
 @pytest.mark.parametrize("size", [(980, 640), (1440, 900)])
+@pytest.mark.parametrize("locale", ["en_US", "ru_RU", "zh_CN"])
 def test_reels_entry_and_all_steps_fit_small_windows(
-    gui_window_factory, qtbot, qapp, size, theme,
+    gui_window_factory, qtbot, qapp, size, theme, locale,
 ):
-    install_translator(qapp, "zh_CN")
+    install_translator(qapp, locale)
     window = gui_window_factory()
     window.state.set_theme(theme)
     window.resize(*size)
@@ -102,7 +103,7 @@ def test_reels_entry_and_all_steps_fit_small_windows(
     page = window.stack.currentWidget()
     assert isinstance(page, ReelsScreen)
     assert window.sidebar.currentItem() is window.sidebar_items["Reels"]
-    assert page.navigation.buttons[1].text() == "02  处理参数"
+    assert page.navigation.buttons[1].text() == "02  " + page.tr("Delivery settings")
     for index in range(4):
         page.navigation.buttons[index].click()
         qapp.processEvents()
@@ -114,6 +115,11 @@ def test_reels_entry_and_all_steps_fit_small_windows(
         for button in (page.navigation.buttons[index], page.next_btn, page.back_btn):
             if button.isVisible():
                 assert window.rect().contains(button.mapTo(window, button.rect().bottomRight()))
+        if index == 2:
+            for button in (page.check_btn, page.sample_btn, page.safe_btn):
+                assert page.pages.rect().contains(
+                    button.mapTo(page.pages, button.rect().bottomRight()),
+                )
     page.navigation.setCurrentIndex(1)
     for index in range(3):
         page.options.setCurrentIndex(index)

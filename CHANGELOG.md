@@ -39,6 +39,8 @@ the last tag.
 - Reject oversized derived logo dimensions before allocating resized images.
 - Delivery pages fit platform-specific control widths without widening the outer
   page, and table selection recovers native buttons with generic Python wrappers.
+  Workflow captions retain literal ampersands; reviewed desktop visual baselines
+  include the new delivery screen.
 
 - Simplified Chinese covers desktop navigation, settings, processing, comparison
   controls and page guides. Switching languages refreshes existing page captions
